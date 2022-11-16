@@ -133,6 +133,13 @@ extension ASN1.ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
     }
 }
 
+extension ASN1.ASN1ObjectIdentifier: CustomStringConvertible {
+    @inlinable
+    public var description: String {
+        self._oidComponents.map { String($0) }.joined(separator: ".")
+    }
+}
+
 extension ASN1.ASN1ObjectIdentifier {
     /// Represents a namespace for OIDs that identify named Elliptic Curves.
     ///

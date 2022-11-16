@@ -785,4 +785,10 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         }
         XCTAssertEqual(int, 1)
     }
+
+    func testPrintingOIDs() {
+        let oid: ASN1.ASN1ObjectIdentifier = [1, 2, 865, 11241, 3]
+        let s = String(describing: oid)
+        XCTAssertEqual(s, "1.2.865.11241.3")
+    }
 }
