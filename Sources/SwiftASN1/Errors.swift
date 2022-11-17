@@ -38,6 +38,6 @@ public enum ASN1Error : Error {
     /// It was not possible to parse a string as a PEM document.
     case invalidPEMDocument
 
-    /// A string was invalid
+    /// A string was invalid.
     case invalidStringRepresentation
 }

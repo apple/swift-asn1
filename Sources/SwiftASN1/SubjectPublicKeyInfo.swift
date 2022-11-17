@@ -63,10 +63,6 @@ struct RFC5480AlgorithmIdentifier: DERImplicitlyTaggable, Hashable {
 
     var parameters: ASN1Any?
 
-//        case ecdsaP256
-//        case ecdsaP384
-//        case ecdsaP521
-
     init(algorithm: ASN1ObjectIdentifier, parameters: ASN1Any?) {
         self.algorithm = algorithm
         self.parameters = parameters

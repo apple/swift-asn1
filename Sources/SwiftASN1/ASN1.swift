@@ -837,7 +837,7 @@ extension DER {
             }
         }
 
-        /// Serialize a parsed ASN.1 node directly.
+        /// Serializes a parsed ASN.1 node directly.
         ///
         /// This is an extremely low-level helper function that can be used to re-serialize a parsed object when properly deserializing it was not
         /// practical.
@@ -981,7 +981,7 @@ public protocol DERSerializable {
 /// is, as they replace the tags. This means some objects cannot be implicitly tagged. In particular,
 /// CHOICE elements without explicit tags cannot be implicitly tagged.
 ///
-/// Objects that _can_ be implicitly tagged should prefer to implement this protocol than
+/// Objects that _can_ be implicitly tagged should prefer to implement this protocol in preference to
 /// ``DERSerializable`` and ``DERParseable``.
 public protocol DERImplicitlyTaggable: DERParseable, DERSerializable {
     /// The tag that the first node will use "by default" if the grammar omits

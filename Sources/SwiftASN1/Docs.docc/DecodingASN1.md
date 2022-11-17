@@ -239,7 +239,7 @@ func serialize(into coder: inout DER.Serializer) throws {
 ```
 
 Note that we need to construct the ``ASN1Identifier`` directly in this case. This is common whenever we have an implicit
-tag that needs to be passed to an an object that is unconditionally present. It's often a wise idea to store this tag in a `static let`
+tag that needs to be passed to an object that is unconditionally present. It's often a wise idea to store this tag in a `static let`
 for ease of access.
 
 There are a few helper functions for circumstances when an object has an implicit tag and is also either `OPTIONAL` or `DEFAULT`. For parsing,
