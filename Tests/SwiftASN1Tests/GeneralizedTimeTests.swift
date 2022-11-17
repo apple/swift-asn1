@@ -16,17 +16,17 @@ import XCTest
 @testable import SwiftASN1
 
 final class GeneralizedTimeTests: XCTestCase {
-    private func assertRoundTrips<ASN1Object: ASN1Parseable & ASN1Serializable & Equatable>(_ value: ASN1Object) throws {
-        var serializer = ASN1.Serializer()
+    private func assertRoundTrips<ASN1Object: DERParseable & DERSerializable & Equatable>(_ value: ASN1Object) throws {
+        var serializer = DER.Serializer()
         try serializer.serialize(value)
-        let parsed = try ASN1Object(asn1Encoded: serializer.serializedBytes)
+        let parsed = try ASN1Object(derEncoded: serializer.serializedBytes)
         XCTAssertEqual(parsed, value)
     }
 
     func testSimpleGeneralizedTimeTestVectors() throws {
         // This is a small set of generalized time test vectors derived from the ASN.1 docs.
         // We store the byte payload here as a string.
-        let vectors: [(String, ASN1.GeneralizedTime?)] = [
+        let vectors: [(String, GeneralizedTime?)] = [
             // Valid representations
             ("19920521000000Z",   try .init(year: 1992, month: 5, day: 21, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)),
             ("19920622123421Z",   try .init(year: 1992, month: 6, day: 22, hours: 12, minutes: 34, seconds: 21, fractionalSeconds: 0)),
@@ -84,11 +84,11 @@ final class GeneralizedTimeTests: XCTestCase {
 
         for (stringRepresentation, expectedResult) in vectors {
             var serialized = Array<UInt8>()
-            serialized.writeIdentifier(ASN1.ASN1Identifier.generalizedTime)
+            serialized.writeIdentifier(ASN1Identifier.generalizedTime)
             serialized.append(UInt8(stringRepresentation.utf8.count))
             serialized.append(contentsOf: stringRepresentation.utf8)
 
-            let result = try? ASN1.GeneralizedTime(asn1Encoded: serialized)
+            let result = try? GeneralizedTime(derEncoded: serialized)
             XCTAssertEqual(result, expectedResult)
 
             if let expected = expectedResult {
@@ -98,7 +98,7 @@ final class GeneralizedTimeTests: XCTestCase {
     }
 
     func testCreatingOutOfBoundsValuesViaInitFails() throws {
-        func mustFail(_ code: @autoclosure () throws -> ASN1.GeneralizedTime) {
+        func mustFail(_ code: @autoclosure () throws -> GeneralizedTime) {
             XCTAssertThrowsError(try code())
         }
 
@@ -136,20 +136,20 @@ final class GeneralizedTimeTests: XCTestCase {
     func testTruncatedRepresentationsRejected() throws {
         func mustNotDeserialize(_ stringRepresentation: Substring) {
             var serialized = Array<UInt8>()
-            serialized.writeIdentifier(ASN1.ASN1Identifier.generalizedTime)
+            serialized.writeIdentifier(ASN1Identifier.generalizedTime)
             serialized.append(UInt8(stringRepresentation.utf8.count))
             serialized.append(contentsOf: stringRepresentation.utf8)
 
-            XCTAssertThrowsError(try ASN1.GeneralizedTime(asn1Encoded: serialized))
+            XCTAssertThrowsError(try GeneralizedTime(derEncoded: serialized))
         }
 
         func deserializes(_ stringRepresentation: Substring) {
             var serialized = Array<UInt8>()
-            serialized.writeIdentifier(ASN1.ASN1Identifier.generalizedTime)
+            serialized.writeIdentifier(ASN1Identifier.generalizedTime)
             serialized.append(UInt8(stringRepresentation.utf8.count))
             serialized.append(contentsOf: stringRepresentation.utf8)
 
-            XCTAssertNoThrow(try ASN1.GeneralizedTime(asn1Encoded: serialized))
+            XCTAssertNoThrow(try GeneralizedTime(derEncoded: serialized))
         }
 
         // Anything that doesn't end up in a Z must fail to deserialize.
@@ -171,10 +171,10 @@ final class GeneralizedTimeTests: XCTestCase {
     func testRequiresAppropriateTag() throws {
         let rawValue = "19920521000000Z".utf8
         var invalidBytes = Array<UInt8>()
-        invalidBytes.writeIdentifier(ASN1.ASN1Identifier.integer)  // generalizedTime isn't an integer
+        invalidBytes.writeIdentifier(ASN1Identifier.integer)  // generalizedTime isn't an integer
         invalidBytes.append(UInt8(rawValue.count))
         invalidBytes.append(contentsOf: rawValue)
 
-        XCTAssertThrowsError(try ASN1.GeneralizedTime(asn1Encoded: invalidBytes))
+        XCTAssertThrowsError(try GeneralizedTime(derEncoded: invalidBytes))
     }
 }

@@ -14,73 +14,71 @@
 #if canImport(Foundation)
 import Foundation
 
-extension ASN1 {
-    /// A PEM document is some data, and a discriminator type that is used to advertise the content.
-    struct PEMDocument {
-        private static let lineLength = 64
+/// A PEM document is some data, and a discriminator type that is used to advertise the content.
+struct PEMDocument {
+    private static let lineLength = 64
 
-        var type: String
+    var type: String
 
-        var derBytes: Data
+    var derBytes: Data
 
-        init(pemString: String) throws {
-            // A PEM document looks like this:
-            //
-            // -----BEGIN <SOME DISCRIMINATOR>-----
-            // <base64 encoded bytes, 64 characters per line>
-            // -----END <SOME DISCRIMINATOR>-----
-            //
-            // This function attempts to parse this string as a PEM document, and returns the discriminator type
-            // and the base64 decoded bytes.
-            var lines = pemString.split { $0.isNewline }[...]
-            guard let first = lines.first, let last = lines.last else {
-                throw ASN1Error.invalidPEMDocument
-            }
-
-            guard let discriminator = first.pemStartDiscriminator, discriminator == last.pemEndDiscriminator else {
-                throw ASN1Error.invalidPEMDocument
-            }
-
-            // All but the last line must be 64 bytes. The force unwrap is safe because we require the lines to be
-            // greater than zero.
-            lines = lines.dropFirst().dropLast()
-            guard lines.count > 0,
-                lines.dropLast().allSatisfy({ $0.utf8.count == PEMDocument.lineLength }),
-                lines.last!.utf8.count <= PEMDocument.lineLength else {
-                throw ASN1Error.invalidPEMDocument
-            }
-
-            guard let derBytes = Data(base64Encoded: lines.joined()) else {
-                throw ASN1Error.invalidPEMDocument
-            }
-
-            self.type = discriminator
-            self.derBytes = derBytes
+    init(pemString: String) throws {
+        // A PEM document looks like this:
+        //
+        // -----BEGIN <SOME DISCRIMINATOR>-----
+        // <base64 encoded bytes, 64 characters per line>
+        // -----END <SOME DISCRIMINATOR>-----
+        //
+        // This function attempts to parse this string as a PEM document, and returns the discriminator type
+        // and the base64 decoded bytes.
+        var lines = pemString.split { $0.isNewline }[...]
+        guard let first = lines.first, let last = lines.last else {
+            throw ASN1Error.invalidPEMDocument
         }
 
-        init(type: String, derBytes: Data) {
-            self.type = type
-            self.derBytes = derBytes
+        guard let discriminator = first.pemStartDiscriminator, discriminator == last.pemEndDiscriminator else {
+            throw ASN1Error.invalidPEMDocument
         }
 
-        var pemString: String {
-            var encoded = self.derBytes.base64EncodedString()[...]
-            let pemLineCount = (encoded.utf8.count + PEMDocument.lineLength) / PEMDocument.lineLength
-            var pemLines = [Substring]()
-            pemLines.reserveCapacity(pemLineCount + 2)
-
-            pemLines.append("-----BEGIN \(self.type)-----")
-
-            while encoded.count > 0 {
-                let prefixIndex = encoded.index(encoded.startIndex, offsetBy: PEMDocument.lineLength, limitedBy: encoded.endIndex) ?? encoded.endIndex
-                pemLines.append(encoded[..<prefixIndex])
-                encoded = encoded[prefixIndex...]
-            }
-
-            pemLines.append("-----END \(self.type)-----")
-
-            return pemLines.joined(separator: "\n")
+        // All but the last line must be 64 bytes. The force unwrap is safe because we require the lines to be
+        // greater than zero.
+        lines = lines.dropFirst().dropLast()
+        guard lines.count > 0,
+            lines.dropLast().allSatisfy({ $0.utf8.count == PEMDocument.lineLength }),
+            lines.last!.utf8.count <= PEMDocument.lineLength else {
+            throw ASN1Error.invalidPEMDocument
         }
+
+        guard let derBytes = Data(base64Encoded: lines.joined()) else {
+            throw ASN1Error.invalidPEMDocument
+        }
+
+        self.type = discriminator
+        self.derBytes = derBytes
+    }
+
+    init(type: String, derBytes: Data) {
+        self.type = type
+        self.derBytes = derBytes
+    }
+
+    var pemString: String {
+        var encoded = self.derBytes.base64EncodedString()[...]
+        let pemLineCount = (encoded.utf8.count + PEMDocument.lineLength) / PEMDocument.lineLength
+        var pemLines = [Substring]()
+        pemLines.reserveCapacity(pemLineCount + 2)
+
+        pemLines.append("-----BEGIN \(self.type)-----")
+
+        while encoded.count > 0 {
+            let prefixIndex = encoded.index(encoded.startIndex, offsetBy: PEMDocument.lineLength, limitedBy: encoded.endIndex) ?? encoded.endIndex
+            pemLines.append(encoded[..<prefixIndex])
+            encoded = encoded[prefixIndex...]
+        }
+
+        pemLines.append("-----END \(self.type)-----")
+
+        return pemLines.joined(separator: "\n")
     }
 }
 

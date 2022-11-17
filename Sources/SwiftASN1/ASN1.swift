@@ -12,20 +12,21 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// ``ASN1`` defines a namespace that is used to store a number of helper methods and types.
-public enum ASN1 { }
+/// ``DER`` defines a namespace that is used to store a number of helper methods and types
+/// for DER encoding and decoding.
+public enum DER { }
 
 // MARK: - Parser Node
-extension ASN1 {
-    /// An ``ASN1ParserNode`` is a representation of a parsed ASN.1 TLV section.
+extension DER {
+    /// A ``ParserNode`` is a representation of a parsed ASN.1 TLV section.
     ///
-    /// An ``ASN1ParserNode`` may be primitive, or may be composed of other ``ASN1ParserNode``s.
+    /// A ``ParserNode`` may be primitive, or may be composed of other ``ParserNode``s.
     /// In our representation, we keep track of this by storing a node "depth", which allows rapid forward and backward scans to hop over sections
     /// we're uninterested in.
     ///
     /// This type is not exposed to users of the API: it is only used internally for implementation of the user-level API.
     @usableFromInline
-    struct ASN1ParserNode {
+    struct ParserNode {
         /// The identifier.
         @usableFromInline
         var identifier: ASN1Identifier
@@ -44,7 +45,7 @@ extension ASN1 {
 
         @inlinable
         init(
-            identifier: ASN1.ASN1Identifier,
+            identifier: ASN1Identifier,
             depth: Int,
             encodedBytes: ArraySlice<UInt8>,
             dataBytes: ArraySlice<UInt8>? = nil
@@ -57,29 +58,29 @@ extension ASN1 {
     }
 }
 
-extension ASN1.ASN1ParserNode: Hashable { }
+extension DER.ParserNode: Hashable { }
 
-extension ASN1.ASN1ParserNode: Sendable { }
+extension DER.ParserNode: Sendable { }
 
-extension ASN1.ASN1ParserNode: CustomStringConvertible {
+extension DER.ParserNode: CustomStringConvertible {
     @inlinable
     var description: String {
-        return "ASN1.ASN1ParserNode(identifier: \(self.identifier), depth: \(self.depth), dataBytes: \(self.dataBytes?.count ?? 0))"
+        return "DER.ParserNode(identifier: \(self.identifier), depth: \(self.depth), dataBytes: \(self.dataBytes?.count ?? 0))"
     }
 }
 
 // MARK: - Sequence, SequenceOf, and Set
-extension ASN1 {
+extension DER {
     /// Parse the node as an ASN.1 SEQUENCE.
     ///
     /// The "child" elements in the sequence will be exposed as an iterator to `builder`.
     ///
     /// - parameters:
     ///     - node: The ``ASN1Node`` to parse
-    ///     - identifier: The ``ASN1/ASN1Identifier`` that the SEQUENCE is expected to have.
+    ///     - identifier: The ``ASN1Identifier`` that the SEQUENCE is expected to have.
     ///     - builder: A closure that will be called with the collection of nodes within the sequence.
     @inlinable
-    public static func sequence<T>(_ node: ASN1Node, identifier: ASN1.ASN1Identifier, _ builder: (inout ASN1.ASN1NodeCollection.Iterator) throws -> T) throws -> T {
+    public static func sequence<T>(_ node: ASN1Node, identifier: ASN1Identifier, _ builder: (inout ASN1NodeCollection.Iterator) throws -> T) throws -> T {
         guard node.identifier == identifier, case .constructed(let nodes) = node.content else {
             throw ASN1Error.unexpectedFieldType
         }
@@ -101,16 +102,16 @@ extension ASN1 {
     ///
     /// - parameters:
     ///     - of: An optional parameter to express the type to decode.
-    ///     - identifier: The ``ASN1/ASN1Identifier`` that the SEQUENCE OF is expected to have.
+    ///     - identifier: The ``ASN1Identifier`` that the SEQUENCE OF is expected to have.
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: An array of elements representing the elements in the sequence.
     @inlinable
-    public static func sequence<T: ASN1Parseable>(of: T.Type = T.self, identifier: ASN1.ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
+    public static func sequence<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
         guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
             throw ASN1Error.unexpectedFieldType
         }
 
-        return try nodes.map { try T(asn1Encoded: $0) }
+        return try nodes.map { try T(derEncoded: $0) }
     }
 
     /// Parse the node as an ASN.1 SEQUENCE OF.
@@ -119,11 +120,11 @@ extension ASN1 {
     ///
     /// - parameters:
     ///     - of: An optional parameter to express the type to decode.
-    ///     - identifier: The ``ASN1/ASN1Identifier`` that the SEQUENCE OF is expected to have.
-    ///     - nodes: An ``ASN1/ASN1NodeCollection/Iterator`` of nodes to parse.
+    ///     - identifier: The ``ASN1Identifier`` that the SEQUENCE OF is expected to have.
+    ///     - nodes: An ``ASN1NodeCollection/Iterator`` of nodes to parse.
     /// - returns: An array of elements representing the elements in the sequence.
     @inlinable
-    public static func sequence<T: ASN1Parseable>(of: T.Type = T.self, identifier: ASN1.ASN1Identifier, nodes: inout ASN1.ASN1NodeCollection.Iterator) throws -> [T] {
+    public static func sequence<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, nodes: inout ASN1NodeCollection.Iterator) throws -> [T] {
         guard let node = nodes.next() else {
             // Not present, throw.
             throw ASN1Error.invalidASN1Object
@@ -138,35 +139,35 @@ extension ASN1 {
     ///
     /// - parameters:
     ///     - node: The ``ASN1Node`` to parse
-    ///     - identifier: The ``ASN1/ASN1Identifier`` that the SET is expected to have.
+    ///     - identifier: The ``ASN1Identifier`` that the SET is expected to have.
     ///     - builder: A closure that will be called with the collection of nodes within the set.
     @inlinable
-    public static func set<T>(_ node: ASN1Node, identifier: ASN1.ASN1Identifier, _ builder: (inout ASN1.ASN1NodeCollection.Iterator) throws -> T) throws -> T {
+    public static func set<T>(_ node: ASN1Node, identifier: ASN1Identifier, _ builder: (inout ASN1NodeCollection.Iterator) throws -> T) throws -> T {
         // Shhhh these two are secretly the same with identifier.
         return try sequence(node, identifier: identifier, builder)
     }
 }
 
 // MARK: - Optional explicitly tagged
-extension ASN1 {
+extension DER {
     /// Parses an optional explicitly tagged element.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - tagNumber: The number of the explicit tag.
     ///     - tagClass: The class of the explicit tag.
     ///     - builder: A closure that will be called with the node for the element, if the element is present.
     ///
     /// - returns: The result of `builder` if the element was present, or `nil` if it was not.
     @inlinable
-    public static func optionalExplicitlyTagged<T>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1.ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T? {
+    public static func optionalExplicitlyTagged<T>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T? {
         var localNodesCopy = nodes
         guard let node = localNodesCopy.next() else {
             // Node not present, return nil.
             return nil
         }
 
-        let expectedNodeID = ASN1.ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
+        let expectedNodeID = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
         assert(expectedNodeID.constructed)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag. Our optional isn't present.
@@ -192,16 +193,16 @@ extension ASN1 {
 }
 
 // MARK: - Optional implicitly tagged
-extension ASN1 {
+extension DER {
     /// Parses an optional implicitly tagged element.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - tag: The implicit tag. Defaults to the default tag for the element.
     ///
     /// - returns: The parsed element, if it was present, or `nil` if it was not.
     @inlinable
-    public static func optionalImplicitlyTagged<T: ASN1ImplicitlyTaggable>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, tag: ASN1Identifier = T.defaultIdentifier) throws -> T? {
+    public static func optionalImplicitlyTagged<T: DERImplicitlyTaggable>(_ nodes: inout ASN1NodeCollection.Iterator, tag: ASN1Identifier = T.defaultIdentifier) throws -> T? {
         var localNodesCopy = nodes
         guard let node = localNodesCopy.next() else {
             // Node not present, return nil.
@@ -214,25 +215,25 @@ extension ASN1 {
         }
 
         // We're good: pass the node on.
-        return try T(asn1Encoded: &nodes, withIdentifier: tag)
+        return try T(derEncoded: &nodes, withIdentifier: tag)
     }
 }
 
 // MARK: - DEFAULT
-extension ASN1 {
+extension DER {
     /// Parses a value that is encoded with a DEFAULT.
     ///
     /// Such a value is optional, and if absent will be replaced with its default.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - identifier: The implicit tag. Defaults to the default tag for the element.
     ///     - defaultValue: The default value to use if there was no encoded value.
     ///     - builder: A closure that will be called with the node for the element, if the element is present.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefault<T: ASN1Parseable & Equatable>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, identifier: ASN1.ASN1Identifier, defaultValue: T, _ builder: (ASN1Node) throws -> T) throws -> T {
+    public static func decodeDefault<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, identifier: ASN1Identifier, defaultValue: T, _ builder: (ASN1Node) throws -> T) throws -> T {
         // A weird trick here: we only want to consume the next node _if_ it has the right tag. To achieve that,
         // we work on a copy.
         var localNodesCopy = nodes
@@ -263,32 +264,32 @@ extension ASN1 {
     ///
     /// Such a value is optional, and if absent will be replaced with its default. This function is
     /// a helper wrapper for ``decodeDefault(_:identifier:defaultValue:_:)`` that automatically invokes
-    /// ``ASN1Parseable/init(asn1Encoded:)-507py`` on `T`.
+    /// ``DERParseable/init(derEncoded:)-7tumk`` on `T`.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - identifier: The implicit tag. Defaults to the default tag for the element.
     ///     - defaultValue: The default value to use if there was no encoded value.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefault<T: ASN1Parseable & Equatable>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, identifier: ASN1.ASN1Identifier, defaultValue: T) throws -> T {
-        return try Self.decodeDefault(&nodes, identifier: identifier, defaultValue: defaultValue) { try T(asn1Encoded: $0) }
+    public static func decodeDefault<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, identifier: ASN1Identifier, defaultValue: T) throws -> T {
+        return try Self.decodeDefault(&nodes, identifier: identifier, defaultValue: defaultValue) { try T(derEncoded: $0) }
     }
 
     /// Parses a value that is encoded with a DEFAULT.
     ///
     /// Such a value is optional, and if absent will be replaced with its default. This function is
     /// a helper wrapper for ``decodeDefault(_:identifier:defaultValue:_:)`` that automatically invokes
-    /// ``ASN1ImplicitlyTaggable/init(asn1Encoded:withIdentifier:)-iudo`` on `T` using ``ASN1ImplicitlyTaggable/defaultIdentifier``.
+    /// ``DERImplicitlyTaggable/init(derEncoded:withIdentifier:)-7e88k`` on `T` using ``DERImplicitlyTaggable/defaultIdentifier``.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - defaultValue: The default value to use if there was no encoded value.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefault<T: ASN1ImplicitlyTaggable & Equatable>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, defaultValue: T) throws -> T {
+    public static func decodeDefault<T: DERImplicitlyTaggable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, defaultValue: T) throws -> T {
         return try Self.decodeDefault(&nodes, identifier: T.defaultIdentifier, defaultValue: defaultValue)
     }
 
@@ -297,7 +298,7 @@ extension ASN1 {
     /// Such a value is optional, and if absent will be replaced with its default.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - tagNumber: The number of the explicit tag.
     ///     - tagClass: The class of the explicit tag.
     ///     - defaultValue: The default value to use if there was no encoded value.
@@ -305,7 +306,7 @@ extension ASN1 {
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefaultExplicitlyTagged<T: ASN1Parseable & Equatable>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1.ASN1Identifier.TagClass, defaultValue: T, _ builder: (ASN1Node) throws -> T) throws -> T {
+    public static func decodeDefaultExplicitlyTagged<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, defaultValue: T, _ builder: (ASN1Node) throws -> T) throws -> T {
         if let result = try optionalExplicitlyTagged(&nodes, tagNumber: tagNumber, tagClass: tagClass, builder) {
             guard result != defaultValue else {
                 // DER forbids encoding DEFAULT values at their default state.
@@ -323,38 +324,38 @@ extension ASN1 {
     ///
     /// Such a value is optional, and if absent will be replaced with its default. This function is
     /// a helper wrapper for ``decodeDefaultExplicitlyTagged(_:tagNumber:tagClass:defaultValue:_:)`` that automatically invokes
-    /// ``ASN1Parseable/init(asn1Encoded:)-507py`` on `T`.
+    /// ``DERParseable/init(derEncoded:)-7tumk`` on `T`.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - tagNumber: The number of the explicit tag.
     ///     - tagClass: The class of the explicit tag.
     ///     - defaultValue: The default value to use if there was no encoded value.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefaultExplicitlyTagged<T: ASN1Parseable & Equatable>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1.ASN1Identifier.TagClass, defaultValue: T) throws -> T {
+    public static func decodeDefaultExplicitlyTagged<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, defaultValue: T) throws -> T {
         return try Self.decodeDefaultExplicitlyTagged(
             &nodes, tagNumber: tagNumber, tagClass: tagClass, defaultValue: defaultValue
         ) {
-            try T(asn1Encoded: $0)
+            try T(derEncoded: $0)
         }
     }
 }
 
 // MARK: - Ordinary, explicit tagging
-extension ASN1 {
+extension DER {
     /// Parses an explicitly tagged element.
     ///
     /// - parameters:
-    ///     - nodes: The ``ASN1/ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
     ///     - tagNumber: The number of the explicit tag.
     ///     - tagClass: The class of the explicit tag.
     ///     - builder: A closure that will be called with the node for the element.
     ///
     /// - returns: The result of `builder`.
     @inlinable
-    public static func explicitlyTagged<T>(_ nodes: inout ASN1.ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1.ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
+    public static func explicitlyTagged<T>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
         guard let node = nodes.next() else {
             // Node not present, throw.
             throw ASN1Error.invalidASN1Object
@@ -373,8 +374,8 @@ extension ASN1 {
     ///
     /// - returns: The result of `builder`.
     @inlinable
-    public static func explicitlyTagged<T>(_ node: ASN1Node, tagNumber: UInt, tagClass: ASN1.ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
-        let expectedNodeID = ASN1.ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
+    public static func explicitlyTagged<T>(_ node: ASN1Node, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
+        let expectedNodeID = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
         assert(expectedNodeID.constructed)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag.
@@ -398,39 +399,39 @@ extension ASN1 {
 
 
 // MARK: - Parsing
-extension ASN1 {
+extension DER {
     /// A parsed representation of ASN.1.
     @usableFromInline
-    struct ASN1ParseResult {
+    struct ParseResult {
         @usableFromInline
         static let _maximumNodeDepth = 50
 
         @usableFromInline
-        var nodes: ArraySlice<ASN1ParserNode>
+        var nodes: ArraySlice<ParserNode>
 
         @inlinable
-        init(_ nodes: ArraySlice<ASN1ParserNode>) {
+        init(_ nodes: ArraySlice<ParserNode>) {
             self.nodes = nodes
         }
 
         @inlinable
-        static func parse(_ data: ArraySlice<UInt8>) throws -> ASN1ParseResult {
+        static func parse(_ data: ArraySlice<UInt8>) throws -> ParseResult {
             var data = data
-            var nodes = [ASN1ParserNode]()
+            var nodes = [ParserNode]()
             nodes.reserveCapacity(16)
 
             try _parseNode(from: &data, depth: 1, into: &nodes)
             guard data.count == 0 else {
                 throw ASN1Error.invalidASN1Object
             }
-            return ASN1ParseResult(nodes[...])
+            return ParseResult(nodes[...])
         }
 
         /// Parses a single ASN.1 node from the data and appends it to the buffer. This may recursively
         /// call itself when there are child nodes for constructed nodes.
         @inlinable
-        static func _parseNode(from data: inout ArraySlice<UInt8>, depth: Int, into nodes: inout [ASN1ParserNode]) throws {
-            guard depth <= ASN1.ASN1ParseResult._maximumNodeDepth else {
+        static func _parseNode(from data: inout ArraySlice<UInt8>, depth: Int, into nodes: inout [ParserNode]) throws {
+            guard depth <= ParseResult._maximumNodeDepth else {
                 // We defend ourselves against stack overflow by refusing to allocate more than 50 stack frames to
                 // the parsing.
                 throw ASN1Error.invalidASN1Object
@@ -480,7 +481,7 @@ extension ASN1 {
 
             if identifier.constructed {
                 nodes.append(
-                    ASN1ParserNode(
+                    ParserNode(
                         identifier: identifier,
                         depth: depth,
                         encodedBytes: encodedBytes,
@@ -492,7 +493,7 @@ extension ASN1 {
                 }
             } else {
                 nodes.append(
-                    ASN1ParserNode(
+                    ParserNode(
                         identifier: identifier,
                         depth: depth,
                         encodedBytes: encodedBytes,
@@ -504,16 +505,16 @@ extension ASN1 {
     }
 }
 
-extension ASN1.ASN1ParseResult: Hashable { }
+extension DER.ParseResult: Hashable { }
 
-extension ASN1 {
+extension DER {
     /// Parses an array of bytes as DER-encoded ASN.1 bytes.
     ///
     /// This function does not produce a complete decoded representation. Instead it produces a tree of ``ASN1Node`` objects,
     /// each representing a single ASN.1 object. The leaves of the tree are primitive ASN.1 objects, and the intermediate nodes are
     /// constructed.
     ///
-    /// In general this function is not called by users directly. Prefer using ``ASN1Parseable/init(asn1Encoded:)-7otnm``, which encapsulates
+    /// In general this function is not called by users directly. Prefer using ``DERParseable/init(derEncoded:)-i2rf``, which encapsulates
     /// the use of this function and immediately returns a strongly typed, fully-parsed object.
     ///
     /// - parameters:
@@ -530,7 +531,7 @@ extension ASN1 {
     /// each representing a single ASN.1 object. The leaves of the tree are primitive ASN.1 objects, and the intermediate nodes are
     /// constructed.
     ///
-    /// In general this function is not called by users directly. Prefer using ``ASN1Parseable/init(asn1Encoded:)-9ye4i``, which encapsulates
+    /// In general this function is not called by users directly. Prefer using ``DERParseable/init(derEncoded:)-8yeds``, which encapsulates
     /// the use of this function and immediately returns a strongly typed, fully-parsed object.
     ///
     /// - parameters:
@@ -538,7 +539,7 @@ extension ASN1 {
     /// - returns: The root node in the ASN.1 tree.
     @inlinable
     public static func parse(_ data: ArraySlice<UInt8>) throws -> ASN1Node {
-        var result = try ASN1ParseResult.parse(data)
+        var result = try ParseResult.parse(data)
 
         // There will always be at least one node if the above didn't throw, so we can safely just removeFirst here.
         let firstNode = result.nodes.removeFirst()
@@ -548,13 +549,13 @@ extension ASN1 {
             // We need to feed it the next set of nodes.
             let nodeCollection = result.nodes.prefix { $0.depth > firstNode.depth }
             result.nodes = result.nodes.dropFirst(nodeCollection.count)
-            rootNode = ASN1.ASN1Node(
+            rootNode = ASN1Node(
                 identifier: firstNode.identifier,
                 content: .constructed(.init(nodes: nodeCollection, depth: firstNode.depth)),
                 encodedBytes: firstNode.encodedBytes
             )
         } else {
-            rootNode = ASN1.ASN1Node(
+            rootNode = ASN1Node(
                 identifier: firstNode.identifier,
                 content: .primitive(firstNode.dataBytes!),
                 encodedBytes: firstNode.encodedBytes
@@ -567,53 +568,53 @@ extension ASN1 {
     }
 }
 
-// MARK: - ASN1NodeCollection
-extension ASN1 {
-    /// Represents a collection of ASN.1 nodes contained in a constructed ASN.1 node.
-    ///
-    /// Constructed ASN.1 nodes are made up of multiple child nodes. This object represents the collection of those child nodes.
-    /// It allows us to lazily construct the child nodes, potentially skipping over them when we don't care about them.
-    ///
-    /// This type cannot be constructed directly, and is instead provided by helper functions such as ``ASN1/sequence(of:identifier:rootNode:)``.
-    public struct ASN1NodeCollection {
-        @usableFromInline var _nodes: ArraySlice<ASN1ParserNode>
+// MARK: - NodeCollection
+/// Represents a collection of ASN.1 nodes contained in a constructed ASN.1 node.
+///
+/// Constructed ASN.1 nodes are made up of multiple child nodes. This object represents the collection of those child nodes.
+/// It allows us to lazily construct the child nodes, potentially skipping over them when we don't care about them.
+///
+/// This type cannot be constructed directly, and is instead provided by helper functions such as ``DER/sequence(of:identifier:rootNode:)``.
+public struct ASN1NodeCollection {
+    @usableFromInline var _nodes: ArraySlice<DER.ParserNode>
 
-        @usableFromInline var _depth: Int
+    @usableFromInline var _depth: Int
 
-        @inlinable
-        init(nodes: ArraySlice<ASN1ParserNode>, depth: Int) {
-            self._nodes = nodes
-            self._depth = depth
+    @inlinable
+    init(nodes: ArraySlice<DER.ParserNode>, depth: Int) {
+        self._nodes = nodes
+        self._depth = depth
 
-            precondition(self._nodes.allSatisfy({ $0.depth > depth }))
-            if let firstDepth = self._nodes.first?.depth {
-                precondition(firstDepth == depth + 1)
-            }
+        precondition(self._nodes.allSatisfy({ $0.depth > depth }))
+        if let firstDepth = self._nodes.first?.depth {
+            precondition(firstDepth == depth + 1)
         }
     }
 }
 
-extension ASN1.ASN1NodeCollection: Hashable { }
+extension ASN1NodeCollection: Hashable { }
 
-extension ASN1.ASN1NodeCollection: Sendable { }
+extension ASN1NodeCollection: Sendable { }
 
-extension ASN1.ASN1NodeCollection: Sequence {
+extension ASN1NodeCollection: Sequence {
     /// An iterator of ASN.1 nodes that are children of a specific constructed node.
     public struct Iterator: IteratorProtocol {
+        // If it's necessary to add BER support in the future, this lower-level
+        // type may need to change.
         @usableFromInline
-        var _nodes: ArraySlice<ASN1.ASN1ParserNode>
+        var _nodes: ArraySlice<DER.ParserNode>
 
         @usableFromInline
         var _depth: Int
 
         @inlinable
-        init(nodes: ArraySlice<ASN1.ASN1ParserNode>, depth: Int) {
+        init(nodes: ArraySlice<DER.ParserNode>, depth: Int) {
             self._nodes = nodes
             self._depth = depth
         }
 
         @inlinable
-        public mutating func next() -> ASN1.ASN1Node? {
+        public mutating func next() -> ASN1Node? {
             guard let nextNode = self._nodes.popFirst() else {
                 return nil
             }
@@ -623,14 +624,14 @@ extension ASN1.ASN1NodeCollection: Sequence {
                 // We need to feed it the next set of nodes.
                 let nodeCollection = self._nodes.prefix { $0.depth > nextNode.depth }
                 self._nodes = self._nodes.dropFirst(nodeCollection.count)
-                return ASN1.ASN1Node(
+                return ASN1Node(
                     identifier: nextNode.identifier,
                     content: .constructed(.init(nodes: nodeCollection, depth: nextNode.depth)),
                     encodedBytes: nextNode.encodedBytes
                 )
             } else {
                 // There must be data bytes here, even if they're empty.
-                return ASN1.ASN1Node(
+                return ASN1Node(
                     identifier: nextNode.identifier,
                     content: .primitive(nextNode.dataBytes!),
                     encodedBytes: nextNode.encodedBytes
@@ -646,54 +647,52 @@ extension ASN1.ASN1NodeCollection: Sequence {
 }
 
 // MARK: - ASN1Node
-extension ASN1 {
-    /// An ``ASN1/ASN1Node`` is a single entry in the ASN.1 representation of a data structure.
+/// An ``ASN1Node`` is a single entry in the ASN.1 representation of a data structure.
+///
+/// Conceptually, an ASN.1 data structure is rooted in a single node, which may itself contain zero or more
+/// other nodes. ASN.1 nodes are either "constructed", meaning they contain other nodes, or "primitive", meaning they
+/// store a base data type of some kind.
+///
+/// In this way, ASN.1 objects tend to form a "tree", where each object is represented by a single top-level constructed
+/// node that contains other objects and primitives, eventually reaching the bottom which is made up of primitive objects.
+public struct ASN1Node: Hashable, Sendable {
+    /// The tag for this ASN.1 node.
+    public var identifier: ASN1Identifier
+
+    /// The content of this ASN.1 node.
+    public var content: Content
+
+    /// The encoded bytes for this node.
     ///
-    /// Conceptually, an ASN.1 data structure is rooted in a single node, which may itself contain zero or more
-    /// other nodes. ASN.1 nodes are either "constructed", meaning they contain other nodes, or "primitive", meaning they
-    /// store a base data type of some kind.
-    ///
-    /// In this way, ASN.1 objects tend to form a "tree", where each object is represented by a single top-level constructed
-    /// node that contains other objects and primitives, eventually reaching the bottom which is made up of primitive objects.
-    public struct ASN1Node: Hashable, Sendable {
-        /// The tag for this ASN.1 node.
-        public var identifier: ASN1Identifier
+    /// This is principally intended for diagnostic purposes.
+    public var encodedBytes: ArraySlice<UInt8>
 
-        /// The content of this ASN.1 node.
-        public var content: Content
-
-        /// The encoded bytes for this node.
-        ///
-        /// This is principally intended for diagnostic purposes.
-        public var encodedBytes: ArraySlice<UInt8>
-
-        @inlinable
-        internal init(
-            identifier: ASN1.ASN1Identifier,
-            content: ASN1.ASN1Node.Content,
-            encodedBytes: ArraySlice<UInt8>
-        ) {
-            self.identifier = identifier
-            self.content = content
-            self.encodedBytes = encodedBytes
-        }
+    @inlinable
+    internal init(
+        identifier: ASN1Identifier,
+        content: ASN1Node.Content,
+        encodedBytes: ArraySlice<UInt8>
+    ) {
+        self.identifier = identifier
+        self.content = content
+        self.encodedBytes = encodedBytes
     }
 }
 
 // MARK: - ASN1Node.Content
-extension ASN1.ASN1Node {
-    /// The content of a single ``ASN1/ASN1Node``.
+extension ASN1Node {
+    /// The content of a single ``ASN1Node``.
     public enum Content: Hashable, Sendable {
-        /// This ``ASN1/ASN1Node`` is constructed, and has a number of child nodes.
-        case constructed(ASN1.ASN1NodeCollection)
+        /// This ``ASN1Node`` is constructed, and has a number of child nodes.
+        case constructed(ASN1NodeCollection)
 
-        /// This ``ASN1/ASN1Node`` is primitive, and is made up only of a collection of bytes.
+        /// This ``ASN1Node`` is primitive, and is made up only of a collection of bytes.
         case primitive(ArraySlice<UInt8>)
     }
 }
 
 // MARK: - Serializing
-extension ASN1 {
+extension DER {
     /// An object that can serialize ASN.1 bytes.
     ///
     /// ``Serializer`` is a copy-on-write value type.
@@ -723,7 +722,7 @@ extension ASN1 {
         ///      - identifier: The tag for this ASN.1 node
         ///      - contentWriter: A callback that will be invoked that allows users to write their bytes into the output stream.
         @inlinable
-        public mutating func appendPrimitiveNode(identifier: ASN1.ASN1Identifier, _ contentWriter: (inout [UInt8]) throws -> Void) rethrows {
+        public mutating func appendPrimitiveNode(identifier: ASN1Identifier, _ contentWriter: (inout [UInt8]) throws -> Void) rethrows {
             assert(identifier.primitive)
             try self._appendNode(identifier: identifier) { try contentWriter(&$0._serializedBytes) }
         }
@@ -737,7 +736,7 @@ extension ASN1 {
         ///      - identifier: The tag for this ASN.1 node
         ///      - contentWriter: A callback that will be invoked that allows users to write the objects contained within this constructed node.
         @inlinable
-        public mutating func appendConstructedNode(identifier: ASN1.ASN1Identifier, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
+        public mutating func appendConstructedNode(identifier: ASN1Identifier, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
             assert(identifier.constructed)
             try self._appendNode(identifier: identifier, contentWriter)
         }
@@ -747,13 +746,13 @@ extension ASN1 {
         /// - parameters:
         ///     node: The node to be serialized.
         @inlinable
-        public mutating func serialize<T: ASN1Serializable>(_ node: T) throws {
+        public mutating func serialize<T: DERSerializable>(_ node: T) throws {
             try node.serialize(into: &self)
         }
 
         /// Serializes a single node to the end of the byte stream with an explicit ASN.1 tag.
         ///
-        /// This is a wrapper for ``ASN1/Serializer/serialize(_:explicitlyTaggedWithIdentifier:)`` that builds the ASN.1 tag
+        /// This is a wrapper for ``DER/Serializer/serialize(_:explicitlyTaggedWithIdentifier:)`` that builds the ASN.1 tag
         /// automatically.
         ///
         /// - parameters:
@@ -761,7 +760,7 @@ extension ASN1 {
         ///     tagNumber: The number of the explicit tag.
         ///     tagClass: The number of the explicit tag.
         @inlinable
-        public mutating func serialize<T: ASN1Serializable>(_ node: T, explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1.ASN1Identifier.TagClass) throws {
+        public mutating func serialize<T: DERSerializable>(_ node: T, explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1Identifier.TagClass) throws {
             let identifier = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
             return try self.serialize(node, explicitlyTaggedWithIdentifier: identifier)
         }
@@ -772,7 +771,7 @@ extension ASN1 {
         ///     node: The node to be serialized.
         ///     identifier: The explicit ASN.1 tag to apply.
         @inlinable
-        public mutating func serialize<T: ASN1Serializable>(_ node: T, explicitlyTaggedWithIdentifier identifier: ASN1.ASN1Identifier) throws {
+        public mutating func serialize<T: DERSerializable>(_ node: T, explicitlyTaggedWithIdentifier identifier: ASN1Identifier) throws {
             try self.appendConstructedNode(identifier: identifier) { coder in
                 try coder.serialize(node)
             }
@@ -787,7 +786,7 @@ extension ASN1 {
         /// - parameters:
         ///     node: The node to be serialized.
         @inlinable
-        public mutating func serializeOptionalImplicitlyTagged<T: ASN1Serializable>(_ node: T?) throws {
+        public mutating func serializeOptionalImplicitlyTagged<T: DERSerializable>(_ node: T?) throws {
             if let node = node {
                 try self.serialize(node)
             }
@@ -801,7 +800,7 @@ extension ASN1 {
         ///     node: The node to be serialized.
         ///     identifier: The implicit ASN.1 tag to apply.
         @inlinable
-        public mutating func serializeOptionalImplicitlyTagged<T: ASN1ImplicitlyTaggable>(_ node: T?, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+        public mutating func serializeOptionalImplicitlyTagged<T: DERImplicitlyTaggable>(_ node: T?, withIdentifier identifier: ASN1Identifier) throws {
             if let node = node {
                 try node.serialize(into: &self, withIdentifier: identifier)
             }
@@ -809,7 +808,7 @@ extension ASN1 {
 
         /// Serializes an explicit ASN.1 tag using a custom builder to store the elements of the explicitly tagged node.
         ///
-        /// This is a helper version of ``ASN1/Serializer/serialize(_:explicitlyTaggedWithTagNumber:tagClass:)`` that allows users to avoid defining an object for the
+        /// This is a helper version of ``DER/Serializer/serialize(_:explicitlyTaggedWithTagNumber:tagClass:)`` that allows users to avoid defining an object for the
         /// explicit node.
         ///
         /// - parameters:
@@ -817,7 +816,7 @@ extension ASN1 {
         ///     tagClass: The number of the explicit tag.
         ///     block: The block that will be invoked to encode the contents of the explicit tag.
         @inlinable
-        public mutating func serialize(explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1.ASN1Identifier.TagClass, _ block: (inout Serializer) throws -> Void) rethrows {
+        public mutating func serialize(explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ block: (inout Serializer) throws -> Void) rethrows {
             let identifier = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
             try self.appendConstructedNode(identifier: identifier) { coder in
                 try block(&coder)
@@ -828,9 +827,9 @@ extension ASN1 {
         ///
         /// - parameters:
         ///     - elements: The members of the ASN.1 SEQUENCE OF.
-        ///     - identifier: The identifier to use for the SEQUENCE OF node. Defaults to ``ASN1/ASN1Identifier/sequence``.
+        ///     - identifier: The identifier to use for the SEQUENCE OF node. Defaults to ``ASN1Identifier/sequence``.
         @inlinable
-        public mutating func serializeSequenceOf<Elements: Sequence>(_ elements: Elements, identifier: ASN1.ASN1Identifier = .sequence) throws where Elements.Element: ASN1Serializable {
+        public mutating func serializeSequenceOf<Elements: Sequence>(_ elements: Elements, identifier: ASN1Identifier = .sequence) throws where Elements.Element: DERSerializable {
             try self.appendConstructedNode(identifier: identifier) { coder in
                 for element in elements {
                     try coder.serialize(element)
@@ -846,7 +845,7 @@ extension ASN1 {
         /// - parameters:
         ///     - node: The parsed node to serialize.
         @inlinable
-        public mutating func serialize(_ node: ASN1.ASN1Node) {
+        public mutating func serialize(_ node: ASN1Node) {
             let identifier = node.identifier
             self._appendNode(identifier: identifier) { coder in
                 switch node.content {
@@ -863,7 +862,7 @@ extension ASN1 {
         // This is the base logical function that all other append methods are built on. This one has most of the logic, and doesn't
         // police what we expect to happen in the content writer.
         @inlinable
-        mutating func _appendNode(identifier: ASN1.ASN1Identifier, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
+        mutating func _appendNode(identifier: ASN1Identifier, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
             // This is a tricky game to play. We want to write the identifier and the length, but we don't know what the
             // length is here. To get around that, we _assume_ the length will be one byte, and let the writer write their content.
             // If it turns out to have been longer, we recalculate how many bytes we need and shuffle them in the buffer,
@@ -914,52 +913,52 @@ extension ASN1 {
 ///
 /// Users implementing this type are expected to write the ASN.1 decoding code themselves. This approach is discussed in
 /// depth in <doc:DecodingASN1>. When working with a type that may be implicitly tagged (which is most ASN.1 types),
-/// users are recommended to implement ``ASN1ImplicitlyTaggable`` instead.
-public protocol ASN1Parseable {
+/// users are recommended to implement ``DERImplicitlyTaggable`` instead.
+public protocol DERParseable {
     /// Initialize this object from a serialized DER representation.
     ///
     /// This function is invoked by the parser with the root node for the ASN.1 object. Implementers are
     /// expected to initialize themselves if possible, or to throw if they cannot.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The ASN.1 node representing this object.
-    init(asn1Encoded: ASN1.ASN1Node) throws
+    ///     - derEncoded: The ASN.1 node representing this object.
+    init(derEncoded: ASN1Node) throws
 }
 
-extension ASN1Parseable {
+extension DERParseable {
     /// Initialize this object as one element of a constructed ASN.1 object.
     ///
     /// This is a helper function for parsing constructed ASN.1 objects. It delegates all its functionality
-    /// to ``ASN1Parseable/init(asn1Encoded:)-507py``.
+    /// to ``DERParseable/init(derEncoded:)-7tumk``.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The sequence of nodes that make up this object's parent. The first node in this collection
+    ///     - derEncoded: The sequence of nodes that make up this object's parent. The first node in this collection
     ///         will be used to construct this object.
     @inlinable
-    public init(asn1Encoded sequenceNodeIterator: inout ASN1.ASN1NodeCollection.Iterator) throws {
+    public init(derEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator) throws {
         guard let node = sequenceNodeIterator.next() else {
             throw ASN1Error.invalidASN1Object
         }
 
-        self = try .init(asn1Encoded: node)
+        self = try .init(derEncoded: node)
     }
 
     /// Initialize this object from a serialized DER representation.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The DER-encoded bytes representing this object.
+    ///     - derEncoded: The DER-encoded bytes representing this object.
     @inlinable
-    public init(asn1Encoded: [UInt8]) throws {
-        self = try .init(asn1Encoded: ASN1.parse(asn1Encoded))
+    public init(derEncoded: [UInt8]) throws {
+        self = try .init(derEncoded: DER.parse(derEncoded))
     }
 
     /// Initialize this object from a serialized DER representation.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The DER-encoded bytes representing this object.
+    ///     - derEncoded: The DER-encoded bytes representing this object.
     @inlinable
-    public init(asn1Encoded: ArraySlice<UInt8>) throws {
-        self = try .init(asn1Encoded: ASN1.parse(asn1Encoded))
+    public init(derEncoded: ArraySlice<UInt8>) throws {
+        self = try .init(derEncoded: DER.parse(derEncoded))
     }
 }
 
@@ -967,13 +966,13 @@ extension ASN1Parseable {
 ///
 /// Users implementing this type are expected to write the ASN.1 serialization code themselves. This approach is discussed in
 /// depth in <doc:DecodingASN1>. When working with a type that may be implicitly tagged (which is most ASN.1 types),
-/// users are recommended to implement ``ASN1ImplicitlyTaggable`` instead.
-public protocol ASN1Serializable {
+/// users are recommended to implement ``DERImplicitlyTaggable`` instead.
+public protocol DERSerializable {
     /// Serialize this object into DER-encoded ASN.1 form.
     ///
     /// - parameters:
     ///     - coder: A serializer to be used to encode the object.
-    func serialize(into coder: inout ASN1.Serializer) throws
+    func serialize(into coder: inout DER.Serializer) throws
 }
 
 /// An ASN.1 node that can tolerate having an implicit tag.
@@ -983,11 +982,11 @@ public protocol ASN1Serializable {
 /// CHOICE elements without explicit tags cannot be implicitly tagged.
 ///
 /// Objects that _can_ be implicitly tagged should prefer to implement this protocol than
-/// ``ASN1Serializable`` and ``ASN1Parseable``.
-public protocol ASN1ImplicitlyTaggable: ASN1Parseable, ASN1Serializable {
+/// ``DERSerializable`` and ``DERParseable``.
+public protocol DERImplicitlyTaggable: DERParseable, DERSerializable {
     /// The tag that the first node will use "by default" if the grammar omits
     /// any more specific tag definition.
-    static var defaultIdentifier: ASN1.ASN1Identifier { get }
+    static var defaultIdentifier: ASN1Identifier { get }
 
     /// Initialize this object from a serialized DER representation.
     ///
@@ -996,65 +995,65 @@ public protocol ASN1ImplicitlyTaggable: ASN1Parseable, ASN1Serializable {
     /// to use the identifier `identifier`.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The ASN.1 node representing this object.
-    ///     - identifier: The ASN.1 identifier that `asn1Encoded` is expected to have.
-    init(asn1Encoded: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws
+    ///     - derEncoded: The ASN.1 node representing this object.
+    ///     - identifier: The ASN.1 identifier that `derEncoded` is expected to have.
+    init(derEncoded: ASN1Node, withIdentifier identifier: ASN1Identifier) throws
 
     /// Serialize this object into DER-encoded ASN.1 form.
     ///
     /// - parameters:
     ///     - coder: A serializer to be used to encode the object.
     ///     - identifier: The ASN.1 identifier that this object should use to represent itself.
-    func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws
+    func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws
 }
 
-extension ASN1ImplicitlyTaggable {
+extension DERImplicitlyTaggable {
     /// Initialize this object as one element of a constructed ASN.1 object.
     ///
     /// This is a helper function for parsing constructed ASN.1 objects. It delegates all its functionality
-    /// to ``ASN1ImplicitlyTaggable/init(asn1Encoded:withIdentifier:)-iudo``.
+    /// to ``DERImplicitlyTaggable/init(derEncoded:withIdentifier:)-7e88k``.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The sequence of nodes that make up this object's parent. The first node in this collection
+    ///     - derEncoded: The sequence of nodes that make up this object's parent. The first node in this collection
     ///         will be used to construct this object.
-    ///     - identifier: The ASN.1 identifier that `asn1Encoded` is expected to have.
+    ///     - identifier: The ASN.1 identifier that `derEncoded` is expected to have.
     @inlinable
-    public init(asn1Encoded sequenceNodeIterator: inout ASN1.ASN1NodeCollection.Iterator,
-                withIdentifier identifier: ASN1.ASN1Identifier = Self.defaultIdentifier) throws {
+    public init(derEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator,
+                withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier) throws {
         guard let node = sequenceNodeIterator.next() else {
             throw ASN1Error.invalidASN1Object
         }
 
-        self = try .init(asn1Encoded: node, withIdentifier: identifier)
+        self = try .init(derEncoded: node, withIdentifier: identifier)
     }
 
     /// Initialize this object from a serialized DER representation.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The DER-encoded bytes representing this object.
-    ///     - identifier: The ASN.1 identifier that `asn1Encoded` is expected to have.
+    ///     - derEncoded: The DER-encoded bytes representing this object.
+    ///     - identifier: The ASN.1 identifier that `derEncoded` is expected to have.
     @inlinable
-    public init(asn1Encoded: [UInt8], withIdentifier identifier: ASN1.ASN1Identifier = Self.defaultIdentifier) throws {
-        self = try .init(asn1Encoded: ASN1.parse(asn1Encoded), withIdentifier: identifier)
+    public init(derEncoded: [UInt8], withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier) throws {
+        self = try .init(derEncoded: DER.parse(derEncoded), withIdentifier: identifier)
     }
 
     /// Initialize this object from a serialized DER representation.
     ///
     /// - parameters:
-    ///     - asn1Encoded: The DER-encoded bytes representing this object.
-    ///     - identifier: The ASN.1 identifier that `asn1Encoded` is expected to have.
+    ///     - derEncoded: The DER-encoded bytes representing this object.
+    ///     - identifier: The ASN.1 identifier that `derEncoded` is expected to have.
     @inlinable
-    public init(asn1Encoded: ArraySlice<UInt8>, withIdentifier identifier: ASN1.ASN1Identifier = Self.defaultIdentifier) throws {
-        self = try .init(asn1Encoded: ASN1.parse(asn1Encoded), withIdentifier: identifier)
+    public init(derEncoded: ArraySlice<UInt8>, withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier) throws {
+        self = try .init(derEncoded: DER.parse(derEncoded), withIdentifier: identifier)
     }
 
     @inlinable
-    public init(asn1Encoded: ASN1.ASN1Node) throws {
-        try self.init(asn1Encoded: asn1Encoded, withIdentifier: Self.defaultIdentifier)
+    public init(derEncoded: ASN1Node) throws {
+        try self.init(derEncoded: derEncoded, withIdentifier: Self.defaultIdentifier)
     }
 
     @inlinable
-    public func serialize(into coder: inout ASN1.Serializer) throws {
+    public func serialize(into coder: inout DER.Serializer) throws {
         try self.serialize(into: &coder, withIdentifier: Self.defaultIdentifier)
     }
 }

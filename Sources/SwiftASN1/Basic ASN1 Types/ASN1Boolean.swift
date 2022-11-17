@@ -12,14 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension Bool: ASN1ImplicitlyTaggable {
+extension Bool: DERImplicitlyTaggable {
     @inlinable
-    public static var defaultIdentifier: ASN1.ASN1Identifier {
+    public static var defaultIdentifier: ASN1Identifier {
         .boolean
     }
 
     @inlinable
-    public init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.invalidASN1Object
         }
@@ -42,7 +42,7 @@ extension Bool: ASN1ImplicitlyTaggable {
     }
 
     @inlinable
-    public func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             if self {
                 bytes.append(0xff)

@@ -1,7 +1,7 @@
 @usableFromInline
 enum TimeUtilities {
     @inlinable
-    static func generalizedTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws -> ASN1.GeneralizedTime {
+    static func generalizedTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws -> GeneralizedTime {
         var bytes = bytes
 
         // First, there must always be a calendar date. No separators, 4
@@ -37,17 +37,17 @@ enum TimeUtilities {
             throw ASN1Error.invalidASN1Object
         }
 
-        return try ASN1.GeneralizedTime(year: rawYear,
-                                        month: rawMonth,
-                                        day: rawDay,
-                                        hours: rawHour,
-                                        minutes: rawMinutes,
-                                        seconds: rawSeconds,
-                                        fractionalSeconds: fractionalSeconds)
+        return try GeneralizedTime(year: rawYear,
+                                   month: rawMonth,
+                                   day: rawDay,
+                                   hours: rawHour,
+                                   minutes: rawMinutes,
+                                   seconds: rawSeconds,
+                                   fractionalSeconds: fractionalSeconds)
     }
 
     @inlinable
-    static func utcTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws -> ASN1.UTCTime {
+    static func utcTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws -> UTCTime {
         var bytes = bytes
 
         // First, there must always be a calendar date. No separators, 2
@@ -78,12 +78,12 @@ enum TimeUtilities {
 
         let actualYear = rawYear < 50 ? rawYear &+ 2000 : rawYear &+ 1900
 
-        return try ASN1.UTCTime(year: actualYear,
-                                month: rawMonth,
-                                day: rawDay,
-                                hours: rawHour,
-                                minutes: rawMinutes,
-                                seconds: rawSeconds)
+        return try UTCTime(year: actualYear,
+                           month: rawMonth,
+                           day: rawDay,
+                           hours: rawHour,
+                           minutes: rawMinutes,
+                           seconds: rawSeconds)
     }
 
     @inlinable
@@ -193,7 +193,7 @@ extension ArraySlice where Element == UInt8 {
 
 extension Array where Element == UInt8 {
     @inlinable
-    mutating func append(_ generalizedTime: ASN1.GeneralizedTime) {
+    mutating func append(_ generalizedTime: GeneralizedTime) {
         self._appendFourDigitDecimal(generalizedTime.year)
         self._appendTwoDigitDecimal(generalizedTime.month)
         self._appendTwoDigitDecimal(generalizedTime.day)
@@ -217,7 +217,7 @@ extension Array where Element == UInt8 {
     }
 
     @inlinable
-    mutating func append(_ utcTime: ASN1.UTCTime) {
+    mutating func append(_ utcTime: UTCTime) {
         precondition((1950..<2050).contains(utcTime.year))
         if utcTime.year >= 2000 {
             self._appendTwoDigitDecimal(utcTime.year &- 2000)

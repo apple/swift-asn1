@@ -13,11 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 // For temporary purposes we pretend that ArraySlice is our "bigint" type. We don't really need anything else.
-extension ArraySlice: ASN1Serializable where Element == UInt8 { }
+extension ArraySlice: DERSerializable where Element == UInt8 { }
 
-extension ArraySlice: ASN1Parseable where Element == UInt8 { }
+extension ArraySlice: DERParseable where Element == UInt8 { }
 
-extension ArraySlice: ASN1ImplicitlyTaggable where Element == UInt8 { }
+extension ArraySlice: DERImplicitlyTaggable where Element == UInt8 { }
 
 extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     // We only use unsigned "bigint"s
@@ -27,8 +27,8 @@ extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     }
 
     @inlinable
-    public init(asn1IntegerBytes: ArraySlice<UInt8>) throws {
-        self = asn1IntegerBytes
+    public init(derIntegerBytes: ArraySlice<UInt8>) throws {
+        self = derIntegerBytes
     }
 
     @inlinable

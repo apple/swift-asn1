@@ -20,9 +20,9 @@ vastly easier, as it is at least in principle possible to perfectly reconstruct 
 
 This module provides several moving pieces:
 
-1. A high-level representation of an ASN.1 object, in the form of a tree of object nodes (``ASN1/ASN1Node``).
-2. A DER parser that can construct the ASN.1 tree from serialized bytes (``ASN1/parse(_:)-41gug``).
-3. A DER serializer that can construct serialized bytes from the ASN.1 tree (``ASN1/Serializer``).
+1. A high-level representation of an ASN.1 object, in the form of a tree of object nodes (``ASN1Node``).
+2. A DER parser that can construct the ASN.1 tree from serialized bytes (``DER/parse(_:)-72yd1``).
+3. A DER serializer that can construct serialized bytes from the ASN.1 tree (``DER/Serializer``).
 4. A number of built-in ASN.1 types, representing common constructs.
 
 These moving pieces combine to provide support for the DER representation of ASN.1 suitable for a wide range of cryptographic uses.
@@ -35,51 +35,51 @@ These moving pieces combine to provide support for the DER representation of ASN
 
 ### Parsing DER
 
-- ``ASN1/parse(_:)-41gug``
-- ``ASN1/parse(_:)-8ar01``
-- ``ASN1Parseable``
-- ``ASN1Serializable``
-- ``ASN1ImplicitlyTaggable``
-- ``ASN1/sequence(_:identifier:_:)``
-- ``ASN1/sequence(of:identifier:rootNode:)``
-- ``ASN1/sequence(of:identifier:nodes:)``
-- ``ASN1/set(_:identifier:_:)``
-- ``ASN1/decodeDefault(_:identifier:defaultValue:_:)``
-- ``ASN1/decodeDefaultExplicitlyTagged(_:tagNumber:tagClass:defaultValue:_:)``
-- ``ASN1/decodeDefault(_:defaultValue:)``
-- ``ASN1/decodeDefault(_:identifier:defaultValue:)``
-- ``ASN1/decodeDefaultExplicitlyTagged(_:tagNumber:tagClass:defaultValue:)``
-- ``ASN1/optionalExplicitlyTagged(_:tagNumber:tagClass:_:)``
-- ``ASN1/optionalImplicitlyTagged(_:tag:)``
-- ``ASN1/explicitlyTagged(_:tagNumber:tagClass:_:)-6iqvq``
-- ``ASN1/explicitlyTagged(_:tagNumber:tagClass:_:)-4ystp``
+- ``DER/parse(_:)-72yd1``
+- ``DER/parse(_:)-6uo24``
+- ``DERParseable``
+- ``DERSerializable``
+- ``DERImplicitlyTaggable``
+- ``DER/sequence(_:identifier:_:)``
+- ``DER/sequence(of:identifier:rootNode:)``
+- ``DER/sequence(of:identifier:nodes:)``
+- ``DER/set(_:identifier:_:)``
+- ``DER/decodeDefault(_:identifier:defaultValue:_:)``
+- ``DER/decodeDefaultExplicitlyTagged(_:tagNumber:tagClass:defaultValue:_:)``
+- ``DER/decodeDefault(_:defaultValue:)``
+- ``DER/decodeDefault(_:identifier:defaultValue:)``
+- ``DER/decodeDefaultExplicitlyTagged(_:tagNumber:tagClass:defaultValue:)``
+- ``DER/optionalExplicitlyTagged(_:tagNumber:tagClass:_:)``
+- ``DER/optionalImplicitlyTagged(_:tag:)``
+- ``DER/explicitlyTagged(_:tagNumber:tagClass:_:)-4jacu``
+- ``DER/explicitlyTagged(_:tagNumber:tagClass:_:)-7wb7d``
 
 ### Serializing DER
 
-- ``ASN1/Serializer``
-- ``ASN1Serializable``
-- ``ASN1ImplicitlyTaggable``
+- ``DER/Serializer``
+- ``DERSerializable``
+- ``DERImplicitlyTaggable``
 
 ### Representing ASN.1 types
 
-- ``ASN1/ASN1Node``
-- ``ASN1/ASN1NodeCollection``
-- ``ASN1/ASN1Identifier``
+- ``ASN1Node``
+- ``ASN1NodeCollection``
+- ``ASN1Identifier``
 
 ### Built-in ASN.1 types
 
 - ``ASN1IntegerRepresentable``
 - ``IntegerBytesCollection``
-- ``ASN1/GeneralizedTime``
-- ``ASN1/ASN1BitString``
-- ``ASN1/UTCTime``
-- ``ASN1/ASN1OctetString``
-- ``ASN1/ASN1Any``
-- ``ASN1/ASN1Null``
-- ``ASN1/ASN1ObjectIdentifier``
-- ``ASN1/ASN1UTF8String``
-- ``ASN1/ASN1PrintableString``
-- ``ASN1/ASN1BMPString``
-- ``ASN1/ASN1IA5String``
-- ``ASN1/ASN1TeletexString``
-- ``ASN1/ASN1UniversalString``
+- ``GeneralizedTime``
+- ``ASN1BitString``
+- ``UTCTime``
+- ``ASN1OctetString``
+- ``ASN1Any``
+- ``ASN1Null``
+- ``ASN1ObjectIdentifier``
+- ``ASN1UTF8String``
+- ``ASN1PrintableString``
+- ``ASN1BMPString``
+- ``ASN1IA5String``
+- ``ASN1TeletexString``
+- ``ASN1UniversalString``

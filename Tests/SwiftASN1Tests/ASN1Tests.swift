@@ -24,14 +24,14 @@ class ASN1Tests: XCTestCase {
         let encodedExpectedKeyBytes = "BNmnTK3Ru2lH2R+e2nihRTNNXT55MQtfEnEW+GeqaDAYCbWJVbXfZcut1Eb+e2VtDXLNS4mQe1gE297L7vtXOx0="
         let expectedKeyBytes = Array(Data(base64Encoded: encodedExpectedKeyBytes)!)
 
-        let result = try ASN1.parse(decodedSPKI)
-        let spki = try ASN1.SubjectPublicKeyInfo(asn1Encoded: result)
+        let result = try DER.parse(decodedSPKI)
+        let spki = try SubjectPublicKeyInfo(derEncoded: result)
 
         XCTAssertEqual(spki.algorithmIdentifier, .ecdsaP256)
         spki.key.withUnsafeBytes { XCTAssertEqual(Array($0), expectedKeyBytes) }
 
         // For SPKI we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(spki))
         XCTAssertEqual(serializer.serializedBytes, decodedSPKI)
 
@@ -46,14 +46,14 @@ class ASN1Tests: XCTestCase {
         let encodedExpectedKeyBytes = "BHAa9EzZoGoH9crHJBAP91yxsdmpoM3h4wwWURKoQiFQay4SIiEeM6yfHamnf2PsyNh7vEyFG680v3YhaRaBNGGCgU32DAgFLWlrjG9aGgXRc1rC32EksxfjjdcniQra6A=="
         let expectedKeyBytes = Array(Data(base64Encoded: encodedExpectedKeyBytes)!)
 
-        let result = try ASN1.parse(decodedSPKI)
-        let spki = try ASN1.SubjectPublicKeyInfo(asn1Encoded: result)
+        let result = try DER.parse(decodedSPKI)
+        let spki = try SubjectPublicKeyInfo(derEncoded: result)
 
         XCTAssertEqual(spki.algorithmIdentifier, .ecdsaP384)
         spki.key.withUnsafeBytes { XCTAssertEqual(Array($0), expectedKeyBytes) }
 
         // For SPKI we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(spki))
         XCTAssertEqual(serializer.serializedBytes, decodedSPKI)
     }
@@ -65,14 +65,14 @@ class ASN1Tests: XCTestCase {
         let encodedExpectedKeyBytes = "BAFPEwllNGv01wqYPuJN5fuh9yDPvsk9MgNc4cV9LW1kd30/S4B4r8BHDAN2xCkgoK+a1o7g7nageqZzN2tHAa2scgFROpo7DYWp2Kq3R9FCO73AfVeLiHy7SHzQzKZQzSxsBDvSMcJ5XRLSYZwlLy3ed8/6ot6zfSHb3t099XdIuwuDww=="
         let expectedKeyBytes = Array(Data(base64Encoded: encodedExpectedKeyBytes)!)
 
-        let result = try ASN1.parse(decodedSPKI)
-        let spki = try ASN1.SubjectPublicKeyInfo(asn1Encoded: result)
+        let result = try DER.parse(decodedSPKI)
+        let spki = try SubjectPublicKeyInfo(derEncoded: result)
 
         XCTAssertEqual(spki.algorithmIdentifier, .ecdsaP521)
         spki.key.withUnsafeBytes { XCTAssertEqual(Array($0), expectedKeyBytes) }
 
         // For SPKI we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(spki))
         XCTAssertEqual(serializer.serializedBytes, decodedSPKI)
     }
@@ -87,15 +87,15 @@ class ASN1Tests: XCTestCase {
         let encodedPublicKeyBytes = "BNznnffF9IR5sx5ppoLX+awFRL9IyHh+tSutT+VMogqM5/n8/ppZgcsL5bolbxEYk/VmQnd7ZDz1sGyK/mtHZ8A="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
-        let result = try ASN1.parse(decodedPrivateKey)
-        let pkey = try ASN1.SEC1PrivateKey(asn1Encoded: result)
+        let result = try DER.parse(decodedPrivateKey)
+        let pkey = try SEC1PrivateKey(derEncoded: result)
 
         XCTAssertEqual(pkey.algorithm, .ecdsaP256)
         pkey.privateKey.withUnsafeBytes { XCTAssertEqual(Array($0), privateKeyBytes) }
         pkey.publicKey!.withUnsafeBytes { XCTAssertEqual(Array($0), publicKeyBytes) }
 
         // For SEC1 we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
         XCTAssertEqual(serializer.serializedBytes, decodedPrivateKey)
     }
@@ -110,15 +110,15 @@ class ASN1Tests: XCTestCase {
         let encodedPublicKeyBytes = "BDPQEGYzF46PlfBMvUbh+pNg7ZQCJitQyLGJEWUUpVjkjqMCCIRZ01ua17yjp0HKjQ2jlijIMd0brfvG+7MZpZ34hPkugEBVW/cCAvdqjd0DhpWGbpjPobr/ajdfsAf31w=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
-        let result = try ASN1.parse(decodedPrivateKey)
-        let pkey = try ASN1.SEC1PrivateKey(asn1Encoded: result)
+        let result = try DER.parse(decodedPrivateKey)
+        let pkey = try SEC1PrivateKey(derEncoded: result)
 
         XCTAssertEqual(pkey.algorithm, .ecdsaP384)
         pkey.privateKey.withUnsafeBytes { XCTAssertEqual(Array($0), privateKeyBytes) }
         pkey.publicKey!.withUnsafeBytes { XCTAssertEqual(Array($0), publicKeyBytes) }
 
         // For SEC1 we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
         XCTAssertEqual(serializer.serializedBytes, decodedPrivateKey)
     }
@@ -133,15 +133,15 @@ class ASN1Tests: XCTestCase {
         let encodedPublicKeyBytes = "BAAzsbWlHXjMkaSQTBnBKcyPDy/x0nk+VlkYQJXkh+lPJSVEYLbrUZ1LdbfM9mGE7HpgyyELNRHy/BD1JdNnAVPemAC5VQjeGKbezrxz7D5iZNiZiQFVYtMBU3XSsuJrPWVSjBF7xIkOr06k2xg1qlOoXQ66EPHQlwEYJ3xATNKk8K2jlQ=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
-        let result = try ASN1.parse(decodedPrivateKey)
-        let pkey = try ASN1.SEC1PrivateKey(asn1Encoded: result)
+        let result = try DER.parse(decodedPrivateKey)
+        let pkey = try SEC1PrivateKey(derEncoded: result)
 
         XCTAssertEqual(pkey.algorithm, .ecdsaP521)
         pkey.privateKey.withUnsafeBytes { XCTAssertEqual(Array($0), privateKeyBytes) }
         pkey.publicKey!.withUnsafeBytes { XCTAssertEqual(Array($0), publicKeyBytes) }
 
         // For SEC1 we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
         XCTAssertEqual(serializer.serializedBytes, decodedPrivateKey)
     }
@@ -156,8 +156,8 @@ class ASN1Tests: XCTestCase {
         let encodedPublicKeyBytes = "BMNcSPeO+IC3ODHhucxr/TzW/4Vduns7kPUq0pV2N75yR6MZUti5goTgul/mOid5+LrC2gJz+xYeVsuI1Xk8QH0="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
-        let result = try ASN1.parse(decodedPrivateKey)
-        let pkey = try ASN1.PKCS8PrivateKey(asn1Encoded: result)
+        let result = try DER.parse(decodedPrivateKey)
+        let pkey = try PKCS8PrivateKey(derEncoded: result)
 
         XCTAssertEqual(pkey.algorithm, .ecdsaP256)
         XCTAssertNil(pkey.privateKey.algorithm)  // OpenSSL nils this out for some reason
@@ -165,7 +165,7 @@ class ASN1Tests: XCTestCase {
         pkey.privateKey.publicKey!.withUnsafeBytes { XCTAssertEqual(Array($0), publicKeyBytes) }
 
         // For PKCS8 we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
         XCTAssertEqual(serializer.serializedBytes, decodedPrivateKey)
     }
@@ -180,8 +180,8 @@ class ASN1Tests: XCTestCase {
         let encodedPublicKeyBytes = "BLnpHNeIs7li8UjSqH/5P0OE5d+Sbcr+MlJQCpX+E/QVSUhRHzbhwVV0wxADVLXTSYROzF1PRAOpQYCKcxNQFLKT3L6NHfcXD8DTrxlBGWpMJrROFLS/DEqEz8zi+Fh4MQ=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
-        let result = try ASN1.parse(decodedPrivateKey)
-        let pkey = try ASN1.PKCS8PrivateKey(asn1Encoded: result)
+        let result = try DER.parse(decodedPrivateKey)
+        let pkey = try PKCS8PrivateKey(derEncoded: result)
 
         XCTAssertEqual(pkey.algorithm, .ecdsaP384)
         XCTAssertNil(pkey.privateKey.algorithm)  // OpenSSL nils this out for some reason
@@ -189,7 +189,7 @@ class ASN1Tests: XCTestCase {
         pkey.privateKey.publicKey!.withUnsafeBytes { XCTAssertEqual(Array($0), publicKeyBytes) }
 
         // For PKCS8 we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
         XCTAssertEqual(serializer.serializedBytes, decodedPrivateKey)
     }
@@ -204,8 +204,8 @@ class ASN1Tests: XCTestCase {
         let encodedPublicKeyBytes = "BADrY6IBU4t8BjSIvDWA4VrLILdUOFemM2G8phpJWlGpEO8Qmk28w5pdLD2j3chBvg0xBBi2k9Ked9L43R4E3+gPCAA3CY8v01xlA6npJvdAK0/Md4mY+p65Ehua95jXnSwrpF66+Q/se2ODvZPhXGKBvttxrKyBr9htmkAUv9Sdah+dWQ=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
-        let result = try ASN1.parse(decodedPrivateKey)
-        let pkey = try ASN1.PKCS8PrivateKey(asn1Encoded: result)
+        let result = try DER.parse(decodedPrivateKey)
+        let pkey = try PKCS8PrivateKey(derEncoded: result)
 
         XCTAssertEqual(pkey.algorithm, .ecdsaP521)
         XCTAssertNil(pkey.privateKey.algorithm)  // OpenSSL nils this out for some reason
@@ -213,7 +213,7 @@ class ASN1Tests: XCTestCase {
         pkey.privateKey.publicKey!.withUnsafeBytes { XCTAssertEqual(Array($0), publicKeyBytes) }
 
         // For PKCS8 we should be able to round-trip the serialization.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
         XCTAssertEqual(serializer.serializedBytes, decodedPrivateKey)
     }
@@ -227,7 +227,7 @@ class ASN1Tests: XCTestCase {
             let expectSuccessfulParse = index == decodedSPKI.endIndex
 
             do {
-                _ = try ASN1.parse(decodedSPKI[..<index])
+                _ = try DER.parse(decodedSPKI[..<index])
                 if !expectSuccessfulParse {
                     XCTFail("Unexpected successful parse with: \(decodedSPKI[...])")
                 }
@@ -243,21 +243,21 @@ class ASN1Tests: XCTestCase {
         // This is an ASN.1 REAL, a type we don't support
         let base64Node = "CQUDMUUtMQ=="
         let decodedReal = Array(Data(base64Encoded: base64Node)!)
-        let parsed = try ASN1.parse(decodedReal)
+        let parsed = try DER.parse(decodedReal)
 
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
         }
-        XCTAssertThrowsError(try ASN1.sequence(parsed, identifier: .sequence, { _ in })) { error in
+        XCTAssertThrowsError(try DER.sequence(parsed, identifier: .sequence, { _ in })) { error in
             XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
         }
-        XCTAssertThrowsError(try ASN1.ASN1OctetString(asn1Encoded: parsed)) { error in
+        XCTAssertThrowsError(try ASN1OctetString(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
         }
-        XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
+        XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
         }
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
+        XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
         }
     }
@@ -266,7 +266,7 @@ class ASN1Tests: XCTestCase {
         // This is an ASN.1 REAL, a type we don't support, repeated
         let base64Node = "CQUDMUUtMQkFAzFFLTE="
         let decodedReal = Array(Data(base64Encoded: base64Node)!)
-        XCTAssertThrowsError(try ASN1.parse(decodedReal)) { error in
+        XCTAssertThrowsError(try DER.parse(decodedReal)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -275,13 +275,13 @@ class ASN1Tests: XCTestCase {
         // This is an ASN.1 INTEGER with trailing junk bytes
         let base64Node = "AgEBAA=="
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        XCTAssertThrowsError(try ASN1.parse(decodedInteger)) { error in
+        XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
 
     func testEmptyStringsDontDecode() throws {
-        XCTAssertThrowsError(try ASN1.parse([])) { error in
+        XCTAssertThrowsError(try DER.parse([])) { error in
             XCTAssertEqual(error as? ASN1Error, .truncatedASN1Field)
         }
     }
@@ -290,25 +290,25 @@ class ASN1Tests: XCTestCase {
         // This is an ASN.1 object with a multibyte explicit tag, with the raw numerical value being 55.
         let base64Node = "vzcDAgEB"
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        let result = try ASN1.parse(decodedInteger)
+        let result = try DER.parse(decodedInteger)
 
-        XCTAssertEqual(result.identifier, ASN1.ASN1Identifier(tagWithNumber: 55, tagClass: .contextSpecific, constructed: true))
+        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: 55, tagClass: .contextSpecific, constructed: true))
     }
 
     func testSupportSmallestValidMultibyteTags() throws {
         // This is an ASN.1 object with a multibyte explicit tag, with the raw numerical value being 31.
         let base64Node = "vx8DAgEB"
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        let result = try ASN1.parse(decodedInteger)
+        let result = try DER.parse(decodedInteger)
 
-        XCTAssertEqual(result.identifier, ASN1.ASN1Identifier(tagWithNumber: 31, tagClass: .contextSpecific, constructed: true))
+        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: 31, tagClass: .contextSpecific, constructed: true))
     }
 
     func testRejectExcessivelySmallMultibyteTags() throws {
         // This is an ASN.1 object with a multibyte explicit tag but whose raw value is 30, which is required to be written in the short form.
         let base64Node = "vx4DAgEB"
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        XCTAssertThrowsError(try ASN1.parse(decodedInteger)) { error in
+        XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -317,7 +317,7 @@ class ASN1Tests: XCTestCase {
         // This is an ASN.1 object with a multibyte explicit tag whose raw value is one larger than the max we tolerate, which is (1 << 63).
         let base64Node = "v4GAgICAgICAgAADAgEB"
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        XCTAssertThrowsError(try ASN1.parse(decodedInteger)) { error in
+        XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -326,9 +326,9 @@ class ASN1Tests: XCTestCase {
         // This is an ASN.1 object with a multibyte explicit tag whose raw value is (1 << 63) - 1.
         let base64Node = "v///////////fwMCAQE="
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        let result = try ASN1.parse(decodedInteger)
+        let result = try DER.parse(decodedInteger)
 
-        XCTAssertEqual(result.identifier, ASN1.ASN1Identifier(tagWithNumber: (1 << 63) - 1, tagClass: .contextSpecific, constructed: true))
+        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: (1 << 63) - 1, tagClass: .contextSpecific, constructed: true))
     }
 
     func testRejectMultibyteTagWithLeadingZeroByte() throws {
@@ -336,7 +336,7 @@ class ASN1Tests: XCTestCase {
         let base64Node = "v4A3AwIBAQ=="
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
 
-        XCTAssertThrowsError(try ASN1.parse(decodedInteger)) { error in
+        XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -345,12 +345,12 @@ class ASN1Tests: XCTestCase {
         // This is an ASN.1 SEQUENCE with two child nodes, both octet strings. We're going to consume only one.
         let base64Sequence = "MAwEBEFCQ0QEBEVGR0g="
         let decodedSequence = Array(Data(base64Encoded: base64Sequence)!)
-        let parsed = try ASN1.parse(decodedSequence)
+        let parsed = try DER.parse(decodedSequence)
 
         do {
-            try ASN1.sequence(parsed, identifier: .sequence) { nodes in
+            try DER.sequence(parsed, identifier: .sequence) { nodes in
                 // This is fine.
-                XCTAssertNoThrow(try ASN1.ASN1OctetString(asn1Encoded: &nodes))
+                XCTAssertNoThrow(try ASN1OctetString(derEncoded: &nodes))
             }
         } catch let error as ASN1Error {
             XCTAssertEqual(error, .invalidASN1Object)
@@ -358,8 +358,8 @@ class ASN1Tests: XCTestCase {
     }
 
     func testNodesErrorIfThereIsInsufficientData() throws {
-        struct Stub: ASN1Parseable {
-            init(asn1Encoded node: ASN1.ASN1Node) throws {
+        struct Stub: DERParseable {
+            init(derEncoded node: ASN1Node) throws {
                 XCTFail("Must not be called")
             }
         }
@@ -368,13 +368,13 @@ class ASN1Tests: XCTestCase {
         // to eat the (nonexistent) next node.
         let base64Sequence = "MAwEBEFCQ0QEBEVGR0g="
         let decodedSequence = Array(Data(base64Encoded: base64Sequence)!)
-        let parsed = try ASN1.parse(decodedSequence)
+        let parsed = try DER.parse(decodedSequence)
 
         do {
-            try ASN1.sequence(parsed, identifier: .sequence) { nodes in
-                XCTAssertNoThrow(try ASN1.ASN1OctetString(asn1Encoded: &nodes))
-                XCTAssertNoThrow(try ASN1.ASN1OctetString(asn1Encoded: &nodes))
-                _ = try Stub(asn1Encoded: &nodes)
+            try DER.sequence(parsed, identifier: .sequence) { nodes in
+                XCTAssertNoThrow(try ASN1OctetString(derEncoded: &nodes))
+                XCTAssertNoThrow(try ASN1OctetString(derEncoded: &nodes))
+                _ = try Stub(derEncoded: &nodes)
             }
         } catch let error as ASN1Error {
             XCTAssertEqual(error, .invalidASN1Object)
@@ -384,7 +384,7 @@ class ASN1Tests: XCTestCase {
     func testRejectsIndefiniteLengthForm() throws {
         // This the first octets of a constructed object of unknown tag type (private, number 7) whose length
         // is indefinite. We reject this immediately, not even noticing that the rest of the data isn't here.
-        XCTAssertThrowsError(try ASN1.parse([0xe7, 0x80])) { error in
+        XCTAssertThrowsError(try DER.parse([0xe7, 0x80])) { error in
             XCTAssertEqual(error as? ASN1Error, .unsupportedFieldLength)
         }
     }
@@ -394,9 +394,9 @@ class ASN1Tests: XCTestCase {
         // This makes it look like we're expecting more data in the OID, and we should flag it as truncated.
         let badBase64 = "BgJWhw=="
         let badNode = Array(Data(base64Encoded: badBase64)!)
-        let parsed = try ASN1.parse(badNode)
+        let parsed = try DER.parse(badNode)
 
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -407,9 +407,9 @@ class ASN1Tests: XCTestCase {
         // UInt is larger than 64 bits (seems unlikely).
         let badBase64 = "AgkB//////////4="
         let badNode = Array(Data(base64Encoded: badBase64)!)
-        let parsed = try ASN1.parse(badNode)
+        let parsed = try DER.parse(badNode)
 
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
+        XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -422,19 +422,19 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
 O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
-        let document = try ASN1.PEMDocument(pemString: simplePEM)
+        let document = try PEMDocument(pemString: simplePEM)
         XCTAssertEqual(document.type, "EC PRIVATE KEY")
         XCTAssertEqual(document.derBytes.count, 121)
 
-        let parsed = try ASN1.parse(Array(document.derBytes))
-        let pkey = try ASN1.SEC1PrivateKey(asn1Encoded: parsed)
+        let parsed = try DER.parse(Array(document.derBytes))
+        let pkey = try SEC1PrivateKey(derEncoded: parsed)
 
         let reserialized = document.pemString
         XCTAssertEqual(reserialized, simplePEM)
 
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
-        let reserialized2 = ASN1.PEMDocument(type: "EC PRIVATE KEY", derBytes: Data(serializer.serializedBytes))
+        let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: Data(serializer.serializedBytes))
         XCTAssertEqual(reserialized2.pemString, simplePEM)
     }
 
@@ -448,12 +448,12 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         for index in simplePEM.indices.dropLast() {
-            XCTAssertThrowsError(try ASN1.PEMDocument(pemString: String(simplePEM[..<index]))) { error in
+            XCTAssertThrowsError(try PEMDocument(pemString: String(simplePEM[..<index]))) { error in
                 XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
             }
         }
 
-        XCTAssertNoThrow(try ASN1.PEMDocument(pemString: simplePEM))
+        XCTAssertNoThrow(try PEMDocument(pemString: simplePEM))
     }
 
     func testMismatchedDiscriminatorsAreRejected() throws {
@@ -465,7 +465,7 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
 O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PUBLIC KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
         }
     }
@@ -479,7 +479,7 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzGO
 9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
         }
     }
@@ -493,7 +493,7 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJz
 GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
         }
     }
@@ -503,7 +503,7 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----BEGIN EC PRIVATE KEY-----
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
         }
     }
@@ -516,7 +516,7 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
 O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
         }
     }
@@ -524,8 +524,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testRejectSingleComponentOIDs() throws {
         // This is an encoded OID that has only one subcomponent, 0.
         let singleComponentOID: [UInt8] = [0x06, 0x01, 0x00]
-        let parsed = try ASN1.parse(singleComponentOID)
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(singleComponentOID)
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidObjectIdentifier)
         }
     }
@@ -533,8 +533,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testRejectZeroComponentOIDs() throws {
         // This is an encoded OID that has no subcomponents..
         let zeroComponentOID: [UInt8] = [0x06, 0x00]
-        let parsed = try ASN1.parse(zeroComponentOID)
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(zeroComponentOID)
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidObjectIdentifier)
         }
     }
@@ -543,8 +543,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         for i in 1..<8 {
             let lastByte = (UInt8.max << i)
             let weirdBitString = [0x03, 0x02, UInt8(i), lastByte]
-            let parsed = try ASN1.parse(weirdBitString)
-            let string = try ASN1.ASN1BitString(asn1Encoded: parsed)
+            let parsed = try DER.parse(weirdBitString)
+            let string = try ASN1BitString(derEncoded: parsed)
             XCTAssertEqual(string.paddingBits, i)
             XCTAssertEqual(string.bytes, [lastByte])
         }
@@ -553,8 +553,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testBitstringWithPaddingBitsSetTo1() throws {
         for i in 1..<8 {
             let weirdBitString = [0x03, 0x02, UInt8(i), 0xFF]
-            let parsed = try ASN1.parse(weirdBitString)
-            XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
+            let parsed = try DER.parse(weirdBitString)
+            XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
                 XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
             }
         }
@@ -564,8 +564,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testBitstringWithNoContent() throws {
         // We don't allow bitstrings with no content.
         let weirdBitString: [UInt8] = [0x03, 0x00]
-        let parsed = try ASN1.parse(weirdBitString)
-        XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(weirdBitString)
+        XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -573,14 +573,14 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testEmptyBitstring() throws {
         // Empty bitstrings must have their leading byte set to 0.
         var bitString: [UInt8] = [0x03, 0x01, 0x00]
-        let parsed = try ASN1.parse(bitString)
-        let bs = try ASN1.ASN1BitString(asn1Encoded: parsed)
+        let parsed = try DER.parse(bitString)
+        let bs = try ASN1BitString(derEncoded: parsed)
         XCTAssertEqual(bs.bytes, [])
 
         for i in 1..<8 {
             bitString[2] = UInt8(i)
-            let parsed = try ASN1.parse(bitString)
-            XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
+            let parsed = try DER.parse(bitString)
+            XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
                 XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
             }
         }
@@ -589,8 +589,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testIntegerZeroRequiresAZeroByte() throws {
         // Integer zero requires a leading zero byte.
         let weirdZero: [UInt8] = [0x02, 0x00]
-        let parsed = try ASN1.parse(weirdZero)
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(weirdZero)
+        XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1IntegerEncoding)
         }
     }
@@ -598,8 +598,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testLeadingZero() throws {
         // We should reject integers that have unnecessary leading zero bytes.
         let overlongOne: [UInt8] = [0x02, 0x02, 0x00, 0x01]
-        let parsed = try ASN1.parse(overlongOne)
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(overlongOne)
+        XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1IntegerEncoding)
         }
     }
@@ -608,8 +608,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         // We should reject integers that have unnecessary leading one bytes. This is supposed to be a -127, but we encode it as though it
         // were an Int16.
         let overlongOneTwoSeven: [UInt8] = [0x02, 0x02, 0xFF, 0x81]
-        let parsed = try ASN1.parse(overlongOneTwoSeven)
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(overlongOneTwoSeven)
+        XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1IntegerEncoding)
         }
     }
@@ -623,9 +623,9 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             0x02, 0x01, 0x01  // Integer 1
 
         ]
-        let parsed = try ASN1.parse(weirdASN1)
-        try ASN1.sequence(parsed, identifier: .sequence) { nodes in
-            XCTAssertThrowsError(try ASN1.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in })) { error in
+        let parsed = try DER.parse(weirdASN1)
+        try DER.sequence(parsed, identifier: .sequence) { nodes in
+            XCTAssertThrowsError(try DER.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in })) { error in
                 XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
             }
         }
@@ -636,15 +636,15 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let rsaSPKI = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQEcP8qgwq5JhGgl1mKMeOWbb0WFKkJKj4Tvm4RFWGKDYg/p+Fm8vHwPSICqU9HJ+dHF2Ty0M6WVwVlf6RJdJGsrp1s9cbxfc/74PdQUssIhUjhlBO2RFlQECbgNpw5UleRB9FLnEDp33qMgdr7nwXiYCTjd04QSkdU3mXJYrFfwIDAQAB"
         let decodedSPKI = Array(Data(base64Encoded: rsaSPKI)!)
 
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         serializer.appendPrimitiveNode(identifier: .null) { _ in }
         let null = serializer.serializedBytes
 
-        let parsed = try ASN1.parse(decodedSPKI)
-        let spki = try ASN1.SubjectPublicKeyInfo(asn1Encoded: parsed)
+        let parsed = try DER.parse(decodedSPKI)
+        let spki = try SubjectPublicKeyInfo(derEncoded: parsed)
         XCTAssertEqual(spki.algorithmIdentifier.algorithm, [1, 2, 840, 113549, 1, 1, 1])  // RSA encryption
 
-        serializer = ASN1.Serializer()
+        serializer = DER.Serializer()
         try serializer.serialize(spki.algorithmIdentifier.parameters!)
         XCTAssertEqual(serializer.serializedBytes, null)
 
@@ -667,10 +667,10 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let b64SPKI = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEzN09Sbb+mhMIlUbOdoIoND8lNcoQPd/yZDjQi1IDyDQEvVvz1yhi5J0FPLAlM3hE2o/a+rASUz2UP4fX5Cpnxw=="
         let decodedSPKI = Array(Data(base64Encoded: b64SPKI)!)
 
-        let parsed = try ASN1.parse(decodedSPKI)
-        let spki = try ASN1.SubjectPublicKeyInfo(asn1Encoded: parsed)
+        let parsed = try DER.parse(decodedSPKI)
+        let spki = try SubjectPublicKeyInfo(derEncoded: parsed)
         XCTAssertEqual(spki.algorithmIdentifier.algorithm, .AlgorithmIdentifier.idEcPublicKey)
-        XCTAssertEqual(try ASN1.ASN1ObjectIdentifier(asn1Any: spki.algorithmIdentifier.parameters!), [1, 3, 132, 0, 10])
+        XCTAssertEqual(try ASN1ObjectIdentifier(asn1Any: spki.algorithmIdentifier.parameters!), [1, 3, 132, 0, 10])
 
         let expectedKey: ArraySlice<UInt8> = [
             4, 204, 221, 61, 73, 182, 254, 154, 19, 8, 149, 70, 206, 118, 130, 40,
@@ -686,8 +686,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         // This is the beginning of a SEC1 private key with hypothetical version number 5. We should reject it
         let weirdSEC1: [UInt8] = [0x30, 0x03, 0x02, 0x01, 0x05]
 
-        let parsed = try ASN1.parse(weirdSEC1)
-        XCTAssertThrowsError(try ASN1.SEC1PrivateKey(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(weirdSEC1)
+        XCTAssertThrowsError(try SEC1PrivateKey(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -697,28 +697,28 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let b64SEC1 = "MHQCAQEEINIuVmNF7g1wNCJWXDpgL+09jATtaS1n0SxqqQneHi+woAcGBSuBBAAKoUQDQgAEB7v/p7gvuV0aDx02EF6a+pr563p+FzRJXI+COWHdr+XRcjg6vEi4n3Jj7ksmEg4t1x6E1xFyTvF3eV/B/XVXbw=="
         let decodedSEC1 = Array(Data(base64Encoded: b64SEC1)!)
 
-        let parsed = try ASN1.parse(decodedSEC1)
-        XCTAssertThrowsError(try ASN1.SEC1PrivateKey(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(decodedSEC1)
+        XCTAssertThrowsError(try SEC1PrivateKey(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
 
     func testPKCS8KeyWithNonMatchingKeyOIDS() throws {
         // This is a stubbed PKCS8 key with mismatched OIDs in the inner and outer payload. We have to serialize it out, sadly.
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         try serializer.appendConstructedNode(identifier: .sequence) { coder in
             try coder.serialize(0)
-            try coder.serialize(ASN1.RFC5480AlgorithmIdentifier.ecdsaP256)
+            try coder.serialize(RFC5480AlgorithmIdentifier.ecdsaP256)
 
-            var subCoder = ASN1.Serializer()
-            try subCoder.serialize(ASN1.SEC1PrivateKey(privateKey: [], algorithm: .ecdsaP384, publicKey: []))  // We won't notice these are empty either, but we will notice the algo mismatch.
-            let serializedKey = ASN1.ASN1OctetString(contentBytes: subCoder.serializedBytes[...])
+            var subCoder = DER.Serializer()
+            try subCoder.serialize(SEC1PrivateKey(privateKey: [], algorithm: .ecdsaP384, publicKey: []))  // We won't notice these are empty either, but we will notice the algo mismatch.
+            let serializedKey = ASN1OctetString(contentBytes: subCoder.serializedBytes[...])
 
             try coder.serialize(serializedKey)
         }
 
-        let parsed = try ASN1.parse(serializer.serializedBytes)
-        XCTAssertThrowsError(try ASN1.PKCS8PrivateKey(asn1Encoded: parsed)) { error in
+        let parsed = try DER.parse(serializer.serializedBytes)
+        XCTAssertThrowsError(try PKCS8PrivateKey(derEncoded: parsed)) { error in
             XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
@@ -728,7 +728,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let rsaSPKI = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQEcP8qgwq5JhGgl1mKMeOWbb0WFKkJKj4Tvm4RFWGKDYg/p+Fm8vHwPSICqU9HJ+dHF2Ty0M6WVwVlf6RJdJGsrp1s9cbxfc/74PdQUssIhUjhlBO2RFlQECbgNpw5UleRB9FLnEDp33qMgdr7nwXiYCTjd04QSkdU3mXJYrFfwIDAQAB"
         let decodedSPKI = Array(Data(base64Encoded: rsaSPKI)!)
 
-        let parsed = try ASN1.parse(decodedSPKI)
+        let parsed = try DER.parse(decodedSPKI)
         XCTAssertEqual(parsed.encodedBytes, decodedSPKI[...])
 
         guard case .constructed(let firstLayerChildren) = parsed.content else {
@@ -771,29 +771,29 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     }
 
     func testOptionalImplicitlyTaggedWithCustomTag() throws {
-        var serializer = ASN1.Serializer()
+        var serializer = DER.Serializer()
         try serializer.appendConstructedNode(identifier: .sequence) { serializer in
-            try serializer.serializeOptionalImplicitlyTagged(1, withIdentifier: ASN1.ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific, constructed: false))
+            try serializer.serializeOptionalImplicitlyTagged(1, withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific, constructed: false))
         }
         let bytes = serializer.serializedBytes
 
         XCTAssertEqual(bytes, [0x30, 0x03, 0x81, 0x1, 0x1])
 
-        let parseResult = try ASN1.parse(bytes)
-        let int: Int? = try ASN1.sequence(parseResult, identifier: .sequence) { nodes in
-            try ASN1.optionalImplicitlyTagged(&nodes, tag: ASN1.ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific, constructed: false))
+        let parseResult = try DER.parse(bytes)
+        let int: Int? = try DER.sequence(parseResult, identifier: .sequence) { nodes in
+            try DER.optionalImplicitlyTagged(&nodes, tag: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific, constructed: false))
         }
         XCTAssertEqual(int, 1)
     }
 
     func testPrintingOIDs() {
-        let oid: ASN1.ASN1ObjectIdentifier = [1, 2, 865, 11241, 3]
+        let oid: ASN1ObjectIdentifier = [1, 2, 865, 11241, 3]
         let s = String(describing: oid)
         XCTAssertEqual(s, "1.2.865.11241.3")
     }
 
     func testPrintingASN1Any() throws {
-        let any = try ASN1.ASN1Any(erasing: ASN1.ASN1Null())
+        let any = try ASN1Any(erasing: ASN1Null())
         let s = String(describing: any)
         XCTAssertEqual(s, "ASN1Any([5, 0])")
     }

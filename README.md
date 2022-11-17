@@ -21,8 +21,8 @@ vastly easier, as it is at least in principle possible to perfectly reconstruct 
 This module provides several moving pieces:
 
 1. A high-level representation of an ASN.1 object, in the form of a tree of object nodes (`ASN1Node`).
-2. A DER parser that can construct the ASN.1 tree from serialized bytes (`ASN1.parse(_:)`).
-3. A DER serializer that can construct serialized bytes from the ASN.1 tree (`ASN1.Serializer`).
+2. A DER parser that can construct the ASN.1 tree from serialized bytes (`DER.parse(_:)`).
+3. A DER serializer that can construct serialized bytes from the ASN.1 tree (`DER.Serializer`).
 4. A number of built-in ASN.1 types, representing common constructs.
 
 These moving pieces combine to provide support for the DER representation of ASN.1 suitable for a wide range of cryptographic uses.
