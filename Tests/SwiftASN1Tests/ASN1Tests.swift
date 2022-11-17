@@ -791,4 +791,10 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let s = String(describing: oid)
         XCTAssertEqual(s, "1.2.865.11241.3")
     }
+
+    func testPrintingASN1Any() throws {
+        let any = try ASN1.ASN1Any(erasing: ASN1.ASN1Null())
+        let s = String(describing: any)
+        XCTAssertEqual(s, "ASN1Any([5, 0])")
+    }
 }

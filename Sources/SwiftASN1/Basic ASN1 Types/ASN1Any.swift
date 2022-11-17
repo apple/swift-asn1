@@ -65,6 +65,13 @@ extension ASN1 {
     }
 }
 
+extension ASN1.ASN1Any: CustomStringConvertible {
+    @inlinable
+    public var description: String {
+        "ASN1Any(\(self._serializedBytes))"
+    }
+}
+
 extension ASN1Parseable {
     /// Construct this node from an ASN.1 ANY object.
     ///
