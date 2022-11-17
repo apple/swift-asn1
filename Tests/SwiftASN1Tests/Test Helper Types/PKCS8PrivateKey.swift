@@ -11,9 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import SwiftASN1
 
-// A PKCS#8 private key is one of two formats, depending on the version:
-//
 // For PKCS#8 we need the following for the private key:
 //
 // PrivateKeyInfo ::= SEQUENCE {
@@ -32,8 +31,9 @@
 //
 // We disregard the attributes because we don't support them anyway.
 //
-// The private key octet string contains (surprise!) a SEC1-encoded private key! So we recursively invoke the
-// ASN.1 parser and go again.
+// For testing purposes we're supporting a very general version of this, which only contains a SEC1
+// private key (i.e. an EC private key). In the wild, the PKCS8 key format can contain other keys,
+// but for testing we don't care.
 struct PKCS8PrivateKey: DERImplicitlyTaggable {
     static var defaultIdentifier: ASN1Identifier {
         return .sequence

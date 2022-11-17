@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import SwiftASN1
 
 /// An ECDSA signature is laid out as follows:
 ///
@@ -18,8 +19,6 @@
 ///   r INTEGER,
 ///   s INTEGER
 /// }
-///
-/// This type is generic because our different backends want to use different bignum representations.
 struct ECDSASignature<IntegerType: ASN1IntegerRepresentable>: DERImplicitlyTaggable {
     static var defaultIdentifier: ASN1Identifier {
         .sequence

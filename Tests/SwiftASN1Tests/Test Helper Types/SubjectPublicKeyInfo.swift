@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import SwiftASN1
 
 struct SubjectPublicKeyInfo: DERImplicitlyTaggable, Hashable {
     static var defaultIdentifier: ASN1Identifier {
