@@ -75,23 +75,14 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
             throw ASN1Error.invalidObjectIdentifier
         }
 
-        // Now we need to expand the subcomponents out. This means we need to undo the step above. The first component will be in the range 0..<40
-        // when the first oidComponent is 0, 40..<80 when the first oidComponent is 1, and 80+ when the first oidComponent is 2.
+        // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
+        // taking the quotient and remainder when dividing by 40.
         var oidComponents = [UInt]()
         oidComponents.reserveCapacity(subcomponents.count + 1)
 
-        switch subcomponents.first! {
-        case ..<40:
-            oidComponents.append(0)
-            oidComponents.append(subcomponents.first!)
-        case 40 ..< 80:
-            oidComponents.append(1)
-            oidComponents.append(subcomponents.first! - 40)
-        default:
-            oidComponents.append(2)
-            oidComponents.append(subcomponents.first! - 80)
-        }
-
+        let (firstSubcomponent, secondSubcomponent) = subcomponents.first!.quotientAndRemainder(dividingBy: 40)
+        oidComponents.append(firstSubcomponent)
+        oidComponents.append(secondSubcomponent)
         oidComponents.append(contentsOf: subcomponents.dropFirst())
 
         self._oidComponents = oidComponents
