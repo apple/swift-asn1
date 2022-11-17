@@ -132,7 +132,7 @@ extension ASN1Identifier {
     /// This tag represents an OBJECT IDENTIFIER.
     public static let objectIdentifier = ASN1Identifier(shortIdentifier: 0x06)
 
-    /// This tag represents a BITSTRING.
+    /// This tag represents a BIT STRING.
     public static let primitiveBitString = ASN1Identifier(shortIdentifier: 0x03)
 
     /// This tag represents an OCTET STRING.
@@ -159,40 +159,40 @@ extension ASN1Identifier {
     /// This tag represents a UTF8STRING.
     public static let primitiveUTF8String = ASN1Identifier(shortIdentifier: 0x0c)
 
-    /// This tag represents a NUMERICSTRING.
+    /// This tag represents a NumericString.
     public static let primitiveNumericString = ASN1Identifier(shortIdentifier: 0x12)
 
-    /// This tag represents a PRINTABLESTRING.
+    /// This tag represents a PrintableString.
     public static let primitivePrintableString = ASN1Identifier(shortIdentifier: 0x13)
 
-    /// This tag represents a TELETEXSTRING.
+    /// This tag represents a TeletexString.
     public static let primitiveTeletexString = ASN1Identifier(shortIdentifier: 0x14)
 
-    /// This tag represents a VIDEOTEXSTRING.
+    /// This tag represents a VideotexString.
     public static let primitiveVideotexString = ASN1Identifier(shortIdentifier: 0x15)
 
-    /// This tag represents an IA5STRING.
+    /// This tag represents an IA5String.
     public static let primitiveIA5String = ASN1Identifier(shortIdentifier: 0x16)
 
-    /// This tag represents a GRAPHICSTRING.
+    /// This tag represents a GraphicString.
     public static let primitiveGraphicString = ASN1Identifier(shortIdentifier: 0x19)
 
-    /// This tag represents a VISIBLESTRING.
+    /// This tag represents a VisibileString.
     public static let primitiveVisibleString = ASN1Identifier(shortIdentifier: 0x1a)
 
-    /// This tag represents a GENERALSTRING.
+    /// This tag represents a GeneralString.
     public static let primitiveGeneralString = ASN1Identifier(shortIdentifier: 0x1b)
 
-    /// This tag represents a UNIVERSALSTRING.
+    /// This tag represents a UniversalString.
     public static let primitiveUniversalString = ASN1Identifier(shortIdentifier: 0x1c)
 
-    /// This tag represents a BMPSTRING.
+    /// This tag represents a BMPString.
     public static let primitiveBMPString = ASN1Identifier(shortIdentifier: 0x1e)
 
-    /// This tag represents a GENERALIZEDTIME.
+    /// This tag represents a GeneralizedTime.
     public static let generalizedTime = ASN1Identifier(shortIdentifier: 0x18)
 
-    /// This tag represents a UTCTIME.
+    /// This tag represents a UTCTime.
     public static let utcTime = ASN1Identifier(shortIdentifier: 0x17)
 }
 

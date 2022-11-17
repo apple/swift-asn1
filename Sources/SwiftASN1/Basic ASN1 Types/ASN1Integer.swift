@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// A protocol that represents any internal object that can present itself as a INTEGER, or be parsed from
-/// a INTEGER.
+/// A protocol that represents any internal object that can present itself as an INTEGER, or be parsed from
+/// an INTEGER.
 ///
 /// This protocol exists to allow users to handle the possibility of decoding integers that cannot fit into
 /// UInt64 or Int64. While both of those types conform by default, users can conform their preferred
