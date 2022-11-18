@@ -16,7 +16,7 @@ public enum ASN1Error : Error {
     /// The ASN.1 tag for this field is invalid or unsupported.
     case invalidFieldIdentifier
 
-    /// The ASN.1 tag for the parsed field does not match the required format.
+    /// The ASN.1 tag for the parsed field does not match the tag expected for the field.
     case unexpectedFieldType
 
     /// The format of the parsed ASN.1 object does not match the format required for the data type
