@@ -16,7 +16,7 @@
 public struct ASN1UTF8String: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitiveUTF8String
+        .utf8String
     }
 
     /// The raw bytes that make up this string.
@@ -62,7 +62,7 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, Hashable, Sendable, Express
 public struct ASN1TeletexString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitiveTeletexString
+        .teletexString
     }
 
     /// The raw bytes that make up this string.
@@ -106,7 +106,7 @@ public struct ASN1TeletexString: DERImplicitlyTaggable, Hashable, Sendable, Expr
 public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitivePrintableString
+        .printableString
     }
 
     /// The raw bytes that make up this string.
@@ -187,7 +187,7 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, Ex
 public struct ASN1UniversalString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitiveUniversalString
+        .universalString
     }
 
     /// The raw bytes that make up this string.
@@ -227,7 +227,7 @@ public struct ASN1UniversalString: DERImplicitlyTaggable, Hashable, Sendable, Ex
 public struct ASN1BMPString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitiveBMPString
+        .bmpString
     }
 
     /// The raw bytes that make up this string.
@@ -271,7 +271,7 @@ public struct ASN1BMPString: DERImplicitlyTaggable, Hashable, Sendable, Expressi
 public struct ASN1IA5String: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitiveIA5String
+        .ia5String
     }
 
     /// The raw bytes that make up this string.

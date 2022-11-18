@@ -292,7 +292,7 @@ class ASN1Tests: XCTestCase {
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
         let result = try DER.parse(decodedInteger)
 
-        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: 55, tagClass: .contextSpecific, constructed: true))
+        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: 55, tagClass: .contextSpecific))
     }
 
     func testSupportSmallestValidMultibyteTags() throws {
@@ -301,7 +301,7 @@ class ASN1Tests: XCTestCase {
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
         let result = try DER.parse(decodedInteger)
 
-        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: 31, tagClass: .contextSpecific, constructed: true))
+        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: 31, tagClass: .contextSpecific))
     }
 
     func testRejectExcessivelySmallMultibyteTags() throws {
@@ -328,7 +328,7 @@ class ASN1Tests: XCTestCase {
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
         let result = try DER.parse(decodedInteger)
 
-        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: (1 << 63) - 1, tagClass: .contextSpecific, constructed: true))
+        XCTAssertEqual(result.identifier, ASN1Identifier(tagWithNumber: (1 << 63) - 1, tagClass: .contextSpecific))
     }
 
     func testRejectMultibyteTagWithLeadingZeroByte() throws {
@@ -771,7 +771,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testOptionalImplicitlyTaggedWithCustomTag() throws {
         var serializer = DER.Serializer()
         try serializer.appendConstructedNode(identifier: .sequence) { serializer in
-            try serializer.serializeOptionalImplicitlyTagged(1, withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific, constructed: false))
+            try serializer.serializeOptionalImplicitlyTagged(1, withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific))
         }
         let bytes = serializer.serializedBytes
 
@@ -779,7 +779,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 
         let parseResult = try DER.parse(bytes)
         let int: Int? = try DER.sequence(parseResult, identifier: .sequence) { nodes in
-            try DER.optionalImplicitlyTagged(&nodes, tag: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific, constructed: false))
+            try DER.optionalImplicitlyTagged(&nodes, tag: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific))
         }
         XCTAssertEqual(int, 1)
     }

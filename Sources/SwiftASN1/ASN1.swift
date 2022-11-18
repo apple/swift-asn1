@@ -35,6 +35,10 @@ extension DER {
         @usableFromInline
         var depth: Int
 
+        /// Whether this node is constructed
+        @usableFromInline
+        var isConstructed: Bool
+
         /// The encoded bytes for this complete ASN.1 object.
         @usableFromInline
         var encodedBytes: ArraySlice<UInt8>
@@ -47,11 +51,13 @@ extension DER {
         init(
             identifier: ASN1Identifier,
             depth: Int,
+            isConstructed: Bool,
             encodedBytes: ArraySlice<UInt8>,
             dataBytes: ArraySlice<UInt8>? = nil
         ) {
             self.identifier = identifier
             self.depth = depth
+            self.isConstructed = isConstructed
             self.encodedBytes = encodedBytes
             self.dataBytes = dataBytes
         }
@@ -167,8 +173,8 @@ extension DER {
             return nil
         }
 
-        let expectedNodeID = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
-        assert(expectedNodeID.constructed)
+        let expectedNodeID = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
+//        assert(expectedNodeID.constructed)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag. Our optional isn't present.
             return nil
@@ -375,8 +381,7 @@ extension DER {
     /// - returns: The result of `builder`.
     @inlinable
     public static func explicitlyTagged<T>(_ node: ASN1Node, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
-        let expectedNodeID = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
-        assert(expectedNodeID.constructed)
+        let expectedNodeID = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag.
             throw ASN1Error.invalidFieldIdentifier
@@ -384,8 +389,7 @@ extension DER {
 
         // We expect a single child.
         guard case .constructed(let nodes) = node.content else {
-            // This error is an internal parser error: the tag above is always constructed.
-            preconditionFailure("Explicit tags are always constructed")
+            throw ASN1Error.invalidASN1Object
         }
 
         var nodeIterator = nodes.makeIterator()
@@ -444,10 +448,10 @@ extension DER {
             }
 
             // Check whether the bottom 5 bits are set: if they are, this uses long-form encoding.
+            let constructed = (rawIdentifier & 0x20) != 0
             let identifier: ASN1Identifier
             if (rawIdentifier & 0x1f) == 0x1f {
                 let tagClass = ASN1Identifier.TagClass(topByteInWireFormat: rawIdentifier)
-                let constructed = (rawIdentifier & 0x20) != 0
 
                 // Now we need to read a UInt from the array.
                 let tagNumber = try data.readUIntUsing8BitBytesASN1Discipline()
@@ -456,7 +460,7 @@ extension DER {
                 guard tagNumber >= 0x1f else {
                     throw ASN1Error.invalidASN1Object
                 }
-                identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass, constructed: constructed)
+                identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
             } else {
                 identifier = ASN1Identifier(shortIdentifier: rawIdentifier)
             }
@@ -479,11 +483,12 @@ extension DER {
 
             let encodedBytes = originalData[..<subData.endIndex]
 
-            if identifier.constructed {
+            if constructed {
                 nodes.append(
                     ParserNode(
                         identifier: identifier,
                         depth: depth,
+                        isConstructed: true,
                         encodedBytes: encodedBytes,
                         dataBytes: nil
                     )
@@ -496,6 +501,7 @@ extension DER {
                     ParserNode(
                         identifier: identifier,
                         depth: depth,
+                        isConstructed: false,
                         encodedBytes: encodedBytes,
                         dataBytes: subData
                     )
@@ -545,7 +551,7 @@ extension DER {
         let firstNode = result.nodes.removeFirst()
 
         let rootNode: ASN1Node
-        if firstNode.identifier.constructed {
+        if firstNode.isConstructed {
             // We need to feed it the next set of nodes.
             let nodeCollection = result.nodes.prefix { $0.depth > firstNode.depth }
             result.nodes = result.nodes.dropFirst(nodeCollection.count)
@@ -620,7 +626,7 @@ extension ASN1NodeCollection: Sequence {
             }
 
             assert(nextNode.depth == self._depth + 1)
-            if nextNode.identifier.constructed {
+            if nextNode.isConstructed {
                 // We need to feed it the next set of nodes.
                 let nodeCollection = self._nodes.prefix { $0.depth > nextNode.depth }
                 self._nodes = self._nodes.dropFirst(nodeCollection.count)
@@ -723,8 +729,7 @@ extension DER {
         ///      - contentWriter: A callback that will be invoked that allows users to write their bytes into the output stream.
         @inlinable
         public mutating func appendPrimitiveNode(identifier: ASN1Identifier, _ contentWriter: (inout [UInt8]) throws -> Void) rethrows {
-            assert(identifier.primitive)
-            try self._appendNode(identifier: identifier) { try contentWriter(&$0._serializedBytes) }
+            try self._appendNode(identifier: identifier, constructed: false) { try contentWriter(&$0._serializedBytes) }
         }
 
         /// Appends a single constructed node to the content.
@@ -737,8 +742,7 @@ extension DER {
         ///      - contentWriter: A callback that will be invoked that allows users to write the objects contained within this constructed node.
         @inlinable
         public mutating func appendConstructedNode(identifier: ASN1Identifier, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
-            assert(identifier.constructed)
-            try self._appendNode(identifier: identifier, contentWriter)
+            try self._appendNode(identifier: identifier, constructed: true, contentWriter)
         }
 
         /// Serializes a single node to the end of the byte stream.
@@ -761,7 +765,7 @@ extension DER {
         ///     tagClass: The number of the explicit tag.
         @inlinable
         public mutating func serialize<T: DERSerializable>(_ node: T, explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1Identifier.TagClass) throws {
-            let identifier = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
+            let identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
             return try self.serialize(node, explicitlyTaggedWithIdentifier: identifier)
         }
 
@@ -817,7 +821,7 @@ extension DER {
         ///     block: The block that will be invoked to encode the contents of the explicit tag.
         @inlinable
         public mutating func serialize(explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ block: (inout Serializer) throws -> Void) rethrows {
-            let identifier = ASN1Identifier(explicitTagWithNumber: tagNumber, tagClass: tagClass)
+            let identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
             try self.appendConstructedNode(identifier: identifier) { coder in
                 try block(&coder)
             }
@@ -847,7 +851,15 @@ extension DER {
         @inlinable
         public mutating func serialize(_ node: ASN1Node) {
             let identifier = node.identifier
-            self._appendNode(identifier: identifier) { coder in
+            let constructed: Bool
+
+            if case .constructed = node.content {
+                constructed = true
+            } else {
+                constructed = false
+            }
+
+            self._appendNode(identifier: identifier, constructed: constructed) { coder in
                 switch node.content {
                 case .constructed(let nodes):
                     for node in nodes {
@@ -862,12 +874,12 @@ extension DER {
         // This is the base logical function that all other append methods are built on. This one has most of the logic, and doesn't
         // police what we expect to happen in the content writer.
         @inlinable
-        mutating func _appendNode(identifier: ASN1Identifier, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
+        mutating func _appendNode(identifier: ASN1Identifier, constructed: Bool, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
             // This is a tricky game to play. We want to write the identifier and the length, but we don't know what the
             // length is here. To get around that, we _assume_ the length will be one byte, and let the writer write their content.
             // If it turns out to have been longer, we recalculate how many bytes we need and shuffle them in the buffer,
             // before updating the length. Most of the time we'll be right: occasionally we'll be wrong and have to shuffle.
-            self._serializedBytes.writeIdentifier(identifier)
+            self._serializedBytes.writeIdentifier(identifier, constructed: constructed)
 
             // Write a zero for the length.
             self._serializedBytes.append(0)

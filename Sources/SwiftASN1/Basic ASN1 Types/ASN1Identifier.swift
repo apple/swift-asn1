@@ -20,20 +20,6 @@ public struct ASN1Identifier {
     /// The class of the tag.
     public var tagClass: TagClass
 
-    /// Whether this tag represents a primitive object.
-    public var primitive: Bool
-
-    /// Whether this tag represents a constructed object.
-    @inlinable
-    public var constructed: Bool {
-        get {
-            return !self.primitive
-        }
-        set {
-            self.primitive = !newValue
-        }
-    }
-
     @inlinable
     var _shortForm: UInt8? {
         // An ASN.1 identifier can be encoded in short form iff the tag number is strictly
@@ -41,9 +27,6 @@ public struct ASN1Identifier {
         guard self.tagNumber < 0x1f else { return nil }
 
         var baseNumber = UInt8(truncatingIfNeeded: self.tagNumber)
-        if self.constructed {
-            baseNumber |= 0x20
-        }
         baseNumber |= self.tagClass._topByteFlags
         return baseNumber
     }
@@ -90,25 +73,7 @@ public struct ASN1Identifier {
     init(shortIdentifier: UInt8) {
         precondition(shortIdentifier & 0x1F != 0x1F)
         self.tagClass = TagClass(topByteInWireFormat: shortIdentifier)
-        self.primitive = (shortIdentifier & 0x20 == 0)
         self.tagNumber = UInt(shortIdentifier & 0x1f)
-    }
-
-    /// Produces a tag suitable for use as an explicit tag from components.
-    ///
-    /// This is equivalent to ``init(tagWithNumber:tagClass:constructed:)``, but sets
-    /// `constructed` to `true` in all cases.
-    ///
-    /// - parameters:
-    ///     - number: The tag number.
-    ///     - tagClass: The class of the ASN.1 tag.
-    @inlinable
-    public init(explicitTagWithNumber number: UInt, tagClass: TagClass) {
-        self.tagClass = tagClass
-        self.tagNumber = number
-
-        // Explicit tags are always constructed
-        self.primitive = false
     }
 
     /// Produces a tag from components.
@@ -121,10 +86,9 @@ public struct ASN1Identifier {
     ///     - tagClass: The class of the ASN.1 tag.
     ///     - constructed: Whether this is a constructed tag.
     @inlinable
-    public init(tagWithNumber number: UInt, tagClass: TagClass, constructed: Bool) {
+    public init(tagWithNumber number: UInt, tagClass: TagClass) {
         self.tagNumber = number
         self.tagClass = tagClass
-        self.primitive = !constructed
     }
 }
 
@@ -133,10 +97,10 @@ extension ASN1Identifier {
     public static let objectIdentifier = ASN1Identifier(shortIdentifier: 0x06)
 
     /// This tag represents a BIT STRING.
-    public static let primitiveBitString = ASN1Identifier(shortIdentifier: 0x03)
+    public static let bitString = ASN1Identifier(shortIdentifier: 0x03)
 
     /// This tag represents an OCTET STRING.
-    public static let primitiveOctetString = ASN1Identifier(shortIdentifier: 0x04)
+    public static let octetString = ASN1Identifier(shortIdentifier: 0x04)
 
     /// This tag represents an INTEGER.
     public static let integer = ASN1Identifier(shortIdentifier: 0x02)
@@ -157,37 +121,37 @@ extension ASN1Identifier {
     public static let enumerated = ASN1Identifier(shortIdentifier: 0x0a)
 
     /// This tag represents a UTF8STRING.
-    public static let primitiveUTF8String = ASN1Identifier(shortIdentifier: 0x0c)
+    public static let utf8String = ASN1Identifier(shortIdentifier: 0x0c)
 
     /// This tag represents a NumericString.
-    public static let primitiveNumericString = ASN1Identifier(shortIdentifier: 0x12)
+    public static let numericString = ASN1Identifier(shortIdentifier: 0x12)
 
     /// This tag represents a PrintableString.
-    public static let primitivePrintableString = ASN1Identifier(shortIdentifier: 0x13)
+    public static let printableString = ASN1Identifier(shortIdentifier: 0x13)
 
     /// This tag represents a TeletexString.
-    public static let primitiveTeletexString = ASN1Identifier(shortIdentifier: 0x14)
+    public static let teletexString = ASN1Identifier(shortIdentifier: 0x14)
 
     /// This tag represents a VideotexString.
-    public static let primitiveVideotexString = ASN1Identifier(shortIdentifier: 0x15)
+    public static let videotexString = ASN1Identifier(shortIdentifier: 0x15)
 
     /// This tag represents an IA5String.
-    public static let primitiveIA5String = ASN1Identifier(shortIdentifier: 0x16)
+    public static let ia5String = ASN1Identifier(shortIdentifier: 0x16)
 
     /// This tag represents a GraphicString.
-    public static let primitiveGraphicString = ASN1Identifier(shortIdentifier: 0x19)
+    public static let graphicString = ASN1Identifier(shortIdentifier: 0x19)
 
     /// This tag represents a VisibileString.
-    public static let primitiveVisibleString = ASN1Identifier(shortIdentifier: 0x1a)
+    public static let visibleString = ASN1Identifier(shortIdentifier: 0x1a)
 
     /// This tag represents a GeneralString.
-    public static let primitiveGeneralString = ASN1Identifier(shortIdentifier: 0x1b)
+    public static let generalString = ASN1Identifier(shortIdentifier: 0x1b)
 
     /// This tag represents a UniversalString.
-    public static let primitiveUniversalString = ASN1Identifier(shortIdentifier: 0x1c)
+    public static let universalString = ASN1Identifier(shortIdentifier: 0x1c)
 
     /// This tag represents a BMPString.
-    public static let primitiveBMPString = ASN1Identifier(shortIdentifier: 0x1e)
+    public static let bmpString = ASN1Identifier(shortIdentifier: 0x1e)
 
     /// This tag represents a GeneralizedTime.
     public static let generalizedTime = ASN1Identifier(shortIdentifier: 0x18)
@@ -203,19 +167,22 @@ extension ASN1Identifier: Sendable { }
 extension ASN1Identifier: CustomStringConvertible {
     @inlinable
     public var description: String {
-        return "ASN1Identifier(tagNumber: \(self.tagNumber), tagClass: \(self.tagClass), primitive: \(self.primitive))"
+        return "ASN1Identifier(tagNumber: \(self.tagNumber), tagClass: \(self.tagClass))"
     }
 }
 
 extension Array where Element == UInt8 {
     @inlinable
-    mutating func writeIdentifier(_ identifier: ASN1Identifier) {
-        if let shortForm = identifier._shortForm {
+    mutating func writeIdentifier(_ identifier: ASN1Identifier, constructed: Bool) {
+        if var shortForm = identifier._shortForm {
+            if constructed {
+                shortForm |= 0x20
+            }
             self.append(shortForm)
         } else {
             // Long-form encoded. The top byte is 0x1f plus the various flags.
             var topByte = UInt8(0x1f)
-            if identifier.constructed {
+            if constructed {
                 topByte |= 0x20
             }
             topByte |= identifier.tagClass._topByteFlags

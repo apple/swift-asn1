@@ -84,7 +84,7 @@ final class GeneralizedTimeTests: XCTestCase {
 
         for (stringRepresentation, expectedResult) in vectors {
             var serialized = Array<UInt8>()
-            serialized.writeIdentifier(ASN1Identifier.generalizedTime)
+            serialized.writeIdentifier(ASN1Identifier.generalizedTime, constructed: false)
             serialized.append(UInt8(stringRepresentation.utf8.count))
             serialized.append(contentsOf: stringRepresentation.utf8)
 
@@ -136,7 +136,7 @@ final class GeneralizedTimeTests: XCTestCase {
     func testTruncatedRepresentationsRejected() throws {
         func mustNotDeserialize(_ stringRepresentation: Substring) {
             var serialized = Array<UInt8>()
-            serialized.writeIdentifier(ASN1Identifier.generalizedTime)
+            serialized.writeIdentifier(ASN1Identifier.generalizedTime, constructed: false)
             serialized.append(UInt8(stringRepresentation.utf8.count))
             serialized.append(contentsOf: stringRepresentation.utf8)
 
@@ -145,7 +145,7 @@ final class GeneralizedTimeTests: XCTestCase {
 
         func deserializes(_ stringRepresentation: Substring) {
             var serialized = Array<UInt8>()
-            serialized.writeIdentifier(ASN1Identifier.generalizedTime)
+            serialized.writeIdentifier(ASN1Identifier.generalizedTime, constructed: false)
             serialized.append(UInt8(stringRepresentation.utf8.count))
             serialized.append(contentsOf: stringRepresentation.utf8)
 
@@ -171,7 +171,7 @@ final class GeneralizedTimeTests: XCTestCase {
     func testRequiresAppropriateTag() throws {
         let rawValue = "19920521000000Z".utf8
         var invalidBytes = Array<UInt8>()
-        invalidBytes.writeIdentifier(ASN1Identifier.integer)  // generalizedTime isn't an integer
+        invalidBytes.writeIdentifier(ASN1Identifier.integer, constructed: false)  // generalizedTime isn't an integer
         invalidBytes.append(UInt8(rawValue.count))
         invalidBytes.append(contentsOf: rawValue)
 

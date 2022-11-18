@@ -22,10 +22,10 @@
 public struct ASN1BitString: DERImplicitlyTaggable {
     /// The default identifier for this type.
     ///
-    /// Evaluates to ``ASN1Identifier/primitiveBitString``.
+    /// Evaluates to ``ASN1Identifier/bitString``.
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitiveBitString
+        .bitString
     }
 
     /// The raw bytes that make up this bitstring.

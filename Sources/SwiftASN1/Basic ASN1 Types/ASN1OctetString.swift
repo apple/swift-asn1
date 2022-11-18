@@ -16,7 +16,7 @@
 public struct ASN1OctetString: DERImplicitlyTaggable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
-        .primitiveOctetString
+        .octetString
     }
 
     /// The octets that make up this OCTET STRING.
