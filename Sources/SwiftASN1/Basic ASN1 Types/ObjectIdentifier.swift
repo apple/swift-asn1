@@ -71,19 +71,21 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
             subcomponents.append(try content.readUIntUsing8BitBytesASN1Discipline())
         }
 
-        guard subcomponents.count >= 2 else {
-            throw ASN1Error.invalidObjectIdentifier
-        }
-
         // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
         // taking the quotient and remainder when dividing by 40.
         var oidComponents = [UInt]()
         oidComponents.reserveCapacity(subcomponents.count + 1)
 
-        let (firstSubcomponent, secondSubcomponent) = subcomponents.first!.quotientAndRemainder(dividingBy: 40)
+        // We'd like to work on the slice here.
+        var subcomponentSlice = subcomponents[...]
+        guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
+            throw ASN1Error.invalidASN1Object
+        }
+
+        let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
         oidComponents.append(firstSubcomponent)
         oidComponents.append(secondSubcomponent)
-        oidComponents.append(contentsOf: subcomponents.dropFirst())
+        oidComponents.append(contentsOf: subcomponentSlice)
 
         self._oidComponents = oidComponents
     }

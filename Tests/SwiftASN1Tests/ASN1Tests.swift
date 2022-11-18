@@ -521,13 +521,11 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         }
     }
 
-    func testRejectSingleComponentOIDs() throws {
+    func testAllowSingleComponentOIDs() throws {
         // This is an encoded OID that has only one subcomponent, 0.
         let singleComponentOID: [UInt8] = [0x06, 0x01, 0x00]
-        let parsed = try DER.parse(singleComponentOID)
-        XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidObjectIdentifier)
-        }
+        let parsed = try ASN1ObjectIdentifier(derEncoded: singleComponentOID)
+        XCTAssertEqual(parsed, [0, 0])
     }
 
     func testRejectZeroComponentOIDs() throws {
@@ -535,7 +533,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let zeroComponentOID: [UInt8] = [0x06, 0x00]
         let parsed = try DER.parse(zeroComponentOID)
         XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidObjectIdentifier)
+            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
         }
     }
 
