@@ -6,11 +6,11 @@ FROM $base_image
 ARG swift_version
 ARG ubuntu_version
 
-RUN mkdir -p /root/.ssh \
-  && chmod 700 /root/.ssh \
-  && chown -R $(id -u):$(id -g) /root/.ssh \
-  && touch /root/.ssh/known_hosts \
-  && ssh-keyscan github.com >> /root/.ssh/known_hosts
+#RUN mkdir -p /root/.ssh \
+#  && chmod 700 /root/.ssh \
+#  && chown -R $(id -u):$(id -g) /root/.ssh \
+#  && touch /root/.ssh/known_hosts \
+#  && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 # set as UTF-8
 RUN apt-get update && apt-get install -y locales locales-all
