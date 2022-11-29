@@ -16,6 +16,7 @@ services:
     depends_on: [runtime-setup]
     volumes:
       - ~/.ssh:/root/.ssh
+      - $SSH_AUTH_SOCK:/ssh-agent # Forward local machine SSH key to docker
       - ..:/code:z
     working_dir: /code
 
