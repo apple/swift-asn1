@@ -11,6 +11,8 @@ ARG ubuntu_version
 #  && touch /root/.ssh/known_hosts \
 #  && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+
 # set as UTF-8
 RUN apt-get update && apt-get install -y locales locales-all
 ENV LC_ALL en_US.UTF-8
