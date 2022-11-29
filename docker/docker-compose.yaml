@@ -20,7 +20,6 @@ services:
       - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
     working_dir: /code
     environment:
-      SSH_USER: $USER
       SSH_AUTH_SOCK: $SSH_AUTH_SOCK
 
   soundness:
