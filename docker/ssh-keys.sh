@@ -3,7 +3,7 @@
 set -eu
 
 mkdir -p ~/.ssh
-cp -r /root/.ssh-keys/* ~/.ssh/
+cp -r /root/.ssh/* ~/.ssh/
 chown -R $(id -u):$(id -g) ~/.ssh
 
 cat <<EOF >> ~/.ssh/config
