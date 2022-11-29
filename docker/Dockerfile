@@ -8,6 +8,7 @@ ARG ubuntu_version
 
 RUN mkdir -p /root/.ssh \
   && chmod 700 /root/.ssh \
+  && chown -R -v $USER /root/.ssh \
   && touch /root/.ssh/known_hosts \
   && ssh-keyscan github.com >> /root/.ssh/known_hosts
 
