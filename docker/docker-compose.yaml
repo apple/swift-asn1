@@ -15,11 +15,13 @@ services:
     image: swift-asn1:default
     depends_on: [runtime-setup]
     volumes:
-      - ~/.ssh:/root/.ssh:ro
+      - ~/.ssh:/root/.ssh
       - ..:/code:z
+      - $SSH_AUTH_SOCK:/ssh-agent
 #      - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
     working_dir: /code
-#    environment:
+    environment:
+      SSH_AUTH_SOCK: /ssh-agent
 #      SSH_AUTH_SOCK: $SSH_AUTH_SOCK
 
   soundness:
