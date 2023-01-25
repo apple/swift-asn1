@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftASN1 open source project
 ##
-## Copyright (c) 2022 Apple Inc. and the SwiftASN1 project authors
+## Copyright (c) 2022-2023 Apple Inc. and the SwiftASN1 project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -31,7 +31,7 @@ here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function replace_acceptable_years() {
     # this needs to replace all acceptable forms with 'YEARS'
-    sed -e 's/20[12][789012]-20[12][89012]/YEARS/' -e 's/20[12][89012]/YEARS/'
+    sed -e 's/20[12][789012]-20[12][890123]/YEARS/' -e 's/20[12][890123]/YEARS/'
 }
 
 printf "=> Checking for unacceptable language... "
@@ -50,6 +50,16 @@ if git grep --color=never -i "${unacceptable_terms[@]}" -- . ":(exclude)CODE_OF_
     printf "\033[0;31mUnacceptable language found.\033[0m\n"
     git grep -i "${unacceptable_terms[@]}" -- . ":(exclude)CODE_OF_CONDUCT.md"
     exit 1
+fi
+printf "\033[0;32mokay.\033[0m\n"
+
+printf "=> Detecting changes in source files for CMake build\n"
+FIRST_OUT="$(git status --porcelain)"
+out=$($here/update_cmakelists.sh 2>&1)
+SECOND_OUT="$(git status --porcelain)"
+if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
+  printf "\033[0;31mThere are source file changes! Have you added or renamed source files? Or did you forget to run 'update_cmakelists.sh' and commit changes?\033[0m\n"
+  exit 1
 fi
 printf "\033[0;32mokay.\033[0m\n"
 
