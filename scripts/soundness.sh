@@ -66,7 +66,7 @@ printf "\033[0;32mokay.\033[0m\n"
 printf "=> Checking license headers\n"
 tmp=$(mktemp /tmp/.swift-asn1-soundness_XXXXXX)
 
-for language in swift-or-c bash dtrace python; do
+for language in swift-or-c bash dtrace python cmake; do
   printf "   * $language... "
   declare -a matching_files
   declare -a exceptions
@@ -147,6 +147,24 @@ EOF
  *  SPDX-License-Identifier: Apache-2.0
  *
  *===----------------------------------------------------------------------===*/
+EOF
+      ;;
+      cmake)
+        matching_files=( -name 'SwiftSupport.cmake' -o -name 'CMakeLists.txt' )
+        cat > "$tmp" <<"EOF"
+##===----------------------------------------------------------------------===##
+##
+## This source file is part of the SwiftASN1 open source project
+##
+## Copyright (c) YEARS Apple Inc. and the SwiftASN1 project authors
+## Licensed under Apache License v2.0
+##
+## See LICENSE.txt for license information
+## See CONTRIBUTORS.txt for the list of SwiftASN1 project authors
+##
+## SPDX-License-Identifier: Apache-2.0
+##
+##===----------------------------------------------------------------------===##
 EOF
       ;;
     *)
