@@ -24,7 +24,10 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
     ],
     targets: [
-        .target(name: "SwiftASN1"),
+        .target(
+            name: "SwiftASN1",
+            exclude: ["CMakeLists.txt"]
+        ),
         .testTarget(name: "SwiftASN1Tests", dependencies: ["SwiftASN1"]),
     ]
 )
