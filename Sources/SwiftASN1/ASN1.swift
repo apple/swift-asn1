@@ -223,6 +223,41 @@ extension DER {
         // We're good: pass the node on.
         return try T(derEncoded: &nodes, withIdentifier: tag)
     }
+    
+    /// Parses an optional implicitly tagged element.
+    ///
+    /// - parameters:
+    ///     - nodes: The ``ASN1NodeCollection/Iterator`` to parse this element out of.
+    ///     - tagNumber: The number of the explicit tag.
+    ///     - tagClass: The class of the explicit tag.
+    ///     - builder: A closure that will be called with the node for the element, if the element is present.
+    ///
+    /// - returns: The result of `builder` if the element was present, or `nil` if it was not.
+    @inlinable
+    public static func optionalImplicitlyTagged<Result>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        tagNumber: UInt,
+        tagClass: ASN1Identifier.TagClass,
+        _ builder: (ASN1Node) throws -> Result
+    ) rethrows -> Result? {
+        var localNodesCopy = nodes
+        guard let node = localNodesCopy.next() else {
+            // Node not present, return nil.
+            return nil
+        }
+        
+        let expectedNodeID = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
+        guard node.identifier == expectedNodeID else {
+            // Node is a mismatch, with the wrong tag. Our optional isn't present.
+            return nil
+        }
+        
+        // We have the right optional, so let's consume it.
+        nodes = localNodesCopy
+        
+        // We're good: pass the node on.
+        return try builder(node)
+    }
 }
 
 // MARK: - DEFAULT
