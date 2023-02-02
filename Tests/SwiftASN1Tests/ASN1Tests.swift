@@ -783,6 +783,24 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         }
         XCTAssertEqual(int, 1)
     }
+    
+    func testOptionalImplicitlyTaggedWithBuilder() throws {
+        var serializer = DER.Serializer()
+        try serializer.appendConstructedNode(identifier: .sequence) { serializer in
+            try serializer.serializeOptionalImplicitlyTagged(1, withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific))
+        }
+        let bytes = serializer.serializedBytes
+
+        XCTAssertEqual(bytes, [0x30, 0x03, 0x81, 0x1, 0x1])
+
+        let parseResult = try DER.parse(bytes)
+        let int = try DER.sequence(parseResult, identifier: .sequence) { nodes in
+            try DER.optionalImplicitlyTagged(&nodes, tagNumber: 1, tagClass: .contextSpecific) { node in
+                try Int(derEncoded: node, withIdentifier: .init(tagWithNumber: 1, tagClass: .contextSpecific))
+            }
+        }
+        XCTAssertEqual(int, 1)
+    }
 
     func testPrintingOIDs() {
         let oid: ASN1ObjectIdentifier = [1, 2, 865, 11241, 3]
