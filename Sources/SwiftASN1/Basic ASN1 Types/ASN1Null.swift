@@ -26,11 +26,11 @@ public struct ASN1Null: DERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier, case .primitive(let content) = node.content else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         guard content.count == 0 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "ASN1Null must be empty, received \(content.count) bytes")
         }
     }
 

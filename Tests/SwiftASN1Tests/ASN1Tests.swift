@@ -246,19 +246,19 @@ class ASN1Tests: XCTestCase {
         let parsed = try DER.parse(decodedReal)
 
         XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
+            XCTAssertEqual((error as? ASN1Error)?.code, .unexpectedFieldType)
         }
         XCTAssertThrowsError(try DER.sequence(parsed, identifier: .sequence, { _ in })) { error in
-            XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
+            XCTAssertEqual((error as? ASN1Error)?.code, .unexpectedFieldType)
         }
         XCTAssertThrowsError(try ASN1OctetString(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
+            XCTAssertEqual((error as? ASN1Error)?.code, .unexpectedFieldType)
         }
         XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
+            XCTAssertEqual((error as? ASN1Error)?.code, .unexpectedFieldType)
         }
         XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .unexpectedFieldType)
+            XCTAssertEqual((error as? ASN1Error)?.code, .unexpectedFieldType)
         }
     }
 
@@ -267,7 +267,7 @@ class ASN1Tests: XCTestCase {
         let base64Node = "CQUDMUUtMQkFAzFFLTE="
         let decodedReal = Array(Data(base64Encoded: base64Node)!)
         XCTAssertThrowsError(try DER.parse(decodedReal)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -276,13 +276,13 @@ class ASN1Tests: XCTestCase {
         let base64Node = "AgEBAA=="
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
         XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
     func testEmptyStringsDontDecode() throws {
         XCTAssertThrowsError(try DER.parse([])) { error in
-            XCTAssertEqual(error as? ASN1Error, .truncatedASN1Field)
+            XCTAssertEqual((error as? ASN1Error)?.code, .truncatedASN1Field)
         }
     }
 
@@ -309,7 +309,7 @@ class ASN1Tests: XCTestCase {
         let base64Node = "vx4DAgEB"
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
         XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -318,7 +318,7 @@ class ASN1Tests: XCTestCase {
         let base64Node = "v4GAgICAgICAgAADAgEB"
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
         XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -337,7 +337,7 @@ class ASN1Tests: XCTestCase {
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
 
         XCTAssertThrowsError(try DER.parse(decodedInteger)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -353,7 +353,7 @@ class ASN1Tests: XCTestCase {
                 XCTAssertNoThrow(try ASN1OctetString(derEncoded: &nodes))
             }
         } catch let error as ASN1Error {
-            XCTAssertEqual(error, .invalidASN1Object)
+            XCTAssertEqual(error.code, .invalidASN1Object)
         }
     }
 
@@ -377,7 +377,7 @@ class ASN1Tests: XCTestCase {
                 _ = try Stub(derEncoded: &nodes)
             }
         } catch let error as ASN1Error {
-            XCTAssertEqual(error, .invalidASN1Object)
+            XCTAssertEqual(error.code, .invalidASN1Object)
         }
     }
 
@@ -385,7 +385,7 @@ class ASN1Tests: XCTestCase {
         // This the first octets of a constructed object of unknown tag type (private, number 7) whose length
         // is indefinite. We reject this immediately, not even noticing that the rest of the data isn't here.
         XCTAssertThrowsError(try DER.parse([0xe7, 0x80])) { error in
-            XCTAssertEqual(error as? ASN1Error, .unsupportedFieldLength)
+            XCTAssertEqual((error as? ASN1Error)?.code, .unsupportedFieldLength)
         }
     }
 
@@ -397,7 +397,7 @@ class ASN1Tests: XCTestCase {
         let parsed = try DER.parse(badNode)
 
         XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -410,7 +410,7 @@ class ASN1Tests: XCTestCase {
         let parsed = try DER.parse(badNode)
 
         XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -449,7 +449,7 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 """
         for index in simplePEM.indices.dropLast() {
             XCTAssertThrowsError(try PEMDocument(pemString: String(simplePEM[..<index]))) { error in
-                XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
             }
         }
 
@@ -466,7 +466,7 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PUBLIC KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
 
@@ -480,7 +480,7 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzGO
 -----END EC PRIVATE KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
 
@@ -494,7 +494,7 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
 
@@ -504,7 +504,7 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
 
@@ -517,7 +517,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidPEMDocument)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
 
@@ -533,7 +533,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let zeroComponentOID: [UInt8] = [0x06, 0x00]
         let parsed = try DER.parse(zeroComponentOID)
         XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -553,7 +553,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             let weirdBitString = [0x03, 0x02, UInt8(i), 0xFF]
             let parsed = try DER.parse(weirdBitString)
             XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
-                XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
             }
         }
     }
@@ -564,7 +564,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let weirdBitString: [UInt8] = [0x03, 0x00]
         let parsed = try DER.parse(weirdBitString)
         XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -579,7 +579,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             bitString[2] = UInt8(i)
             let parsed = try DER.parse(bitString)
             XCTAssertThrowsError(try ASN1BitString(derEncoded: parsed)) { error in
-                XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
             }
         }
     }
@@ -589,7 +589,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let weirdZero: [UInt8] = [0x02, 0x00]
         let parsed = try DER.parse(weirdZero)
         XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1IntegerEncoding)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1IntegerEncoding)
         }
     }
 
@@ -598,7 +598,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let overlongOne: [UInt8] = [0x02, 0x02, 0x00, 0x01]
         let parsed = try DER.parse(overlongOne)
         XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1IntegerEncoding)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1IntegerEncoding)
         }
     }
 
@@ -608,7 +608,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let overlongOneTwoSeven: [UInt8] = [0x02, 0x02, 0xFF, 0x81]
         let parsed = try DER.parse(overlongOneTwoSeven)
         XCTAssertThrowsError(try Int(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1IntegerEncoding)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1IntegerEncoding)
         }
     }
 
@@ -624,7 +624,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let parsed = try DER.parse(weirdASN1)
         try DER.sequence(parsed, identifier: .sequence) { nodes in
             XCTAssertThrowsError(try DER.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in })) { error in
-                XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
             }
         }
     }
@@ -686,7 +686,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 
         let parsed = try DER.parse(weirdSEC1)
         XCTAssertThrowsError(try SEC1PrivateKey(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -697,7 +697,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 
         let parsed = try DER.parse(decodedSEC1)
         XCTAssertThrowsError(try SEC1PrivateKey(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -717,7 +717,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 
         let parsed = try DER.parse(serializer.serializedBytes)
         XCTAssertThrowsError(try PKCS8PrivateKey(derEncoded: parsed)) { error in
-            XCTAssertEqual(error as? ASN1Error, .invalidASN1Object)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 

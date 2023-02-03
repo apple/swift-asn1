@@ -38,7 +38,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         guard case .primitive(var content) = node.content else {
@@ -79,7 +79,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
         // We'd like to work on the slice here.
         var subcomponentSlice = subcomponents[...]
         guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Zero components in OID")
         }
 
         let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
@@ -278,7 +278,7 @@ extension ArraySlice where Element == UInt8 {
         // In principle OID subidentifiers and long tags can be too large to fit into a UInt. We are choosing to not care about that
         // because for us it shouldn't matter.
         guard let subidentifierEndIndex = self.firstIndex(where: { $0 & 0x80 == 0x00 }) else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid encoding for OID subidentifier")
         }
 
         let oidSlice = self[self.startIndex ... subidentifierEndIndex]
@@ -286,7 +286,7 @@ extension ArraySlice where Element == UInt8 {
         guard let firstByte = oidSlice.first, firstByte != 0x80 else {
             // If the first byte is 0x80 then we have a leading 0 byte. All numbers encoded this way
             // need to be encoded in the minimal number of bytes, so we need to reject this.
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "OID subidentifier encoded with leading 0 byte")
         }
 
         self = self[self.index(after: subidentifierEndIndex)...]
@@ -302,7 +302,7 @@ extension UInt {
         // We need to know how many bytes we _need_ to store this "int". As a base optimization we refuse to parse
         // anything larger than 9 bytes wide, even though conceptually we could fit a few more bits.
         guard ((bytes.count * 7) + 7) / 8 <= MemoryLayout<UInt>.size else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to store OID subidentifier")
         }
 
         self = 0

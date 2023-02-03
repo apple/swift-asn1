@@ -141,7 +141,7 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         guard case .primitive(let content) = node.content else {
@@ -162,24 +162,24 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
     func _validate() throws {
         // Validate that the structure is well-formed.
         guard self._year >= 0 && self._year <= 9999 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid year for GeneralizedTime \(self._year)")
         }
 
         // This also validates the month.
         guard let daysInMonth = TimeUtilities.daysInMonth(self._month, ofYear: self._year) else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid month \(self._month) of year \(self.year) for GeneralizedTime")
         }
 
         guard self._day >= 1 && self._day <= daysInMonth else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid day \(self._day) of month \(self._month) for GeneralizedTime")
         }
 
         guard self._hours >= 0 && self._hours < 24 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid hour for GeneralizedTime \(self._hours)")
         }
 
         guard self._minutes >= 0 && self._minutes < 60 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid minute for GeneralizedTime \(self._minutes)")
         }
 
         // We allow leap seconds here, but don't validate it.
@@ -187,12 +187,12 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
         // comparison here. We should consider whether this needs to be transformable
         // to `Date` or similar.
         guard self._seconds >= 0 && self._seconds <= 61 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid seconds for Generalized \(self._seconds)")
         }
 
         // Fractional seconds may not be negative and may not be 1 or more.
         guard self._fractionalSeconds >= 0 && self._fractionalSeconds < 1 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid fractional seconds for GeneralizedTime \(self._fractionalSeconds)")
         }
     }
 }

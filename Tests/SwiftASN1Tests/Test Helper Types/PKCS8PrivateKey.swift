@@ -47,7 +47,7 @@ struct PKCS8PrivateKey: DERImplicitlyTaggable {
         self = try DER.sequence(rootNode, identifier: identifier) { nodes in
             let version = try Int(derEncoded: &nodes)
             guard version == 0 else {
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Invalid version")
             }
 
             let algorithm = try RFC5480AlgorithmIdentifier(derEncoded: &nodes)
@@ -59,7 +59,7 @@ struct PKCS8PrivateKey: DERImplicitlyTaggable {
             let sec1PrivateKeyNode = try DER.parse(privateKeyBytes.bytes)
             let sec1PrivateKey = try SEC1PrivateKey(derEncoded: sec1PrivateKeyNode)
             if let innerAlgorithm = sec1PrivateKey.algorithm, innerAlgorithm != algorithm {
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Mismatched algorithms")
             }
 
             return try .init(algorithm: algorithm, privateKey: sec1PrivateKey)

@@ -36,7 +36,7 @@ struct SEC1PrivateKey: DERImplicitlyTaggable {
         self = try DER.sequence(rootNode, identifier: identifier) { nodes in
             let version = try Int(derEncoded: &nodes)
             guard 1 == version else {
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Invalid version")
             }
 
             let privateKey = try ASN1OctetString(derEncoded: &nodes)
@@ -63,7 +63,7 @@ struct SEC1PrivateKey: DERImplicitlyTaggable {
             case ASN1ObjectIdentifier.NamedCurves.secp521r1:
                 return .ecdsaP521
             default:
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Invalid algorithm ID")
             }
         }
     }
@@ -89,7 +89,7 @@ struct SEC1PrivateKey: DERImplicitlyTaggable {
                 case .ecdsaP521:
                     oid = ASN1ObjectIdentifier.NamedCurves.secp521r1
                 default:
-                    throw ASN1Error.invalidASN1Object
+                    throw ASN1Error.invalidASN1Object(reason: "Unsupported algorithm")
                 }
 
                 try coder.serialize(oid, explicitlyTaggedWithTagNumber: 0, tagClass: .contextSpecific)

@@ -25,7 +25,7 @@ public struct ASN1OctetString: DERImplicitlyTaggable {
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         guard case .primitive(let content) = node.content else {
