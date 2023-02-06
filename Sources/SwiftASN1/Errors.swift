@@ -23,16 +23,12 @@
 /// implementation of that behaviour. This makes it relatively easy to test code that throws
 /// a specific error by creating the error type directly in your own code.
 public struct ASN1Error: Error, Hashable, CustomStringConvertible {
-    private var backing: Backing
+    private let backing: Backing
 
     /// Represents the kind of error that was encountered.
     public var code: ErrorCode {
         get {
             self.backing.code
-        }
-        set {
-            self.makeUnique()
-            self.backing.code = newValue
         }
     }
 
@@ -50,12 +46,6 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
 
     public var description: String {
         "ASN1Error.\(self.code): \(self.reason) \(self.file):\(self.line)"
-    }
-
-    private mutating func makeUnique() {
-        if !isKnownUniquelyReferenced(&self.backing) {
-            self.backing = self.backing.copy()
-        }
     }
 
     /// The ASN.1 tag for the parsed field does not match the tag expected for the field.
@@ -134,11 +124,11 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// A string was invalid.
     @inline(never)
     public static func invalidStringRepresentation(
-        _ representation: ArraySlice<UInt8>, file: String = #fileID, line: UInt = #line
+        reason: String, file: String = #fileID, line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .invalidStringRepresentation, reason: "\(representation)", file: file, line: line
+                code: .invalidStringRepresentation, reason: reason, file: file, line: line
             )
         )
     }
