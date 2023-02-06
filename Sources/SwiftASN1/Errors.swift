@@ -27,9 +27,7 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
 
     /// Represents the kind of error that was encountered.
     public var code: ErrorCode {
-        get {
-            self.backing.code
-        }
+        self.backing.code
     }
 
     private var reason: String {
@@ -186,8 +184,8 @@ extension ASN1Error {
 }
 
 extension ASN1Error {
-    final class Backing: Hashable {
-        var code: ASN1Error.ErrorCode
+    final class Backing: Hashable, Sendable {
+        let code: ASN1Error.ErrorCode
 
         let reason: String
 
@@ -214,10 +212,6 @@ extension ASN1Error {
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(self.code)
-        }
-
-        fileprivate func copy() -> Backing {
-            return Backing(code: self.code, reason: self.reason, file: self.file, line: self.line)
         }
     }
 }
