@@ -88,7 +88,7 @@ extension DER {
     @inlinable
     public static func sequence<T>(_ node: ASN1Node, identifier: ASN1Identifier, _ builder: (inout ASN1NodeCollection.Iterator) throws -> T) throws -> T {
         guard node.identifier == identifier, case .constructed(let nodes) = node.content else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         var iterator = nodes.makeIterator()
@@ -96,7 +96,7 @@ extension DER {
         let result = try builder(&iterator)
 
         guard iterator.next() == nil else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unconsumed sequence nodes")
         }
 
         return result
@@ -114,7 +114,7 @@ extension DER {
     @inlinable
     public static func sequence<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
         guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(rootNode.identifier)
         }
 
         return try nodes.map { try T(derEncoded: $0) }
@@ -133,7 +133,7 @@ extension DER {
     public static func sequence<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, nodes: inout ASN1NodeCollection.Iterator) throws -> [T] {
         guard let node = nodes.next() else {
             // Not present, throw.
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "No sequence node available for \(T.self) and identifier \(identifier)")
         }
 
         return try sequence(of: T.self, identifier: identifier, rootNode: node)
@@ -191,7 +191,7 @@ extension DER {
 
         var nodeIterator = nodes.makeIterator()
         guard let child = nodeIterator.next(), nodeIterator.next() == nil else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Too many child nodes in optionally tagged node of \(T.self) with identifier \(expectedNodeID)")
         }
 
         return try builder(child)
@@ -295,7 +295,7 @@ extension DER {
         // DER forbids encoding DEFAULT values at their default state.
         // We can lift this in BER.
         guard parsed != defaultValue else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "DEFAULT for \(T.self) with identifier \(identifier) present in DER but encoded at default value \(defaultValue)")
         }
 
         return parsed
@@ -352,7 +352,7 @@ extension DER {
             guard result != defaultValue else {
                 // DER forbids encoding DEFAULT values at their default state.
                 // We can lift this in BER.
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "DEFAULT for \(T.self) with tag number \(tagNumber) and class \(tagClass) present in DER but encoded at default value \(defaultValue)")
             }
 
             return result
@@ -399,7 +399,7 @@ extension DER {
     public static func explicitlyTagged<T>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
         guard let node = nodes.next() else {
             // Node not present, throw.
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Explicitly tagged node for \(T.self) with tag number \(tagNumber) and class \(tagClass) not present")
         }
 
         return try self.explicitlyTagged(node, tagNumber: tagNumber, tagClass: tagClass, builder)
@@ -419,17 +419,17 @@ extension DER {
         let expectedNodeID = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag.
-            throw ASN1Error.invalidFieldIdentifier
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         // We expect a single child.
         guard case .constructed(let nodes) = node.content else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Explicit tag \(expectedNodeID) for \(T.self) is primitive")
         }
 
         var nodeIterator = nodes.makeIterator()
         guard let child = nodeIterator.next(), nodeIterator.next() == nil else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid number of child nodes for explicit tag \(expectedNodeID) for \(T.self)")
         }
 
         return try builder(child)
@@ -461,7 +461,7 @@ extension DER {
 
             try _parseNode(from: &data, depth: 1, into: &nodes)
             guard data.count == 0 else {
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Trailing unparsed data is present")
             }
             return ParseResult(nodes[...])
         }
@@ -473,13 +473,13 @@ extension DER {
             guard depth <= ParseResult._maximumNodeDepth else {
                 // We defend ourselves against stack overflow by refusing to allocate more than 50 stack frames to
                 // the parsing.
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Excessive stack depth was reached")
             }
 
             let originalData = data
 
             guard let rawIdentifier = data.popFirst() else {
-                throw ASN1Error.truncatedASN1Field
+                throw ASN1Error.truncatedASN1Field()
             }
 
             // Check whether the bottom 5 bits are set: if they are, this uses long-form encoding.
@@ -493,7 +493,7 @@ extension DER {
 
                 // We need a check here: this number needs to be greater than or equal to 0x1f, or it should have been encoded as short form.
                 guard tagNumber >= 0x1f else {
-                    throw ASN1Error.invalidASN1Object
+                    throw ASN1Error.invalidASN1Object(reason: "ASN.1 tag incorrectly encoded in long form: \(tagNumber)")
                 }
                 identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
             } else {
@@ -501,19 +501,19 @@ extension DER {
             }
 
             guard let wideLength = try data._readASN1Length() else {
-                throw ASN1Error.truncatedASN1Field
+                throw ASN1Error.truncatedASN1Field()
             }
 
             // UInt is sometimes too large for us!
             guard let length = Int(exactly: wideLength) else {
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Excessively large field: \(wideLength)")
             }
 
             var subData = data.prefix(length)
             data = data.dropFirst(length)
 
             guard subData.count == length else {
-                throw ASN1Error.truncatedASN1Field
+                throw ASN1Error.truncatedASN1Field()
             }
 
             let encodedBytes = originalData[..<subData.endIndex]
@@ -984,7 +984,7 @@ extension DERParseable {
     @inlinable
     public init(derEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator) throws {
         guard let node = sequenceNodeIterator.next() else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to decode \(Self.self), no ASN.1 nodes to decode")
         }
 
         self = try .init(derEncoded: node)
@@ -1068,7 +1068,7 @@ extension DERImplicitlyTaggable {
     public init(derEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator,
                 withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier) throws {
         guard let node = sequenceNodeIterator.next() else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to decode \(Self.self), no ASN.1 nodes to decode")
         }
 
         self = try .init(derEncoded: node, withIdentifier: identifier)
@@ -1115,7 +1115,7 @@ extension ArraySlice where Element == UInt8 {
         switch firstByte {
         case 0x80:
             // Indefinite form. Unsupported.
-            throw ASN1Error.unsupportedFieldLength
+            throw ASN1Error.unsupportedFieldLength(reason: "Indefinite form of field length not supported in DER.")
         case let val where val & 0x80 == 0x80:
             // Top bit is set, this is the long form. The remaining 7 bits of this octet
             // determine how long the length field is.
@@ -1134,16 +1134,16 @@ extension ArraySlice where Element == UInt8 {
             switch requiredBits {
             case 0...7:
                 // For 0 to 7 bits, the long form is unnacceptable and we require the short.
-                throw ASN1Error.unsupportedFieldLength
+                throw ASN1Error.unsupportedFieldLength(reason: "Field length encoded in long form, but DER requires \(length) to be encoded in short form")
             case 8...:
                 // For 8 or more bits, fieldLength should be the minimum required.
                 let requiredBytes = (requiredBits + 7) / 8
                 if fieldLength > requiredBytes {
-                    throw ASN1Error.unsupportedFieldLength
+                    throw ASN1Error.unsupportedFieldLength(reason: "Field length encoded in excessive number of bytes")
                 }
             default:
                 // This is not reachable, but we'll error anyway.
-                throw ASN1Error.unsupportedFieldLength
+                throw ASN1Error.unsupportedFieldLength(reason: "Correctness error: computed required bits as \(requiredBits)")
             }
 
             return length
@@ -1158,7 +1158,7 @@ extension FixedWidthInteger {
     @inlinable
     internal init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
         guard bytes.count <= (Self.bitWidth / 8) else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to treat \(bytes.count) bytes as a \(Self.self)")
         }
 
         self = 0

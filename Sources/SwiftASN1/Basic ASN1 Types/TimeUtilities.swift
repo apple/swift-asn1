@@ -23,7 +23,7 @@ enum TimeUtilities {
         guard let rawYear = bytes._readFourDigitDecimalInteger(),
               let rawMonth = bytes._readTwoDigitDecimalInteger(),
               let rawDay = bytes._readTwoDigitDecimalInteger() else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to load year, month, and day for GeneralizedTime")
         }
 
         // Next there must be a _time_. Per DER rules, this time must always go
@@ -32,7 +32,7 @@ enum TimeUtilities {
         guard let rawHour = bytes._readTwoDigitDecimalInteger(),
               let rawMinutes = bytes._readTwoDigitDecimalInteger(),
               let rawSeconds = bytes._readTwoDigitDecimalInteger() else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to load hour, minutes, and seconds for GeneralizedTime")
         }
 
         // There may be some fractional seconds.
@@ -43,12 +43,12 @@ enum TimeUtilities {
 
         // The next character _must_ be Z, or the encoding is invalid.
         guard bytes.popFirst() == UInt8(ascii: "Z") else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid time zone in GeneralizedTime")
         }
 
         // Great! There better not be anything left.
         guard bytes.count == 0 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Trailing bytes in GeneralizedTime")
         }
 
         return try GeneralizedTime(year: rawYear,
@@ -69,7 +69,7 @@ enum TimeUtilities {
         guard let rawYear = bytes._readTwoDigitDecimalInteger(),
               let rawMonth = bytes._readTwoDigitDecimalInteger(),
               let rawDay = bytes._readTwoDigitDecimalInteger() else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to load year, month, and day for UTCTime")
         }
 
         // Next there must be a _time_. Per DER rules, this time must always go
@@ -77,17 +77,17 @@ enum TimeUtilities {
         guard let rawHour = bytes._readTwoDigitDecimalInteger(),
               let rawMinutes = bytes._readTwoDigitDecimalInteger(),
               let rawSeconds = bytes._readTwoDigitDecimalInteger() else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to load hour, minutes, and seconds for UTCTime")
         }
 
         // The next character _must_ be Z, or the encoding is invalid.
         guard bytes.popFirst() == UInt8(ascii: "Z") else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid time zone in UTCTime")
         }
 
         // Great! There better not be anything left.
         guard bytes.count == 0 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Trailing bytes in UTCTime")
         }
 
         let actualYear = rawYear < 50 ? rawYear &+ 2000 : rawYear &+ 1900
@@ -189,7 +189,7 @@ extension ArraySlice where Element == UInt8 {
 
             // If the numerator overflows, we don't support the result.
             if multiplyOverflow || addingOverflow {
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Numerator overflow when calculating fractional seconds")
             }
 
             numerator = newNumeratorWithAdded
@@ -198,7 +198,7 @@ extension ArraySlice where Element == UInt8 {
         // Ok, we're either at the end or the next character is a Z. One final check: there may not have
         // been any trailing zeros here. This means the number may not be 0 mod 10.
         if numerator % 10 == 0 {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Trailing zeros in fractional seconds")
         }
 
         return Double(numerator) / Double(denominator)

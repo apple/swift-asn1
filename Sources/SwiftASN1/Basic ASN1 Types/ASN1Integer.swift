@@ -45,7 +45,7 @@ extension ASN1IntegerRepresentable {
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         guard case .primitive(var dataBytes) = node.content else {
@@ -54,7 +54,7 @@ extension ASN1IntegerRepresentable {
 
         // Zero bytes of integer is not an acceptable encoding.
         guard dataBytes.count > 0 else {
-            throw ASN1Error.invalidASN1IntegerEncoding
+            throw ASN1Error.invalidASN1IntegerEncoding(reason: "INTEGER encoded with zero bytes")
         }
 
         // 8.3.2 If the contents octets of an integer value encoding consist of more than one octet, then the bits of the first octet and bit 8 of the second octet:
@@ -66,7 +66,7 @@ extension ASN1IntegerRepresentable {
         if let first = dataBytes.first, let second = dataBytes.dropFirst().first {
             if (first == 0xFF) && second._topBitSet ||
                 (first == 0x00) && !second._topBitSet {
-                throw ASN1Error.invalidASN1IntegerEncoding
+                throw ASN1Error.invalidASN1IntegerEncoding(reason: "INTEGER not encoded in fewest number of octets")
             }
         }
 
@@ -76,7 +76,7 @@ extension ASN1IntegerRepresentable {
             if first == 0x00 {
                 dataBytes = dataBytes.dropFirst()
             } else if first & 0x80 == 0x80 {
-                throw ASN1Error.invalidASN1IntegerEncoding
+                throw ASN1Error.invalidASN1IntegerEncoding(reason: "INTEGER encoded with top bit set!")
             }
         }
 

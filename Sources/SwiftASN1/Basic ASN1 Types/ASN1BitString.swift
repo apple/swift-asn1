@@ -52,7 +52,7 @@ public struct ASN1BitString: DERImplicitlyTaggable {
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw ASN1Error.unexpectedFieldType
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         guard case .primitive(let content) = node.content else {
@@ -61,7 +61,7 @@ public struct ASN1BitString: DERImplicitlyTaggable {
 
         // The initial octet explains how many of the bits in the _final_ octet are not part of the bitstring.
         guard let paddingBits = content.first, (0..<8).contains(paddingBits) else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Unable to determine a valid number of padding bits for ASN1BitString")
         }
 
         self.paddingBits = Int(paddingBits)
@@ -95,7 +95,7 @@ public struct ASN1BitString: DERImplicitlyTaggable {
         guard let finalByte = self.bytes.last else {
             if self.paddingBits != 0 {
                 // If there are no bytes, there must be no padding bits.
-                throw ASN1Error.invalidASN1Object
+                throw ASN1Error.invalidASN1Object(reason: "Invalid number of padding bits for ASN1BitString: \(self.paddingBits)")
             }
 
             return
@@ -106,7 +106,7 @@ public struct ASN1BitString: DERImplicitlyTaggable {
         // All joking aside, this sets the bottom `self.paddingBits` to 1.
         let mask = ~(UInt8.max << self.paddingBits)
         if (finalByte & mask) != 0 {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid padding bits in ASN1BitString: \(self.paddingBits) of padding, \(finalByte) final byte")
         }
     }
 }

@@ -21,11 +21,11 @@ extension Bool: DERImplicitlyTaggable {
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
         guard case .primitive(let bytes) = node.content, bytes.count == 1 else {
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid content for ASN1Bool")
         }
 
         switch bytes[bytes.startIndex] {
@@ -35,9 +35,9 @@ extension Bool: DERImplicitlyTaggable {
         case 0xff:
             // Boolean true in DER
             self = true
-        default:
+        case let byte:
             // If we come to support BER then these values are all "true" as well.
-            throw ASN1Error.invalidASN1Object
+            throw ASN1Error.invalidASN1Object(reason: "Invalid byte for ASN1Bool: \(byte)")
         }
     }
 

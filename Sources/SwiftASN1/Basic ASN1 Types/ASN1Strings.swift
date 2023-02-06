@@ -120,7 +120,7 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, Ex
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
-            throw ASN1Error.invalidStringRepresentation
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
         }
     }
 
@@ -129,7 +129,7 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, Ex
     public init(contentBytes: ArraySlice<UInt8>) throws {
         self.bytes = contentBytes
         guard Self._isValid(self.bytes) else {
-            throw ASN1Error.invalidStringRepresentation
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
         }
     }
 
@@ -145,7 +145,7 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, Ex
         self.bytes = ArraySlice(string.utf8)
 
         guard Self._isValid(self.bytes) else {
-            throw ASN1Error.invalidStringRepresentation
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
         }
     }
 
@@ -285,7 +285,7 @@ public struct ASN1IA5String: DERImplicitlyTaggable, Hashable, Sendable, Expressi
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
-            throw ASN1Error.invalidStringRepresentation
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
         }
     }
 
@@ -294,7 +294,7 @@ public struct ASN1IA5String: DERImplicitlyTaggable, Hashable, Sendable, Expressi
     public init(contentBytes: ArraySlice<UInt8>) throws {
         self.bytes = contentBytes
         guard Self._isValid(self.bytes) else {
-            throw ASN1Error.invalidStringRepresentation
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
         }
     }
 
@@ -310,7 +310,7 @@ public struct ASN1IA5String: DERImplicitlyTaggable, Hashable, Sendable, Expressi
         self.bytes = ArraySlice(string.utf8)
 
         guard Self._isValid(self.bytes) else {
-            throw ASN1Error.invalidStringRepresentation
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
         }
     }
     @inlinable
