@@ -75,7 +75,7 @@ extension DER.ParserNode: CustomStringConvertible {
     }
 }
 
-// MARK: - Sequence, SequenceOf, and Set
+// MARK: - Sequence, SequenceOf, Set and SetOf
 extension DER {
     /// Parse the node as an ASN.1 SEQUENCE.
     ///
@@ -151,6 +151,47 @@ extension DER {
     public static func set<T>(_ node: ASN1Node, identifier: ASN1Identifier, _ builder: (inout ASN1NodeCollection.Iterator) throws -> T) throws -> T {
         // Shhhh these two are secretly the same with identifier.
         return try sequence(node, identifier: identifier, builder)
+    }
+    
+    /// Parse the node as an ASN.1 SET OF.
+    ///
+    /// Constructs an array of `T` elements parsed from the set.
+    ///
+    /// - parameters:
+    ///     - of: An optional parameter to express the type to decode.
+    ///     - identifier: The ``ASN1Identifier`` that the SET OF is expected to have.
+    ///     - nodes: An ``ASN1NodeCollection/Iterator`` of nodes to parse.
+    /// - returns: An array of elements representing the elements in the set.
+    @inlinable
+    public static func set<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, nodes: inout ASN1NodeCollection.Iterator) throws -> [T] {
+        guard let node = nodes.next() else {
+            // Not present, throw.
+            throw ASN1Error.invalidASN1Object(reason: "No set node available for \(T.self) and identifier \(identifier)")
+        }
+
+        return try set(of: T.self, identifier: identifier, rootNode: node)
+    }
+    
+    /// Parse the node as an ASN.1 SET OF.
+    ///
+    /// Constructs an array of `T` elements parsed from the set.
+    ///
+    /// - parameters:
+    ///     - of: An optional parameter to express the type to decode.
+    ///     - identifier: The ``ASN1Identifier`` that the SET OF is expected to have.
+    ///     - rootNode: The ``ASN1Node`` to parse
+    /// - returns: An array of elements representing the elements in the sequence.
+    @inlinable
+    public static func set<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
+        guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
+            throw ASN1Error.unexpectedFieldType(rootNode.identifier)
+        }
+        
+        guard nodes.lazy.map({ ASN1BytesComparable(bytes: $0.encodedBytes) }).isOrdered() else {
+            throw ASN1Error.invalidASN1Object(reason: "SET OF fields are not lexicographically ordered")
+        }
+
+        return try nodes.map { try T(derEncoded: $0) }
     }
 }
 
@@ -875,6 +916,33 @@ extension DER {
                 }
             }
         }
+        
+        /// Serializes a SET OF ASN.1 nodes.
+        ///
+        /// - parameters:
+        ///     - elements: The members of the ASN.1 SET OF.
+        ///     - identifier: The identifier to use for the SET OF node. Defaults to ``ASN1Identifier/set``.
+        @inlinable
+        public mutating func serializeSetOf<Elements: Sequence>(_ elements: Elements, identifier: ASN1Identifier = .set) throws where Elements.Element: DERSerializable {
+            // We first serialize all elements into one intermediate Serializer and
+            // create ArraySlices of their binary DER representation.
+            var intermediateSerializer = DER.Serializer()
+            let serializedElements = try elements.map { element in
+                let startIndex = intermediateSerializer.serializedBytes.endIndex
+                try intermediateSerializer.serialize(element)
+                let endIndex = intermediateSerializer.serializedBytes.endIndex
+                let serializedBytes = intermediateSerializer.serializedBytes[startIndex..<endIndex]
+                return ASN1BytesComparable(bytes: serializedBytes)
+            }
+            // Afterwards we sort the binary representation of each element lexicographically
+            let sortedElements = serializedElements.sorted()
+            // We then only need to create a constructed node and append the binary representation in their sorted order
+            self.appendConstructedNode(identifier: identifier) { serializer in
+                for sortedElement in sortedElements {
+                    serializer._serializedBytes.append(contentsOf: sortedElement.bytes)
+                }
+            }
+        }
 
         /// Serializes a parsed ASN.1 node directly.
         ///
@@ -1218,5 +1286,82 @@ extension FixedWidthInteger {
     internal var neededBytes: Int {
         let neededBits = self.bitWidth - self.leadingZeroBitCount
         return (neededBits + 7) / 8
+    }
+}
+
+extension Sequence{
+    /// - Parameter areInIncreasingOrderOrEqual: A predicate that returns `true` if its
+    ///   first argument is in increasing order or equal to its second argument
+    ///   otherwise, `false`.
+    /// - Returns: true if all elements are ordered according to `areInIncreasingOrderOrEqual`, otherwise false
+    @inlinable
+    func isOrdered(by areInIncreasingOrderOrEqual: (Element, Element) -> Bool) -> Bool {
+        var iterator = self.makeIterator()
+        guard let first = iterator.next() else {
+            return true
+        }
+        
+        var previousElement = first
+        while let nextElement = iterator.next() {
+            guard areInIncreasingOrderOrEqual(previousElement, nextElement) else {
+                return false
+            }
+            previousElement = nextElement
+        }
+        
+        return true
+    }
+}
+
+extension Sequence where Element: Comparable {
+    /// - Returns: true if all elements are lexicographically ordered, otherwise false
+    @inlinable
+    func isOrdered() -> Bool {
+        self.isOrdered(by: <=)
+    }
+}
+
+
+
+/// Implements comparable according to SET OF semantics for a bytes sequence
+@usableFromInline
+struct ASN1BytesComparable: Comparable {
+    @usableFromInline var bytes: ArraySlice<UInt8>
+    
+    @inlinable init(bytes: ArraySlice<UInt8>) {
+        self.bytes = bytes
+    }
+    
+    @inlinable
+    static func ==(lhs: Self, rhs: Self) -> Bool {
+        guard zip(lhs.bytes, rhs.bytes).allSatisfy(==) else {
+            return false
+        }
+        // We got to the end of the shorter element, so all current elements are equal.
+        // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
+        let trailing = rhs.bytes.dropFirst(lhs.bytes.count)
+        return trailing.allSatisfy { $0 == 0 }
+    }
+    
+    @inlinable
+    static func <(lhs: Self, rhs: Self) -> Bool {
+        for (leftByte, rightByte) in zip(lhs.bytes, rhs.bytes) {
+            if leftByte < rightByte {
+                // true means left comes before right
+                return true
+            } else if rightByte < leftByte {
+                // Right comes after left
+                return false
+            }
+        }
+        
+        // We got to the end of the shorter element, so all current elements are equal.
+        // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
+        let trailing = rhs.bytes.dropFirst(lhs.bytes.count)
+        if trailing.allSatisfy({ $0 == 0}) {
+            // Must return false when the two elements are equal.
+            return false
+        }
+        return true
     }
 }

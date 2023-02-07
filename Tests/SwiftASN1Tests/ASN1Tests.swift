@@ -813,4 +813,120 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let s = String(describing: any)
         XCTAssertEqual(s, "ASN1Any([5, 0])")
     }
+    
+    func testSetOfSingleElement() throws {
+        var serializer = DER.Serializer()
+        try serializer.serializeSetOf([
+            ASN1BitString(bytes: [1]),
+        ])
+        XCTAssertEqual(serializer.serializedBytes, [49, 4, 3, 2, 0, 1])
+        print(serializer.viewURL)
+        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
+        XCTAssertEqual(bitStrings, [
+            ASN1BitString(bytes: [1]),
+        ])
+    }
+    
+    func testSetOfTwoElementsInOrder() throws {
+        var serializer = DER.Serializer()
+        try serializer.serializeSetOf([
+            ASN1BitString(bytes: [1]),
+            ASN1BitString(bytes: [2]),
+        ])
+        XCTAssertEqual(serializer.serializedBytes, [49, 8, 3, 2, 0, 1, 3, 2, 0, 2])
+        
+        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
+        XCTAssertEqual(bitStrings, [
+            ASN1BitString(bytes: [1]),
+            ASN1BitString(bytes: [2]),
+        ])
+    }
+    
+    func testSetOfTwoElementNotInOrder() throws {
+        var serializer = DER.Serializer()
+        try serializer.serializeSetOf([
+            ASN1BitString(bytes: [2]),
+            ASN1BitString(bytes: [1]),
+        ])
+        XCTAssertEqual(serializer.serializedBytes, [49, 8, 3, 2, 0, 1, 3, 2, 0, 2])
+        
+        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
+        XCTAssertEqual(bitStrings, [
+            ASN1BitString(bytes: [1]),
+            ASN1BitString(bytes: [2]),
+        ])
+    }
+    func testSetOfTwoEqualElements() throws {
+        var serializer = DER.Serializer()
+        try serializer.serializeSetOf([
+            ASN1BitString(bytes: [1]),
+            ASN1BitString(bytes: [1]),
+        ])
+        XCTAssertEqual(serializer.serializedBytes, [49, 8, 3, 2, 0, 1, 3, 2, 0, 1])
+        
+        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
+        XCTAssertEqual(bitStrings, [
+            ASN1BitString(bytes: [1]),
+            ASN1BitString(bytes: [1]),
+        ])
+    }
+    func testSetOfTwoElementsOrderedIncorrectly() throws {
+        let rootNode = try DER.parse([49, 8, 3, 2, 0, 2, 3, 2, 0, 1])
+        XCTAssertThrowsError(try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: rootNode)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
+        }
+    }
+    
+    func testASN1SetOfOrder() {
+        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1]), [1])
+        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1]), [2])
+        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [1])
+        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [2])
+        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [1, 0])
+        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [2, 0])
+        
+        XCTAssertLessThan(ASN1BytesComparable(bytes: [1]), [2])
+        XCTAssertLessThan(ASN1BytesComparable(bytes: [1]), [1, 1])
+        
+        XCTAssertFalse(ASN1BytesComparable(bytes: [1]) < [1])
+        XCTAssertFalse(ASN1BytesComparable(bytes: [1]) < [1, 0])
+        XCTAssertFalse(ASN1BytesComparable(bytes: [1, 0]) < [1])
+        XCTAssertFalse(ASN1BytesComparable(bytes: [1]) < [1, 0])
+        
+        XCTAssertEqual(ASN1BytesComparable(bytes: [1]), [1])
+        XCTAssertEqual(ASN1BytesComparable(bytes: [1]), [1, 0])
+        XCTAssertEqual(ASN1BytesComparable(bytes: [1, 0]), [1])
+        XCTAssertEqual(ASN1BytesComparable(bytes: [1, 0]), [1, 0])
+        
+        XCTAssertEqual(([
+            [1, 2],
+            [1, 2, 1],
+        ] as [ASN1BytesComparable]).sorted(), [
+            [1, 2],
+            [1, 2, 1],
+        ])
+        
+        XCTAssertEqual(([
+            [1, 2, 1],
+            [1, 2],
+        ] as [ASN1BytesComparable]).sorted(), [
+            [1, 2],
+            [1, 2, 1],
+        ])
+    }
+}
+
+extension ASN1BytesComparable: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: UInt8...) {
+        self.init(bytes: elements[...])
+    }
+}
+
+extension DER.Serializer {
+    private var base64: String {
+        Data(serializedBytes).base64EncodedString()
+    }
+    var viewURL: String {
+        "https://lapo.it/asn1js/#\(base64)"
+    }
 }
