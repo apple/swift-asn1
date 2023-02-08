@@ -878,47 +878,24 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     }
     
     func testASN1SetOfOrder() {
-        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1]), [1])
-        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1]), [2])
-        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [1])
-        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [2])
-        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [1, 0])
-        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [2, 0])
-        
-        XCTAssertLessThan(ASN1SetElement(bytes: [1]), [2])
-        XCTAssertLessThan(ASN1SetElement(bytes: [1]), [1, 1])
-        
-        XCTAssertFalse(ASN1SetElement(bytes: [1]) < [1])
-        XCTAssertFalse(ASN1SetElement(bytes: [1]) < [1, 0])
-        XCTAssertFalse(ASN1SetElement(bytes: [1, 0]) < [1])
-        XCTAssertFalse(ASN1SetElement(bytes: [1]) < [1, 0])
-        
-        XCTAssertEqual(ASN1SetElement(bytes: [1]), [1])
-        XCTAssertEqual(ASN1SetElement(bytes: [1]), [1, 0])
-        XCTAssertEqual(ASN1SetElement(bytes: [1, 0]), [1])
-        XCTAssertEqual(ASN1SetElement(bytes: [1, 0]), [1, 0])
-        
-        XCTAssertEqual(([
-            [1, 2],
-            [1, 2, 1],
-        ] as [ASN1SetElement]).sorted(), [
-            [1, 2],
-            [1, 2, 1],
-        ])
-        
-        XCTAssertEqual(([
-            [1, 2, 1],
-            [1, 2],
-        ] as [ASN1SetElement]).sorted(), [
-            [1, 2],
-            [1, 2, 1],
-        ])
-    }
-}
-
-extension ASN1SetElement: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: UInt8...) {
-        self.init(bytes: elements[...])
+        func assertSetOfLessThanOrEqual(
+            _ lhs: ArraySlice<UInt8>,
+            _ rhs: ArraySlice<UInt8>,
+            file: StaticString = #file,
+            line: UInt = #line
+        ) {
+            XCTAssert(
+                asn1SetElementLessThanOrEqual(lhs, rhs),
+                "\(lhs) is not less than or equal to \(rhs)",
+                file: file, line: line
+            )
+        }
+        assertSetOfLessThanOrEqual([1], [1])
+        assertSetOfLessThanOrEqual([1], [2])
+        assertSetOfLessThanOrEqual([1, 0], [1])
+        assertSetOfLessThanOrEqual([1, 0], [2])
+        assertSetOfLessThanOrEqual([1, 0], [1, 0])
+        assertSetOfLessThanOrEqual([1, 0], [2, 0])
     }
 }
 

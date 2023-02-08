@@ -187,7 +187,7 @@ extension DER {
             throw ASN1Error.unexpectedFieldType(rootNode.identifier)
         }
         
-        guard nodes.lazy.map({ ASN1SetElement(bytes: $0.encodedBytes) }).isOrdered() else {
+        guard nodes.isOrderedAccordingToSetOfSemantics() else {
             throw ASN1Error.invalidASN1Object(reason: "SET OF fields are not lexicographically ordered")
         }
 
@@ -931,15 +931,20 @@ extension DER {
                 let startIndex = intermediateSerializer.serializedBytes.endIndex
                 try intermediateSerializer.serialize(element)
                 let endIndex = intermediateSerializer.serializedBytes.endIndex
-                let serializedBytes = intermediateSerializer.serializedBytes[startIndex..<endIndex]
-                return ASN1SetElement(bytes: serializedBytes)
+                // It is important to first serialise all elements before we create `ArraySlice`s
+                // as we otherwise trigger CoW of `intermediateSerializer.serializedBytes`.
+                // We therefore just return a `Range` in the first iteration and
+                // get `ArraySlice`s in a second pass.
+                return startIndex..<endIndex
+            }.map {
+                intermediateSerializer.serializedBytes[$0]
             }
             // Afterwards we sort the binary representation of each element lexicographically
-            let sortedElements = serializedElements.sorted()
+            let sortedElements = serializedElements.sorted(by: asn1SetElementLessThanOrEqual(_:_:))
             // We then only need to create a constructed node and append the binary representation in their sorted order
             self.appendConstructedNode(identifier: identifier) { serializer in
                 for sortedElement in sortedElements {
-                    serializer._serializedBytes.append(contentsOf: sortedElement.bytes)
+                    serializer._serializedBytes.append(contentsOf: sortedElement)
                 }
             }
         }
@@ -1289,13 +1294,9 @@ extension FixedWidthInteger {
     }
 }
 
-extension Sequence {
-    /// - Parameter areInIncreasingOrderOrEqual: A predicate that returns `true` if its
-    ///   first argument is in increasing order or equal to its second argument
-    ///   otherwise, `false`.
-    /// - Returns: true if all elements are ordered according to `areInIncreasingOrderOrEqual`, otherwise false
+extension ASN1NodeCollection {
     @inlinable
-    func isOrdered(by areInIncreasingOrderOrEqual: (Element, Element) -> Bool) -> Bool {
+    func isOrderedAccordingToSetOfSemantics() -> Bool {
         var iterator = self.makeIterator()
         guard let first = iterator.next() else {
             return true
@@ -1303,7 +1304,7 @@ extension Sequence {
         
         var previousElement = first
         while let nextElement = iterator.next() {
-            guard areInIncreasingOrderOrEqual(previousElement, nextElement) else {
+            guard asn1SetElementLessThanOrEqual(previousElement.encodedBytes, nextElement.encodedBytes) else {
                 return false
             }
             previousElement = nextElement
@@ -1313,55 +1314,13 @@ extension Sequence {
     }
 }
 
-extension Sequence where Element: Comparable {
-    /// - Returns: true if all elements are lexicographically ordered, otherwise false
-    @inlinable
-    func isOrdered() -> Bool {
-        self.isOrdered(by: <=)
+@inlinable
+func asn1SetElementLessThanOrEqual(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) -> Bool {
+    guard zip(lhs, rhs).allSatisfy(<=) else {
+        return false
     }
-}
-
-
-
-/// Implements comparable according to SET OF semantics for a bytes sequence
-@usableFromInline
-struct ASN1SetElement: Comparable {
-    @usableFromInline var bytes: ArraySlice<UInt8>
-    
-    @inlinable init(bytes: ArraySlice<UInt8>) {
-        self.bytes = bytes
-    }
-    
-    @inlinable
-    static func ==(lhs: Self, rhs: Self) -> Bool {
-        guard zip(lhs.bytes, rhs.bytes).allSatisfy(==) else {
-            return false
-        }
-        // We got to the end of the shorter element, so all current elements are equal.
-        // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
-        let trailing = rhs.bytes.dropFirst(lhs.bytes.count)
-        return trailing.allSatisfy { $0 == 0 }
-    }
-    
-    @inlinable
-    static func <(lhs: Self, rhs: Self) -> Bool {
-        for (leftByte, rightByte) in zip(lhs.bytes, rhs.bytes) {
-            if leftByte < rightByte {
-                // true means left comes before right
-                return true
-            } else if rightByte < leftByte {
-                // Right comes after left
-                return false
-            }
-        }
-        
-        // We got to the end of the shorter element, so all current elements are equal.
-        // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
-        let trailing = rhs.bytes.dropFirst(lhs.bytes.count)
-        if trailing.allSatisfy({ $0 == 0}) {
-            // Must return false when the two elements are equal.
-            return false
-        }
-        return true
-    }
+    // We got to the end of the shorter element, so all current elements are equal.
+    // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
+    let trailing = rhs.dropFirst(lhs.count)
+    return trailing.allSatisfy({ $0 == 0})
 }
