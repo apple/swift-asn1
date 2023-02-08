@@ -187,7 +187,7 @@ extension DER {
             throw ASN1Error.unexpectedFieldType(rootNode.identifier)
         }
         
-        guard nodes.lazy.map({ ASN1BytesComparable(bytes: $0.encodedBytes) }).isOrdered() else {
+        guard nodes.lazy.map({ ASN1SetElement(bytes: $0.encodedBytes) }).isOrdered() else {
             throw ASN1Error.invalidASN1Object(reason: "SET OF fields are not lexicographically ordered")
         }
 
@@ -932,7 +932,7 @@ extension DER {
                 try intermediateSerializer.serialize(element)
                 let endIndex = intermediateSerializer.serializedBytes.endIndex
                 let serializedBytes = intermediateSerializer.serializedBytes[startIndex..<endIndex]
-                return ASN1BytesComparable(bytes: serializedBytes)
+                return ASN1SetElement(bytes: serializedBytes)
             }
             // Afterwards we sort the binary representation of each element lexicographically
             let sortedElements = serializedElements.sorted()
@@ -1289,7 +1289,7 @@ extension FixedWidthInteger {
     }
 }
 
-extension Sequence{
+extension Sequence {
     /// - Parameter areInIncreasingOrderOrEqual: A predicate that returns `true` if its
     ///   first argument is in increasing order or equal to its second argument
     ///   otherwise, `false`.
@@ -1325,7 +1325,7 @@ extension Sequence where Element: Comparable {
 
 /// Implements comparable according to SET OF semantics for a bytes sequence
 @usableFromInline
-struct ASN1BytesComparable: Comparable {
+struct ASN1SetElement: Comparable {
     @usableFromInline var bytes: ArraySlice<UInt8>
     
     @inlinable init(bytes: ArraySlice<UInt8>) {

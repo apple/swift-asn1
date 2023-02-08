@@ -878,30 +878,30 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     }
     
     func testASN1SetOfOrder() {
-        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1]), [1])
-        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1]), [2])
-        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [1])
-        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [2])
-        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [1, 0])
-        XCTAssertLessThanOrEqual(ASN1BytesComparable(bytes: [1, 0]), [2, 0])
+        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1]), [1])
+        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1]), [2])
+        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [1])
+        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [2])
+        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [1, 0])
+        XCTAssertLessThanOrEqual(ASN1SetElement(bytes: [1, 0]), [2, 0])
         
-        XCTAssertLessThan(ASN1BytesComparable(bytes: [1]), [2])
-        XCTAssertLessThan(ASN1BytesComparable(bytes: [1]), [1, 1])
+        XCTAssertLessThan(ASN1SetElement(bytes: [1]), [2])
+        XCTAssertLessThan(ASN1SetElement(bytes: [1]), [1, 1])
         
-        XCTAssertFalse(ASN1BytesComparable(bytes: [1]) < [1])
-        XCTAssertFalse(ASN1BytesComparable(bytes: [1]) < [1, 0])
-        XCTAssertFalse(ASN1BytesComparable(bytes: [1, 0]) < [1])
-        XCTAssertFalse(ASN1BytesComparable(bytes: [1]) < [1, 0])
+        XCTAssertFalse(ASN1SetElement(bytes: [1]) < [1])
+        XCTAssertFalse(ASN1SetElement(bytes: [1]) < [1, 0])
+        XCTAssertFalse(ASN1SetElement(bytes: [1, 0]) < [1])
+        XCTAssertFalse(ASN1SetElement(bytes: [1]) < [1, 0])
         
-        XCTAssertEqual(ASN1BytesComparable(bytes: [1]), [1])
-        XCTAssertEqual(ASN1BytesComparable(bytes: [1]), [1, 0])
-        XCTAssertEqual(ASN1BytesComparable(bytes: [1, 0]), [1])
-        XCTAssertEqual(ASN1BytesComparable(bytes: [1, 0]), [1, 0])
+        XCTAssertEqual(ASN1SetElement(bytes: [1]), [1])
+        XCTAssertEqual(ASN1SetElement(bytes: [1]), [1, 0])
+        XCTAssertEqual(ASN1SetElement(bytes: [1, 0]), [1])
+        XCTAssertEqual(ASN1SetElement(bytes: [1, 0]), [1, 0])
         
         XCTAssertEqual(([
             [1, 2],
             [1, 2, 1],
-        ] as [ASN1BytesComparable]).sorted(), [
+        ] as [ASN1SetElement]).sorted(), [
             [1, 2],
             [1, 2, 1],
         ])
@@ -909,14 +909,14 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         XCTAssertEqual(([
             [1, 2, 1],
             [1, 2],
-        ] as [ASN1BytesComparable]).sorted(), [
+        ] as [ASN1SetElement]).sorted(), [
             [1, 2],
             [1, 2, 1],
         ])
     }
 }
 
-extension ASN1BytesComparable: ExpressibleByArrayLiteral {
+extension ASN1SetElement: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: UInt8...) {
         self.init(bytes: elements[...])
     }
