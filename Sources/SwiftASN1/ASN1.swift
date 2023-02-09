@@ -940,7 +940,7 @@ extension DER {
                 intermediateSerializer.serializedBytes[$0]
             }
             // Afterwards we sort the binary representation of each element lexicographically
-            let sortedElements = serializedElements.sorted(by: asn1SetElementLessThanOrEqual(_:_:))
+            let sortedElements = serializedElements.sorted(by: asn1SetElementLessThan(_:_:))
             // We then only need to create a constructed node and append the binary representation in their sorted order
             self.appendConstructedNode(identifier: identifier) { serializer in
                 for sortedElement in sortedElements {
@@ -1315,12 +1315,31 @@ extension ASN1NodeCollection {
 }
 
 @inlinable
-func asn1SetElementLessThanOrEqual(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) -> Bool {
-    guard zip(lhs, rhs).allSatisfy(<=) else {
-        return false
+func asn1SetElementLessThan(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) -> Bool {
+    for (leftByte, rightByte) in zip(lhs, rhs) {
+        if leftByte < rightByte {
+            // true means left comes before right
+            return true
+        } else if rightByte < leftByte {
+            // Right comes after left
+            return false
+        }
     }
+    
     // We got to the end of the shorter element, so all current elements are equal.
     // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
     let trailing = rhs.dropFirst(lhs.count)
-    return trailing.allSatisfy({ $0 == 0})
+    if trailing.allSatisfy({ $0 == 0}) {
+        // Must return false when the two elements are equal.
+        return false
+    }
+    return true
 }
+
+@inlinable
+func asn1SetElementLessThanOrEqual(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) -> Bool {
+    // https://github.com/apple/swift/blob/43c5824be892967993f4d0111206764eceeffb67/stdlib/public/core/Comparable.swift#L202
+    !asn1SetElementLessThan(rhs, lhs)
+}
+
+
