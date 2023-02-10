@@ -169,7 +169,7 @@ extension DER {
             throw ASN1Error.invalidASN1Object(reason: "No set node available for \(T.self) and identifier \(identifier)")
         }
 
-        return try set(of: T.self, identifier: identifier, rootNode: node)
+        return try Self.set(of: T.self, identifier: identifier, rootNode: node)
     }
     
     /// Parse the node as an ASN.1 SET OF.
@@ -927,24 +927,26 @@ extension DER {
             // We first serialize all elements into one intermediate Serializer and
             // create ArraySlices of their binary DER representation.
             var intermediateSerializer = DER.Serializer()
-            let serializedElements = try elements.map { element in
+            let serializedRanges = try elements.map { element in
                 let startIndex = intermediateSerializer.serializedBytes.endIndex
                 try intermediateSerializer.serialize(element)
                 let endIndex = intermediateSerializer.serializedBytes.endIndex
                 // It is important to first serialise all elements before we create `ArraySlice`s
                 // as we otherwise trigger CoW of `intermediateSerializer.serializedBytes`.
                 // We therefore just return a `Range` in the first iteration and
-                // get `ArraySlice`s in a second pass.
+                // get `ArraySlice`s during the sort and write operations on demand.
                 return startIndex..<endIndex
-            }.map {
-                intermediateSerializer.serializedBytes[$0]
             }
+            
+            let serializedBytes = intermediateSerializer.serializedBytes
             // Afterwards we sort the binary representation of each element lexicographically
-            let sortedElements = serializedElements.sorted(by: asn1SetElementLessThan(_:_:))
+            let sortedRanges = serializedRanges.sorted { lhs, rhs in
+                asn1SetElementLessThan(serializedBytes[lhs], serializedBytes[rhs])
+            }
             // We then only need to create a constructed node and append the binary representation in their sorted order
             self.appendConstructedNode(identifier: identifier) { serializer in
-                for sortedElement in sortedElements {
-                    serializer._serializedBytes.append(contentsOf: sortedElement)
+                for range in sortedRanges {
+                    serializer._serializedBytes.append(contentsOf: serializedBytes[range])
                 }
             }
         }
@@ -1329,7 +1331,7 @@ func asn1SetElementLessThan(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) 
     // We got to the end of the shorter element, so all current elements are equal.
     // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
     let trailing = rhs.dropFirst(lhs.count)
-    if trailing.allSatisfy({ $0 == 0}) {
+    if trailing.allSatisfy({ $0 == 0 }) {
         // Must return false when the two elements are equal.
         return false
     }

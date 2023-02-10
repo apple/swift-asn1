@@ -820,7 +820,6 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             ASN1BitString(bytes: [1]),
         ])
         XCTAssertEqual(serializer.serializedBytes, [49, 4, 3, 2, 0, 1])
-        print(serializer.viewURL)
         let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
         XCTAssertEqual(bitStrings, [
             ASN1BitString(bytes: [1]),
@@ -896,14 +895,5 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         assertSetOfLessThanOrEqual([1, 0], [2])
         assertSetOfLessThanOrEqual([1, 0], [1, 0])
         assertSetOfLessThanOrEqual([1, 0], [2, 0])
-    }
-}
-
-extension DER.Serializer {
-    private var base64: String {
-        Data(serializedBytes).base64EncodedString()
-    }
-    var viewURL: String {
-        "https://lapo.it/asn1js/#\(base64)"
     }
 }
