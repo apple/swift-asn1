@@ -74,7 +74,6 @@ For frequent contributors, we recommend adding the script as a [git pre-push hoo
 
 ```bash
 cat << EOF > .git/hooks/pre-push
-#!/bin/bash
 
 if [[ -f "scripts/soundness.sh" ]]; then
   scripts/soundness.sh
