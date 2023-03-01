@@ -29,4 +29,23 @@ These moving pieces combine to provide support for the DER representation of ASN
 
 ## Getting Started
 
-Consult the documentation for examples of how to use the code. A number of examples are also present in the repository itself.
+To use swift-asn1, add the following dependency to your Package.swift:
+
+ ```swift
+ dependencies: [
+     .package(url: "https://github.com/apple/swift-asn1.git", upToNextMinor(from: "0.6.0"))
+ ]
+ ```
+
+ Note that this repository does not have a 1.0 tag yet, so the API is not stable.
+
+ You can then add the specific product dependency to your target:
+
+ ```swift
+ dependencies: [
+     .product(name: "SwiftASN1", package: "swift-asn1"),
+ ]
+ ```
+
+Consult [the documentation](https://swiftpackageindex.com/apple/swift-asn1/main/documentation/swiftasn1) for
+examples of how to use the code. A number of examples are also present in the repository itself.
