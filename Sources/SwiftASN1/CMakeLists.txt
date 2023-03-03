@@ -31,6 +31,7 @@ add_library(SwiftASN1
   "Errors.swift")
 
 target_link_libraries(SwiftASN1 PUBLIC
+  $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>)
 set_target_properties(SwiftASN1 PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
