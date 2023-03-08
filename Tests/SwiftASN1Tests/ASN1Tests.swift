@@ -896,4 +896,25 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         assertSetOfLessThanOrEqual([1, 0], [1, 0])
         assertSetOfLessThanOrEqual([1, 0], [2, 0])
     }
+
+    func testSerializingRawBytes() {
+        var serializer = DER.Serializer()
+        serializer.serializeRawBytes([1, 2, 3, 4])
+
+        XCTAssertEqual(serializer.serializedBytes, [1, 2, 3, 4])
+
+        // A more complex example to prove that we can add the raw bytes at arbitrary locations.
+        serializer = DER.Serializer()
+        serializer.appendConstructedNode(identifier: .sequence) { serializer in
+            serializer.serialize(explicitlyTaggedWithTagNumber: 1, tagClass: .contextSpecific) { serializer in
+                serializer.serializeRawBytes([1, 2, 3, 4])
+            }
+            serializer.serialize(explicitlyTaggedWithTagNumber: 2, tagClass: .contextSpecific) { _ in }
+        }
+
+        XCTAssertEqual(
+            serializer.serializedBytes,
+            [0x30, 0x8, 0xA1, 0x04, 0x01, 0x2, 0x03, 0x04, 0xA2, 0x00]
+        )
+    }
 }

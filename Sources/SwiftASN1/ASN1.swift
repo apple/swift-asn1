@@ -946,7 +946,7 @@ extension DER {
             // We then only need to create a constructed node and append the binary representation in their sorted order
             self.appendConstructedNode(identifier: identifier) { serializer in
                 for range in sortedRanges {
-                    serializer._serializedBytes.append(contentsOf: serializedBytes[range])
+                    serializer.serializeRawBytes(serializedBytes[range])
                 }
             }
         }
@@ -976,9 +976,26 @@ extension DER {
                         coder.serialize(node)
                     }
                 case .primitive(let baseData):
-                    coder._serializedBytes.append(contentsOf: baseData)
+                    coder.serializeRawBytes(baseData)
                 }
             }
+        }
+
+        /// Serializes a sequence of raw bytes directly into the output stream.
+        ///
+        /// This is an extremely low-level helper function that can be used to serialize a parsed object exactly as it was deserialized.
+        /// This can be used to enable perfect fidelity re-encoding where there are equally valid alternatives for serializing something
+        /// and your code makes default choices.
+        ///
+        /// In general, users should avoid calling this function unless it's absolutely necessary to do so as a matter of implementation.
+        ///
+        /// Users are required to ensure that `bytes` is well-formed DER. Failure to do so will lead to invalid output being produced.
+        ///
+        /// - parameters:
+        ///     - bytes: The raw bytes to serialize. These bytes must be well-formed DER.
+        @inlinable
+        public mutating func serializeRawBytes<Bytes: Sequence>(_ bytes: Bytes) where Bytes.Element == UInt8 {
+            self._serializedBytes.append(contentsOf: bytes)
         }
 
         // This is the base logical function that all other append methods are built on. This one has most of the logic, and doesn't
