@@ -59,7 +59,7 @@ public struct ASN1Any: DERParseable, DERSerializable, Hashable, Sendable {
     @inlinable
     public func serialize(into coder: inout DER.Serializer) throws {
         // Dangerous to just reach in there like this, but it's the right way to serialize this.
-        coder._serializedBytes.append(contentsOf: self._serializedBytes)
+        coder.serializeRawBytes(self._serializedBytes)
     }
 }
 
