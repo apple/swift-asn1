@@ -33,7 +33,7 @@ To use swift-asn1, add the following dependency to your Package.swift:
 
  ```swift
  dependencies: [
-     .package(url: "https://github.com/apple/swift-asn1.git", upToNextMinor(from: "0.6.0"))
+     .package(url: "https://github.com/apple/swift-asn1.git", .upToNextMinor(from: "0.7.0"))
  ]
  ```
 
