@@ -15,14 +15,14 @@
 import Foundation
 
 /// A PEM document is some data, and a discriminator type that is used to advertise the content.
-struct PEMDocument {
+public struct PEMDocument {
     private static let lineLength = 64
 
-    var type: String
+    public var type: String
 
-    var derBytes: Data
+    public var derBytes: Data
 
-    init(pemString: String) throws {
+    public init(pemString: String) throws {
         // A PEM document looks like this:
         //
         // -----BEGIN <SOME DISCRIMINATOR>-----
@@ -57,12 +57,12 @@ struct PEMDocument {
         self.derBytes = derBytes
     }
 
-    init(type: String, derBytes: Data) {
+    public init(type: String, derBytes: Data) {
         self.type = type
         self.derBytes = derBytes
     }
 
-    var pemString: String {
+    public var pemString: String {
         var encoded = self.derBytes.base64EncodedString()[...]
         let pemLineCount = (encoded.utf8.count + PEMDocument.lineLength) / PEMDocument.lineLength
         var pemLines = [Substring]()
