@@ -141,7 +141,7 @@ extension ASN1Identifier {
     /// This tag represents a GraphicString.
     public static let graphicString = ASN1Identifier(shortIdentifier: 0x19)
 
-    /// This tag represents a VisibileString.
+    /// This tag represents a VisibleString.
     public static let visibleString = ASN1Identifier(shortIdentifier: 0x1a)
 
     /// This tag represents a GeneralString.

@@ -17,7 +17,7 @@
 /// In ASN.1, bitstrings serve two different use-cases. The first is as arbitrary-length sequences of bits.
 /// These are typically used to encode cryptographic keys, such as RSA keys. The second is as a form of bitset.
 ///
-/// In the case of a bitset, DER has additonal requirements as to how to represent the object. This type does not
+/// In the case of a bitset, DER has additional requirements as to how to represent the object. This type does not
 /// enforce those additional rules: users are expected to implement that validation themselves.
 public struct ASN1BitString: DERImplicitlyTaggable {
     /// The default identifier for this type.
