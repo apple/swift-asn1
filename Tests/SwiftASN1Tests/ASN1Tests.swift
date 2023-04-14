@@ -414,7 +414,7 @@ class ASN1Tests: XCTestCase {
         }
     }
 
-    func testStraightforwardPEMParsing() throws {
+    func testStraightforwardPEMDocumentParsing() throws {
         let simplePEM = """
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
@@ -437,6 +437,25 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
         let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: Data(serializer.serializedBytes))
         XCTAssertEqual(reserialized2.pemString, simplePEM)
     }
+    
+    func testStraightforwardPEMParsing() throws {
+        let simplePEM = """
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+-----END EC PRIVATE KEY-----
+"""
+        let pkey = try SEC1PrivateKey(pemEncoded: simplePEM)
+
+        let reserialized = try PEMSerializer().serialize(pkey)
+        XCTAssertEqual(reserialized, simplePEM)
+
+        var serializer = DER.Serializer()
+        XCTAssertNoThrow(try serializer.serialize(pkey))
+        let reserialized2 = try SEC1PrivateKey(derEncoded: serializer.serializedBytes)
+        XCTAssertEqual(try PEMSerializer().serialize(reserialized2), simplePEM)
+    }
 
     func testTruncatedPEMDocumentsAreRejected() throws {
         // We drip feed the PEM one extra character at a time. It never parses successfully.
@@ -451,9 +470,13 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
             XCTAssertThrowsError(try PEMDocument(pemString: String(simplePEM[..<index]))) { error in
                 XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
             }
+            XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: String(simplePEM[..<index]))) { error in
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+            }
         }
-
+        
         XCTAssertNoThrow(try PEMDocument(pemString: simplePEM))
+        XCTAssertNoThrow(try SEC1PrivateKey(pemEncoded: simplePEM))
     }
 
     func testMismatchedDiscriminatorsAreRejected() throws {
@@ -466,6 +489,10 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PUBLIC KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
+        
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
@@ -482,6 +509,10 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzGO
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
+        
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
     }
 
     func testEarlyShortLinesAreForbidden() throws {
@@ -496,6 +527,10 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
+        
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
     }
 
     func testEmptyPEMDocument() throws {
@@ -504,6 +539,10 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
+        
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
@@ -517,6 +556,10 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
+        
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
