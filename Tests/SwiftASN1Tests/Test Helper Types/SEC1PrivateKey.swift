@@ -22,7 +22,7 @@ import SwiftASN1
 //   publicKey [1] EXPLICIT BIT STRING OPTIONAL
 // }
 struct SEC1PrivateKey: DERImplicitlyTaggable, PEMRepresentable {
-    static let pemDiscriminator: String = "EC PRIVATE KEY"
+    static let defaultPEMDiscriminator: String = "EC PRIVATE KEY"
     
     static var defaultIdentifier: ASN1Identifier {
         return .sequence

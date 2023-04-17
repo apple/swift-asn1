@@ -423,10 +423,10 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         let document = try PEMDocument(pemString: simplePEM)
-        XCTAssertEqual(document.type, "EC PRIVATE KEY")
+        XCTAssertEqual(document.discriminator, "EC PRIVATE KEY")
         XCTAssertEqual(document.derBytes.count, 121)
 
-        let parsed = try DER.parse(Array(document.derBytes))
+        let parsed = try DER.parse(document.derBytes)
         let pkey = try SEC1PrivateKey(derEncoded: parsed)
 
         let reserialized = document.pemString
@@ -434,7 +434,7 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 
         var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
-        let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: Data(serializer.serializedBytes))
+        let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: serializer.serializedBytes)
         XCTAssertEqual(reserialized2.pemString, simplePEM)
     }
     
@@ -448,13 +448,13 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 """
         let pkey = try SEC1PrivateKey(pemEncoded: simplePEM)
 
-        let reserialized = try PEMSerializer().serialize(pkey)
+        let reserialized = try pkey.serializeAsPEM().pemString
         XCTAssertEqual(reserialized, simplePEM)
 
         var serializer = DER.Serializer()
         XCTAssertNoThrow(try serializer.serialize(pkey))
         let reserialized2 = try SEC1PrivateKey(derEncoded: serializer.serializedBytes)
-        XCTAssertEqual(try PEMSerializer().serialize(reserialized2), simplePEM)
+        XCTAssertEqual(try reserialized2.serializeAsPEM().pemString, simplePEM)
     }
 
     func testTruncatedPEMDocumentsAreRejected() throws {

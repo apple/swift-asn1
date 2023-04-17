@@ -12,150 +12,126 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(Foundation)
+import Foundation
+#endif
+
 /// Defines a type that can be serialized in PEM-encoded form.
 ///
-/// Users implementing this type are expected to just provide the ``pemDiscriminator``
+/// Users implementing this type are expected to just provide the ``defaultPEMDiscriminator``
 ///
-/// Objects that are ``PEMSerializable`` can be serialized to a PEM `String` by constructing a ``PEMSerializer`` and calling ``PEMSerializer/serialize(_:)``.
+/// A PEM `String` can be serialized by constructing a ``PEMDocument`` by calling ``PEMSerializable/serializeAsPEM()`` and then accessing the ``PEMDocument/pemString`` preropty.
 public protocol PEMSerializable: DERSerializable {
     /// The PEM discriminator identifying this object type.
     ///
-    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` i.e.
+    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
     /// ```
-    /// -----BEGIN pemDiscrimiator-----
+    /// -----BEGIN defaultPEMDiscriminator-----
     /// <base 64 DER representation of this object>
-    /// -----END pemDiscrimiator-----
+    /// -----END defaultPEMDiscriminator-----
     /// ```
-    static var pemDiscriminator: String { get }
+    static var defaultPEMDiscriminator: String { get }
+    
+    func serializeAsPEM(discriminator: String) throws -> PEMDocument
 }
 
 /// Defines a type that can be parsed from a PEM-encoded form.
 ///
-/// Users implementing this type are expected to just provide the ``pemDiscriminator``.
+/// Users implementing this type are expected to just provide the ``defaultPEMDiscriminator``.
 ///
 /// Objects that are ``PEMParseable`` can be construct from a PEM `String` through ``PEMParseable/init(pemEncoded:)``.
 public protocol PEMParseable: DERParseable {
     /// The PEM discriminator identifying this object type.
     ///
-    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` i.e.
+    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
     /// ```
-    /// -----BEGIN pemDiscrimiator-----
+    /// -----BEGIN defaultPEMDiscriminator-----
     /// <base 64 DER representation of this object>
-    /// -----END pemDiscrimiator-----
+    /// -----END defaultPEMDiscriminator-----
     /// ```
-    static var pemDiscriminator: String { get }
+    static var defaultPEMDiscriminator: String { get }
+    
+    
+    /// The PEM discriminator allowed to be present when parsing a PEM string.
+    ///
+    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
+    /// ```
+    /// -----BEGIN defaultPEMDiscriminator-----
+    /// <base 64 DER representation of this object>
+    /// -----END defaultPEMDiscriminator-----
+    /// ```
+    static var allowedPEMDiscriminators: Set<String> { get }
+    
+    init(pemDocument: PEMDocument) throws
 }
 
 /// Defines a type that can be serialized in and parsed from PEM-encoded form.
 ///
-/// Users implementing this type are expected to just provide the ``pemDiscriminator``.
+/// Users implementing this type are expected to just provide the ``PEMParseable/defaultPEMDiscriminator``.
 ///
 /// Objects that are ``PEMRepresentable`` can be construct from a PEM `String` through ``PEMParseable/init(pemEncoded:)``.
 ///
-/// A PEM `String` can serialized by constructing a ``PEMSerializer`` and calling ``PEMSerializer/serialize(_:)``.
+/// A PEM `String` can be serialized by constructing a ``PEMDocument`` by calling ``PEMSerializable/serializeAsPEM()`` and then accessing the ``PEMDocument/pemString`` preropty.
 public typealias PEMRepresentable = PEMSerializable & PEMParseable
 
-#if canImport(Foundation)
-import Foundation
-
 extension PEMParseable {
+    /// The PEM discriminator allowed to be present when parsing a PEM string.
+    /// The default implementation just allowed ``defaultPEMDiscriminator`` to be present.
+    ///
+    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
+    /// ```
+    /// -----BEGIN defaultPEMDiscriminator-----
+    /// <base 64 DER representation of this object>
+    /// -----END defaultPEMDiscriminator-----
+    /// ```
+    @inlinable
+    public static var allowedPEMDiscriminators: Set<String> {
+        Set([defaultPEMDiscriminator])
+    }
+    
     /// Initialize this object from a serialized PEM representation.
+    /// This will check that the ``PEMParseable/allowedPEMDiscriminators-2h84f`` matches, decode the base64 encoded string and
+    /// forward the DER encoded bytes to ``DERParseable/init(derEncoded:)-i2rf``.
     ///
     /// - parameters:
     ///     - pemEncoded: The PEM-encoded string representing this object.
+    @inlinable
     public init(pemEncoded pemString: String) throws {
-        // A PEM document looks like this:
-        //
-        // -----BEGIN <SOME DISCRIMINATOR>-----
-        // <base64 encoded bytes, 64 characters per line>
-        // -----END <SOME DISCRIMINATOR>-----
-        //
-        // This function attempts to parse this string as a PEM document, and returns the discriminator type
-        // and the base64 decoded bytes.
-        var lines = pemString.split { $0.isNewline }[...]
-        guard let first = lines.first, let last = lines.last else {
-            throw ASN1Error.invalidPEMDocument(reason: "Leading or trailing line missing.")
-        }
-
-        guard let discriminator = first.pemStartDiscriminator, discriminator == last.pemEndDiscriminator else {
-            throw ASN1Error.invalidPEMDocument(reason: "Leading or trailing line missing PEM discriminator")
-        }
-
-        // All but the last line must be 64 bytes. The force unwrap is safe because we require the lines to be
-        // greater than zero.
-        lines = lines.dropFirst().dropLast()
-        guard lines.count > 0,
-            lines.dropLast().allSatisfy({ $0.utf8.count == PEMDocument.lineLength }),
-            lines.last!.utf8.count <= PEMDocument.lineLength else {
-            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
-        }
-
-        guard discriminator == Self.pemDiscriminator else {
-            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect discriminator \(discriminator). Expected \(Self.pemDiscriminator) instead")
-        }
-        
-        guard let derBytes = Data(base64Encoded: lines.joined()) else {
-            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
-        }
-        
-        try self.init(derEncoded: Array(derBytes))
+        try self.init(pemDocument: try PEMDocument(pemString: pemString))
     }
-}
-
-
-/// An object that can serialize PEM strings through ``PEMSerializer/serialize(_:)``.
-public struct PEMSerializer: Sendable {
     
-    public init() {}
-    
-    /// Serializes a node as a PEM string.
+    /// Initialize this object from a serialized PEM representation.
+    /// This will check that the ``PEMParseable/pemDiscriminator`` matches and
+    /// forward the DER encoded bytes to ``DERParseable/init(derEncoded:)-i2rf``.
+    ///
     /// - parameters:
-    ///     node: The node to be serialized.
-    public func serialize<Node: PEMSerializable>(_ node: Node) throws -> String {
-        var serializer = DER.Serializer()
-        try serializer.serialize(node)
-        var encoded = Data(serializer.serializedBytes).base64EncodedString()[...]
-        let pemLineCount = (encoded.utf8.count + PEMDocument.lineLength) / PEMDocument.lineLength
-        var pemLines = [Substring]()
-        pemLines.reserveCapacity(pemLineCount + 2)
-        
-        pemLines.append("-----BEGIN \(Node.pemDiscriminator)-----")
-        
-        while encoded.count > 0 {
-            let prefixIndex = encoded.index(encoded.startIndex, offsetBy: PEMDocument.lineLength, limitedBy: encoded.endIndex) ?? encoded.endIndex
-            pemLines.append(encoded[..<prefixIndex])
-            encoded = encoded[prefixIndex...]
+    ///     - pemDocument: DER-encoded PEM document
+    @inlinable
+    public init(pemDocument: PEMDocument) throws {
+        guard Self.allowedPEMDiscriminators.contains(pemDocument.discriminator) else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect discriminator \(pemDocument.discriminator). Expected \(Self.allowedPEMDiscriminators) instead")
         }
-        
-        pemLines.append("-----END \(Node.pemDiscriminator)-----")
-        
-        return pemLines.joined(separator: "\n")
+            
+        try self.init(derEncoded: pemDocument.derBytes)
     }
 }
 
 extension PEMSerializable {
-    /// Serializes `self` as a PEM string.
-    public var pemString: String {
-        get throws {
-            var serializer = DER.Serializer()
-            try serializer.serialize(self)
-            var encoded = Data(serializer.serializedBytes).base64EncodedString()[...]
-            let pemLineCount = (encoded.utf8.count + PEMDocument.lineLength) / PEMDocument.lineLength
-            var pemLines = [Substring]()
-            pemLines.reserveCapacity(pemLineCount + 2)
-            
-            pemLines.append("-----BEGIN \(Self.pemDiscriminator)-----")
-            
-            while encoded.count > 0 {
-                let prefixIndex = encoded.index(encoded.startIndex, offsetBy: PEMDocument.lineLength, limitedBy: encoded.endIndex) ?? encoded.endIndex
-                pemLines.append(encoded[..<prefixIndex])
-                encoded = encoded[prefixIndex...]
-            }
-            
-            pemLines.append("-----END \(Self.pemDiscriminator)-----")
-            
-            return pemLines.joined(separator: "\n")
-        }
+    /// Serializes `self` as a PEM document with given `discriminator`.
+    /// - Parameter discriminator: PEM discriminator used in for the BEGIN and END encapsulation boundaries.
+    /// - Returns: DER encoded PEM document
+    @inlinable
+    public func serializeAsPEM(discriminator: String) throws -> PEMDocument {
+        var serializer = DER.Serializer()
+        try serializer.serialize(self)
+        
+        return PEMDocument(type: discriminator, derBytes: serializer.serializedBytes)
+    }
+    
+    /// Serializes `self` as a PEM document with the ``defaultPEMDiscriminator``.
+    @inlinable
+    public func serializeAsPEM() throws -> PEMDocument {
+        try self.serializeAsPEM(discriminator: Self.defaultPEMDiscriminator)
     }
 }
 
@@ -163,11 +139,25 @@ extension PEMSerializable {
 public struct PEMDocument {
     fileprivate static let lineLength = 64
 
-    public var type: String
-
-    public var derBytes: Data
+    
+    @available(*, deprecated, renamed: "discriminator")
+    public var type: String {
+        get { discriminator }
+        set { discriminator = newValue }
+    }
+    
+    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
+    /// ```
+    /// -----BEGIN discriminator-----
+    /// <base 64 encoded derBytes>
+    /// -----END discriminator-----
+    /// ```
+    public var discriminator: String
+    
+    public var derBytes: [UInt8]
 
     public init(pemString: String) throws {
+        #if canImport(Foundation)
         // A PEM document looks like this:
         //
         // -----BEGIN <SOME DISCRIMINATOR>-----
@@ -198,33 +188,46 @@ public struct PEMDocument {
             throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
         }
 
-        self.type = discriminator
+        self.discriminator = discriminator
+        self.derBytes = Array(derBytes)
+        #else
+        fatalError("PEM decoding currently not supported without Foundation.")
+        #endif
+    }
+
+    public init(type: String, derBytes: [UInt8]) {
+        self.discriminator = type
         self.derBytes = derBytes
     }
 
-    public init(type: String, derBytes: Data) {
-        self.type = type
-        self.derBytes = derBytes
-    }
-
+    #if canImport(Foundation)
+    /// PEM string is a base 64 encoded string of ``derBytes`` enclosed in BEGIN and END encapsulation boundaries with the specified ``discriminator`` type.
+    ///
+    /// Example PEM string:
+    /// ```
+    /// -----BEGIN discriminator-----
+    /// <base 64 encoded derBytes>
+    /// -----END discriminator-----
+    /// ```
     public var pemString: String {
-        var encoded = self.derBytes.base64EncodedString()[...]
-        let pemLineCount = (encoded.utf8.count + PEMDocument.lineLength) / PEMDocument.lineLength
+        var encoded = Data(self.derBytes).base64EncodedString()[...]
+        let pemLineCount = (encoded.utf8.count + Self.lineLength) / Self.lineLength
         var pemLines = [Substring]()
         pemLines.reserveCapacity(pemLineCount + 2)
 
-        pemLines.append("-----BEGIN \(self.type)-----")
+        pemLines.append("-----BEGIN \(self.discriminator)-----")
 
         while encoded.count > 0 {
-            let prefixIndex = encoded.index(encoded.startIndex, offsetBy: PEMDocument.lineLength, limitedBy: encoded.endIndex) ?? encoded.endIndex
+            let prefixIndex = encoded.index(encoded.startIndex, offsetBy: Self.lineLength, limitedBy: encoded.endIndex) ?? encoded.endIndex
             pemLines.append(encoded[..<prefixIndex])
             encoded = encoded[prefixIndex...]
         }
 
-        pemLines.append("-----END \(self.type)-----")
+        pemLines.append("-----END \(self.discriminator)-----")
 
         return pemLines.joined(separator: "\n")
     }
+    #endif
 }
 
 extension Substring {
@@ -255,5 +258,3 @@ extension Substring {
         return String(utf8Bytes)
     }
 }
-
-#endif
