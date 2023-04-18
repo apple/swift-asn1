@@ -50,17 +50,6 @@ public protocol PEMParseable: DERParseable {
     /// ```
     static var defaultPEMDiscriminator: String { get }
     
-    
-    /// The PEM discriminator allowed to be present when parsing a PEM string.
-    ///
-    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
-    /// ```
-    /// -----BEGIN defaultPEMDiscriminator-----
-    /// <base 64 DER representation of this object>
-    /// -----END defaultPEMDiscriminator-----
-    /// ```
-    static var allowedPEMDiscriminators: Set<String> { get }
-    
     init(pemDocument: PEMDocument) throws
 }
 
@@ -74,23 +63,11 @@ public protocol PEMParseable: DERParseable {
 public typealias PEMRepresentable = PEMSerializable & PEMParseable
 
 extension PEMParseable {
-    /// The PEM discriminator allowed to be present when parsing a PEM string.
-    /// The default implementation just allowed ``defaultPEMDiscriminator`` to be present.
-    ///
-    /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
-    /// ```
-    /// -----BEGIN defaultPEMDiscriminator-----
-    /// <base 64 DER representation of this object>
-    /// -----END defaultPEMDiscriminator-----
-    /// ```
-    @inlinable
-    public static var allowedPEMDiscriminators: Set<String> {
-        Set([defaultPEMDiscriminator])
-    }
     
     /// Initialize this object from a serialized PEM representation.
-    /// This will check that the ``PEMParseable/allowedPEMDiscriminators-2h84f`` matches, decode the base64 encoded string and
-    /// forward the DER encoded bytes to ``DERParseable/init(derEncoded:)-i2rf``.
+    /// 
+    /// This will check that the discriminator matches ``PEMParseable/defaultPEMDiscriminator``, decode the base64 encoded string and
+    /// then decode the DER encoded bytes using ``DERParseable/init(derEncoded:)-i2rf``.
     ///
     /// - parameters:
     ///     - pemEncoded: The PEM-encoded string representing this object.
@@ -107,8 +84,8 @@ extension PEMParseable {
     ///     - pemDocument: DER-encoded PEM document
     @inlinable
     public init(pemDocument: PEMDocument) throws {
-        guard Self.allowedPEMDiscriminators.contains(pemDocument.discriminator) else {
-            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect discriminator \(pemDocument.discriminator). Expected \(Self.allowedPEMDiscriminators) instead")
+        guard pemDocument.discriminator == Self.defaultPEMDiscriminator else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect discriminator \(pemDocument.discriminator). Expected \(Self.defaultPEMDiscriminator) instead")
         }
             
         try self.init(derEncoded: pemDocument.derBytes)
