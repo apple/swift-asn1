@@ -14,7 +14,6 @@
 
 #if canImport(Foundation)
 import Foundation
-#endif
 
 /// Defines a type that can be serialized in PEM-encoded form.
 ///
@@ -157,7 +156,6 @@ public struct PEMDocument {
     public var derBytes: [UInt8]
 
     public init(pemString: String) throws {
-        #if canImport(Foundation)
         // A PEM document looks like this:
         //
         // -----BEGIN <SOME DISCRIMINATOR>-----
@@ -190,9 +188,6 @@ public struct PEMDocument {
 
         self.discriminator = discriminator
         self.derBytes = Array(derBytes)
-        #else
-        fatalError("PEM decoding currently not supported without Foundation.")
-        #endif
     }
 
     public init(type: String, derBytes: [UInt8]) {
@@ -200,7 +195,6 @@ public struct PEMDocument {
         self.derBytes = derBytes
     }
 
-    #if canImport(Foundation)
     /// PEM string is a base 64 encoded string of ``derBytes`` enclosed in BEGIN and END encapsulation boundaries with the specified ``discriminator`` type.
     ///
     /// Example PEM string:
@@ -227,7 +221,6 @@ public struct PEMDocument {
 
         return pemLines.joined(separator: "\n")
     }
-    #endif
 }
 
 extension Substring {
@@ -258,3 +251,5 @@ extension Substring {
         return String(utf8Bytes)
     }
 }
+
+#endif
