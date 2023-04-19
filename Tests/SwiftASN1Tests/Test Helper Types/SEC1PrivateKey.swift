@@ -21,7 +21,9 @@ import SwiftASN1
 //   parameters [0] EXPLICIT ECDomainParameters OPTIONAL,
 //   publicKey [1] EXPLICIT BIT STRING OPTIONAL
 // }
-struct SEC1PrivateKey: DERImplicitlyTaggable {
+struct SEC1PrivateKey: DERImplicitlyTaggable, PEMRepresentable {
+    static let defaultPEMDiscriminator: String = "EC PRIVATE KEY"
+    
     static var defaultIdentifier: ASN1Identifier {
         return .sequence
     }

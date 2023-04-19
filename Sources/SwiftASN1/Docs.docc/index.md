@@ -24,6 +24,7 @@ This module provides several moving pieces:
 2. A DER parser that can construct the ASN.1 tree from serialized bytes (``DER/parse(_:)-72yd1``).
 3. A DER serializer that can construct serialized bytes from the ASN.1 tree (``DER/Serializer``).
 4. A number of built-in ASN.1 types, representing common constructs.
+5. A PEM parser and serializer
 
 These moving pieces combine to provide support for the DER representation of ASN.1 suitable for a wide range of cryptographic uses.
 
@@ -32,6 +33,7 @@ These moving pieces combine to provide support for the DER representation of ASN
 ### Articles
 
 - <doc:DecodingASN1>
+- <doc:PEM>
 
 ### Parsing DER
 
@@ -83,3 +85,9 @@ These moving pieces combine to provide support for the DER representation of ASN
 - ``ASN1IA5String``
 - ``ASN1TeletexString``
 - ``ASN1UniversalString``
+
+### Parsing and Serializing PEM
+- ``PEMRepresentable``
+- ``PEMParseable``
+- ``PEMSerializable``
+- ``PEMDocument``
