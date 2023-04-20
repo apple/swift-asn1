@@ -112,7 +112,7 @@ extension PEMSerializable {
 }
 
 /// A PEM document is some data, and a discriminator type that is used to advertise the content.
-public struct PEMDocument: Hashable {
+public struct PEMDocument: Hashable, Sendable {
     fileprivate static let lineLength = 64
 
     
