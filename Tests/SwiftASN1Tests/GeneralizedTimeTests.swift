@@ -177,4 +177,48 @@ final class GeneralizedTimeTests: XCTestCase {
 
         XCTAssertThrowsError(try GeneralizedTime(derEncoded: invalidBytes))
     }
+
+    func testComparisons() throws {
+        let original = try GeneralizedTime(year: 2020, month: 03, day: 03, hours: 03, minutes: 03, seconds: 03, fractionalSeconds: 0.105)
+
+        func modify<Modifiable: AdditiveArithmetic>(_ field: WritableKeyPath<GeneralizedTime, Modifiable>, of time: GeneralizedTime, by modifier: Modifiable) -> GeneralizedTime {
+            var copy = time
+            copy[keyPath: field] += modifier
+            return copy
+        }
+
+        let integerTransformable: [WritableKeyPath<GeneralizedTime, Int>] = [
+            \.year, \.month, \.day, \.hours, \.minutes, \.seconds
+        ]
+
+        var transformationsAndResults: [(GeneralizedTime, lt: Bool, eq: Bool)] = []
+        transformationsAndResults.append((original, lt: false, eq: true))
+
+        for transform in integerTransformable {
+            transformationsAndResults.append((modify(transform, of: original, by: 1), lt: false, eq: false))
+            transformationsAndResults.append((modify(transform, of: original, by: -1), lt: true, eq: false))
+        }
+
+        transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: 0.1), lt: false, eq: false))
+        transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: -0.1), lt: true, eq: false))
+
+        for (newValue, lt, eq) in transformationsAndResults {
+            if lt {
+                XCTAssertLessThan(newValue, original)
+                XCTAssertLessThanOrEqual(newValue, original)
+                XCTAssertGreaterThan(original, newValue)
+                XCTAssertGreaterThanOrEqual(original, newValue)
+            } else if eq {
+                XCTAssertGreaterThanOrEqual(newValue, original)
+                XCTAssertGreaterThanOrEqual(original, newValue)
+                XCTAssertLessThanOrEqual(newValue, original)
+                XCTAssertLessThanOrEqual(original, newValue)
+            } else {
+                XCTAssertGreaterThan(newValue, original)
+                XCTAssertGreaterThanOrEqual(newValue, original)
+                XCTAssertLessThan(original, newValue)
+                XCTAssertLessThanOrEqual(original, newValue)
+            }
+        }
+    }
 }
