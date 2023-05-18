@@ -43,6 +43,11 @@ final class UTCTimeTests: XCTestCase {
             transformationsAndResults.append((modify(transform, of: original, by: -1), .lessThan))
         }
 
+        transformationsAndResults.append((
+            try UTCTime(year: 2019, month: 08, day: 08, hours: 08, minutes: 08, seconds: 08),
+            .lessThan
+        ))
+
         for (newValue, expectedResult) in transformationsAndResults {
             switch expectedResult {
             case .lessThan:
