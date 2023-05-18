@@ -196,3 +196,16 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
         }
     }
 }
+
+extension GeneralizedTime: Comparable {
+    @inlinable
+    public static func <(lhs: GeneralizedTime, rhs: GeneralizedTime) -> Bool {
+        if lhs.year < rhs.year { return true }
+        if lhs.month < rhs.month { return true }
+        if lhs.day < rhs.day { return true }
+        if lhs.hours < rhs.hours { return true }
+        if lhs.minutes < rhs.minutes { return true }
+        if lhs.seconds < rhs.seconds { return true }
+        return lhs.fractionalSeconds < rhs.fractionalSeconds
+    }
+}
