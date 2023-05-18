@@ -179,6 +179,12 @@ final class GeneralizedTimeTests: XCTestCase {
     }
 
     func testComparisons() throws {
+        enum ExpectedComparisonResult {
+            case lessThan
+            case equal
+            case greaterThan
+        }
+
         let original = try GeneralizedTime(year: 2020, month: 03, day: 03, hours: 03, minutes: 03, seconds: 03, fractionalSeconds: 0.105)
 
         func modify<Modifiable: AdditiveArithmetic>(_ field: WritableKeyPath<GeneralizedTime, Modifiable>, of time: GeneralizedTime, by modifier: Modifiable) -> GeneralizedTime {
@@ -191,29 +197,30 @@ final class GeneralizedTimeTests: XCTestCase {
             \.year, \.month, \.day, \.hours, \.minutes, \.seconds
         ]
 
-        var transformationsAndResults: [(GeneralizedTime, lt: Bool, eq: Bool)] = []
-        transformationsAndResults.append((original, lt: false, eq: true))
+        var transformationsAndResults: [(GeneralizedTime, ExpectedComparisonResult)] = []
+        transformationsAndResults.append((original, .equal))
 
         for transform in integerTransformable {
-            transformationsAndResults.append((modify(transform, of: original, by: 1), lt: false, eq: false))
-            transformationsAndResults.append((modify(transform, of: original, by: -1), lt: true, eq: false))
+            transformationsAndResults.append((modify(transform, of: original, by: 1), .greaterThan))
+            transformationsAndResults.append((modify(transform, of: original, by: -1), .lessThan))
         }
 
-        transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: 0.1), lt: false, eq: false))
-        transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: -0.1), lt: true, eq: false))
+        transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: 0.1), .greaterThan))
+        transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: -0.1), .lessThan))
 
-        for (newValue, lt, eq) in transformationsAndResults {
-            if lt {
+        for (newValue, expectedResult) in transformationsAndResults {
+            switch expectedResult {
+            case .lessThan:
                 XCTAssertLessThan(newValue, original)
                 XCTAssertLessThanOrEqual(newValue, original)
                 XCTAssertGreaterThan(original, newValue)
                 XCTAssertGreaterThanOrEqual(original, newValue)
-            } else if eq {
+            case .equal:
                 XCTAssertGreaterThanOrEqual(newValue, original)
                 XCTAssertGreaterThanOrEqual(original, newValue)
                 XCTAssertLessThanOrEqual(newValue, original)
                 XCTAssertLessThanOrEqual(original, newValue)
-            } else {
+            case .greaterThan:
                 XCTAssertGreaterThan(newValue, original)
                 XCTAssertGreaterThanOrEqual(newValue, original)
                 XCTAssertLessThan(original, newValue)
