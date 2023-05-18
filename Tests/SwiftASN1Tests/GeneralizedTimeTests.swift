@@ -208,6 +208,11 @@ final class GeneralizedTimeTests: XCTestCase {
         transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: 0.1), .greaterThan))
         transformationsAndResults.append((modify(\.fractionalSeconds, of: original, by: -0.1), .lessThan))
 
+        transformationsAndResults.append((
+            try GeneralizedTime(year: 2019, month: 08, day: 08, hours: 08, minutes: 08, seconds: 08, fractionalSeconds: 0.205),
+            .lessThan
+        ))
+
         for (newValue, expectedResult) in transformationsAndResults {
             switch expectedResult {
             case .lessThan:
