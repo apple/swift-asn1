@@ -306,12 +306,17 @@ extension UInt {
         }
 
         self = 0
-        let shiftSizes = stride(from: 0, to: bytes.count * 7, by: 7).reversed()
+
+        // Unchecked subtraction because bytes.count must be positive, so we can safely subtract 7 after the
+        // multiply. The same logic applies to the math in the loop. Finally, the multiply can be unchecked because
+        // we already did it above and we didn't overflow there.
+        var shift = (bytes.count &* 7) &- 7
 
         var index = bytes.startIndex
-        for shift in shiftSizes {
+        while shift >= 0 {
             self |= UInt(bytes[index] & 0x7F) << shift
             bytes.formIndex(after: &index)
+            shift &-= 7
         }
     }
 }

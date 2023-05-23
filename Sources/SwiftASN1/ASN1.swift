@@ -1254,12 +1254,17 @@ extension FixedWidthInteger {
         }
 
         self = 0
-        let shiftSizes = stride(from: 0, to: bytes.count * 8, by: 8).reversed()
+
+        // Unchecked subtraction because bytes.count must be positive, so we can safely subtract 8 after the
+        // multiply. The same logic applies to the math in the loop. Finally, the multiply can be unchecked because
+        // we know that bytes.count is less than or equal to bitWidth / 8, so multiplying by 8 cannot possibly overflow.
+        var shift = (bytes.count &* 8) &- 8
 
         var index = bytes.startIndex
-        for shift in shiftSizes {
+        while shift >= 0 {
             self |= Self(truncatingIfNeeded: bytes[index]) << shift
             bytes.formIndex(after: &index)
+            shift &-= 8
         }
     }
 }
