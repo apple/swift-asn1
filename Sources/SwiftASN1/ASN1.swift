@@ -182,7 +182,21 @@ extension DER {
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: An array of elements representing the elements in the sequence.
     @inlinable
-    public static func set<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
+    public static func set<T: DERParseable>(of type: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
+        try self.lazySet(of: type, identifier: identifier, rootNode: rootNode).map { try $0.get() }
+    }
+    
+    /// Parse the node as an ASN.1 SET OF lazily.
+    ///
+    /// Constructs a Sequence of `T` elements that will be lazily parsed from the set.
+    ///
+    /// - parameters:
+    ///     - of: An optional parameter to express the type to decode.
+    ///     - identifier: The ``ASN1Identifier`` that the SET OF is expected to have.
+    ///     - rootNode: The ``ASN1Node`` to parse
+    /// - returns: A `Sequence` of elements representing the `Result` of parsing the elements in the sequence.
+    @inlinable
+    public static func lazySet<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> some Sequence<Result<T, Error>> {
         guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
             throw ASN1Error.unexpectedFieldType(rootNode.identifier)
         }
@@ -190,8 +204,8 @@ extension DER {
         guard nodes.isOrderedAccordingToSetOfSemantics() else {
             throw ASN1Error.invalidASN1Object(reason: "SET OF fields are not lexicographically ordered")
         }
-
-        return try nodes.map { try T(derEncoded: $0) }
+        
+        return nodes.lazy.map { node in Result { try T(derEncoded: node) } }
     }
 }
 
