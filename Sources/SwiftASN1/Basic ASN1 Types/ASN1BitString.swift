@@ -19,7 +19,8 @@
 ///
 /// In the case of a bitset, DER has additional requirements as to how to represent the object. This type does not
 /// enforce those additional rules: users are expected to implement that validation themselves.
-public struct ASN1BitString: DERImplicitlyTaggable {
+public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
+
     /// The default identifier for this type.
     ///
     /// Evaluates to ``ASN1Identifier/bitString``.
@@ -70,6 +71,22 @@ public struct ASN1BitString: DERImplicitlyTaggable {
         self.bytes = content.dropFirst()
 
         try self._validate()
+    }
+
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        guard node.identifier == identifier else {
+            throw ASN1Error.unexpectedFieldType(node.identifier)
+        }
+
+        switch node.content {
+        case .constructed(_):
+            // BER allows constructed ASN1 BitStrings, that is, you can construct a BitString that is represented by a composition of many individual Primitive (non-constructed) BitStrings
+            throw ASN1Error.invalidASN1Object(reason: "Constructed encoding of ASN1BitString not yet supported")
+
+        case .primitive(_):
+            self = try Self(derEncoded: node, withIdentifier: identifier)
+        }
+
     }
 
     /// Construct an ``ASN1BitString`` from raw components.

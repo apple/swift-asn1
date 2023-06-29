@@ -13,7 +13,9 @@
 //===----------------------------------------------------------------------===//
 
 /// A UTF8String represents a string made up of UTF-8 bytes.
-public struct ASN1UTF8String: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
+public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+    ExpressibleByStringLiteral
+{
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .utf8String
@@ -25,6 +27,11 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, Hashable, Sendable, Express
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a UTF8STRING from raw bytes.
@@ -59,7 +66,9 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, Hashable, Sendable, Express
 /// TeletexString is an uncommon ASN.1 string type.
 ///
 /// This module represents a TeletexString as an opaque sequence of bytes.
-public struct ASN1TeletexString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
+public struct ASN1TeletexString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+    ExpressibleByStringLiteral
+{
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .teletexString
@@ -71,6 +80,11 @@ public struct ASN1TeletexString: DERImplicitlyTaggable, Hashable, Sendable, Expr
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a TeletexString from raw bytes.
@@ -103,7 +117,9 @@ public struct ASN1TeletexString: DERImplicitlyTaggable, Hashable, Sendable, Expr
 ///
 /// PrintableString is deprecated for most use-cases and generally ``ASN1UTF8String`` should be
 /// preferred.
-public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
+public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+    ExpressibleByStringLiteral
+{
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .printableString
@@ -119,6 +135,14 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, Ex
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
+        }
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
         }
@@ -184,7 +208,9 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, Hashable, Sendable, Ex
 /// UniversalString is an uncommon ASN.1 string type.
 ///
 /// This module represents a UniversalString as an opaque sequence of bytes.
-public struct ASN1UniversalString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
+public struct ASN1UniversalString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+    ExpressibleByStringLiteral
+{
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .universalString
@@ -196,6 +222,11 @@ public struct ASN1UniversalString: DERImplicitlyTaggable, Hashable, Sendable, Ex
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a UniversalString from raw bytes.
@@ -224,7 +255,9 @@ public struct ASN1UniversalString: DERImplicitlyTaggable, Hashable, Sendable, Ex
 /// BMPString is an uncommon ASN.1 string type.
 ///
 /// This module represents a BMPString as an opaque sequence of bytes.
-public struct ASN1BMPString: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
+public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+    ExpressibleByStringLiteral
+{
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .bmpString
@@ -236,6 +269,11 @@ public struct ASN1BMPString: DERImplicitlyTaggable, Hashable, Sendable, Expressi
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a BMPString from raw bytes.
@@ -268,7 +306,9 @@ public struct ASN1BMPString: DERImplicitlyTaggable, Hashable, Sendable, Expressi
 ///
 /// IA5String is deprecated for most use-cases and generally ``ASN1UTF8String`` should be
 /// preferred.
-public struct ASN1IA5String: DERImplicitlyTaggable, Hashable, Sendable, ExpressibleByStringLiteral {
+public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+    ExpressibleByStringLiteral
+{
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .ia5String
@@ -284,6 +324,14 @@ public struct ASN1IA5String: DERImplicitlyTaggable, Hashable, Sendable, Expressi
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
+        }
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
         }
@@ -313,6 +361,7 @@ public struct ASN1IA5String: DERImplicitlyTaggable, Hashable, Sendable, Expressi
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
         }
     }
+
     @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         let octet = ASN1OctetString(contentBytes: self.bytes)

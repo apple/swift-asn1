@@ -19,7 +19,7 @@
 ///
 /// The only things users can do with ASN.1 ANYs is to try to decode them as something else,
 /// to create them from something else, or to serialize them.
-public struct ASN1Any: DERParseable, DERSerializable, Hashable, Sendable {
+public struct ASN1Any: DERParseable, BERParseable, DERSerializable, BERSerializable, Hashable, Sendable {
     @usableFromInline
     var _serializedBytes: ArraySlice<UInt8>
 
@@ -54,6 +54,11 @@ public struct ASN1Any: DERParseable, DERSerializable, Hashable, Sendable {
         var serializer = DER.Serializer()
         serializer.serialize(rootNode)
         self._serializedBytes = ArraySlice(serializer._serializedBytes)
+    }
+
+    @inlinable
+    public init(berEncoded rootNode: ASN1Node) {
+        self = .init(derEncoded: rootNode)
     }
 
     @inlinable
@@ -96,5 +101,34 @@ extension DERImplicitlyTaggable {
     @inlinable
     public init(asn1Any: ASN1Any, withIdentifier identifier: ASN1Identifier) throws {
         try self.init(derEncoded: asn1Any._serializedBytes, withIdentifier: identifier)
+    }
+}
+
+extension BERParseable {
+    /// Construct this node from an ASN.1 ANY object.
+    ///
+    /// This operation works by asking the type to decode itself from the serialized representation
+    /// of this ASN.1 ANY node.
+    ///
+    /// - parameters:
+    ///     berASN1Any: The ASN.1 ANY object to reinterpret.
+    @inlinable
+    public init(berASN1Any: ASN1Any) throws {
+        try self.init(berEncoded: berASN1Any._serializedBytes)
+    }
+}
+
+extension BERImplicitlyTaggable {
+    /// Construct this node from an ASN.1 ANY object.
+    ///
+    /// This operation works by asking the type to decode itself from the serialized representation
+    /// of this ASN.1 ANY node.
+    ///
+    /// - parameters:
+    ///     berASN1Any: The ASN.1 ANY object to reinterpret.
+    ///     identifier: The tag to use with this node.
+    @inlinable
+    public init(berASN1Any: ASN1Any, withIdentifier identifier: ASN1Identifier) throws {
+        try self.init(berEncoded: berASN1Any._serializedBytes, withIdentifier: identifier)
     }
 }

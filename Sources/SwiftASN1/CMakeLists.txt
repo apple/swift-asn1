@@ -14,6 +14,7 @@
 
 add_library(SwiftASN1
   "ASN1.swift"
+  "BER.swift"
   "Basic ASN1 Types/ASN1Any.swift"
   "Basic ASN1 Types/ASN1BitString.swift"
   "Basic ASN1 Types/ASN1Boolean.swift"
@@ -28,6 +29,7 @@ add_library(SwiftASN1
   "Basic ASN1 Types/PEMDocument.swift"
   "Basic ASN1 Types/TimeUtilities.swift"
   "Basic ASN1 Types/UTCTime.swift"
+  "DER.swift"
   "Errors.swift")
 
 target_link_libraries(SwiftASN1 PUBLIC

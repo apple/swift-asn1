@@ -1151,4 +1151,35 @@ class ASN1Tests: XCTestCase {
             [0x30, 0x8, 0xA1, 0x04, 0x01, 0x2, 0x03, 0x04, 0xA2, 0x00]
         )
     }
+
+    func testParseBEREncodedCMSContentInfo() throws {
+        let encodedCMSContentInfo =
+            "MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgEFADCABgkqhkiG9w0BBwEAAKCCAuQwggLgMIIChqADAgECAhABIEfn+B9M5cVAee4myiEiMAoGCCqGSM49BAMCME0xKTAnBgNVBAMMIEFwcGxlIENvcnBvcmF0ZSBTaWduaW5nIEVDQyBDQSAxMRMwEQYDVQQKDApBcHBsZSBJbmMuMQswCQYDVQQGEwJVUzAeFw0yMzA3MTcyMjM0MDVaFw0yMzA4MDcyMjQ0MDVaMC8xEzARBgNVBAoMCkFwcGxlIEluYy4xGDAWBgNVBAMMD2R6ZWNoQGFwcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABIWQLS6NnPfb8TjlkUU/uRN7FFWIAi7gMRmvA78bUUudor7UGWJ6NB9y1C8TFXpEp5VG+2OSW4D6epwrG6mpaCOjggFkMIIBYDAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFEJi3AGoy1MCpVzt8IjG9uFJdhE9MHMGCCsGAQUFBwEBBGcwZTAvBggrBgEFBQcwAoYjaHR0cDovL2NlcnRzLmFwcGxlLmNvbS9hY3NlY2NhMS5kZXIwMgYIKwYBBQUHMAGGJmh0dHA6Ly9vY3NwLmFwcGxlLmNvbS9vY3NwMDMtYWNzZWNjMTA0MBoGA1UdEQQTMBGBD2R6ZWNoQGFwcGxlLmNvbTAUBgNVHSUEDTALBgkqhkiG92NkBBQwMgYDVR0fBCswKTAnoCWgI4YhaHR0cDovL2NybC5hcHBsZS5jb20vYWNzZWNjYTEuY3JsMB0GA1UdDgQWBBTQgwTEnqIhsk9OoQOYYmhj0g7RVTAOBgNVHQ8BAf8EBAMCB4AwJQYDVR0gBB4wHDAMBgoqhkiG92NkBRQBMAwGCiqGSIb3Y2QFFAIwCgYIKoZIzj0EAwIDSAAwRQIhAOd9mU6wS6FLR8TTo8q7qBDbatEevBWXAm5/Ek7nWVU6AiA8oa8GQ6h+OxioJy0Frq2p++UzEdAIw2MLtGN218HuUTGCATgwggE0AgEBMGEwTTEpMCcGA1UEAwwgQXBwbGUgQ29ycG9yYXRlIFNpZ25pbmcgRUNDIENBIDExEzARBgNVBAoMCkFwcGxlIEluYy4xCzAJBgNVBAYTAlVTAhABIEfn+B9M5cVAee4myiEiMA0GCWCGSAFlAwQCAQUAoGkwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjMwNzIwMjMyMzA5WjAvBgkqhkiG9w0BCQQxIgQgWJG1tSLV3whtD/CxEPvZ0hu0/HFjrzTQgoai6Eb2vgMwCQYHKoZIzj0CAQRHMEUCIQDc9v1VYHfMws7VJpHF0W8wN77QPzYiCtGSfuGKlLiZ3AIgHaPdG8dUuQeiJhO57mhqbJXiKK9tg4dise9HrjBYHPEAAAAAAAA="
+
+        let decodedCMSContentInfo = Array(Data(base64Encoded: encodedCMSContentInfo)!)
+        let result = try BER.parse(decodedCMSContentInfo)
+        let pkcs7OID = ASN1ObjectIdentifier(arrayLiteral: 1, 2, 840, 113549, 1, 7, 2)
+
+        let cmsContentInfo = try CMSContentInfo(berEncoded: result)
+        XCTAssertEqual(cmsContentInfo.contentType, pkcs7OID)
+
+        XCTAssertThrowsError(try DER.parse(decodedCMSContentInfo)) { error in
+            XCTAssertEqual((error as! ASN1Error).code, ASN1Error.ErrorCode.unsupportedFieldLength)
+        }
+    }
+
+    func testParseBEREncodedOctetString() throws {
+        let berOctetString: [UInt8] = [
+            0x24, 0x80,  // indefinite construcuted Octet String
+            0x04, 0x01, 0xfe,  // primitive Octet String: [0xFE]
+            0x24, 0x80,  // indefinite constructed Octet String
+            0x04, 0x01, 0xed,  // primitive Octet String; [0xED]
+            0x00, 0x00,  // indefinite end marker
+            0x04, 0x02, 0xfa, 0xce,
+            0x00, 0x00,
+        ]
+        let asn1OctetString = try ASN1OctetString(berEncoded: try BER.parse(berOctetString))
+        XCTAssertEqual(asn1OctetString.bytes, [0xFE, 0xED, 0xFA, 0xCE])
+        XCTAssertThrowsError(try DER.parse(berOctetString))
+    }
 }

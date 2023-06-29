@@ -19,7 +19,7 @@
 /// UInt64 or Int64. While both of those types conform by default, users can conform their preferred
 /// arbitrary-width integer type as well, or use `ArraySlice<UInt8>` to store the raw bytes of the
 /// integer directly.
-public protocol ASN1IntegerRepresentable: DERImplicitlyTaggable {
+public protocol ASN1IntegerRepresentable: DERImplicitlyTaggable, BERImplicitlyTaggable {
     associatedtype IntegerBytes: RandomAccessCollection where IntegerBytes.Element == UInt8
 
     /// Whether this type can represent signed integers.
@@ -31,6 +31,10 @@ public protocol ASN1IntegerRepresentable: DERImplicitlyTaggable {
     /// Construct the integer value from the integer bytes. These will be big-endian, and encoded
     /// according to DER requirements.
     init(derIntegerBytes: ArraySlice<UInt8>) throws
+
+    /// Construct the integer value form the integer bytes. These will be big-endian, and encoded
+    /// accroding to BER requirements.
+    init(berIntegerBytes: ArraySlice<UInt8>) throws
 
     /// Provide the big-endian bytes corresponding to this integer.
     func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytes) throws -> ReturnType) rethrows -> ReturnType
@@ -83,6 +87,34 @@ extension ASN1IntegerRepresentable {
     }
 
     @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        guard node.identifier == identifier else {
+            throw ASN1Error.unexpectedFieldType(node.identifier)
+        }
+
+        guard case .primitive(var dataBytes) = node.content else {
+            preconditionFailure("ASN.1 parser generated primitive node with constructed content")
+        }
+
+        // Zero bytes of integer is not an acceptable encoding.
+        guard dataBytes.count > 0 else {
+            throw ASN1Error.invalidASN1IntegerEncoding(reason: "INTEGER encoded with zero bytes")
+        }
+
+        // If the type we're trying to decode is unsigned, and the top byte is zero, we should strip it.
+        // If the top bit is set, however, this is an invalid conversion: the number needs to be positive!
+        if !Self.isSigned, let first = dataBytes.first {
+            if first == 0x00 {
+                dataBytes = dataBytes.dropFirst()
+            } else if first & 0x80 == 0x80 {
+                throw ASN1Error.invalidASN1IntegerEncoding(reason: "INTEGER encoded with top bit set!")
+            }
+        }
+
+        self = try Self(berIntegerBytes: dataBytes)
+    }
+
+    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             self.withBigEndianIntegerBytes { integerBytes in
@@ -120,6 +152,11 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
                 self |= 0xFF << shift
             }
         }
+    }
+
+    @inlinable
+    public init(berIntegerBytes bytes: ArraySlice<UInt8>) throws {
+        self = try .init(derIntegerBytes: bytes)
     }
 
     @inlinable
