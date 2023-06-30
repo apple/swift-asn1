@@ -196,7 +196,7 @@ extension DER {
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: A `Sequence` of elements representing the `Result` of parsing the elements in the sequence.
     @inlinable
-    public static func lazySet<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> some Sequence<Result<T, Error>> {
+    public static func lazySet<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> LazySetOfSequence<T> {
         guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
             throw ASN1Error.unexpectedFieldType(rootNode.identifier)
         }
@@ -205,7 +205,42 @@ extension DER {
             throw ASN1Error.invalidASN1Object(reason: "SET OF fields are not lexicographically ordered")
         }
         
-        return nodes.lazy.map { node in Result { try T(derEncoded: node) } }
+        return .init(nodes.lazy.map { node in Result { try T(derEncoded: node) } })
+    }
+    
+    public struct LazySetOfSequence<T>: Sequence {
+        public typealias Element = Result<T, Error>
+        
+        @usableFromInline
+        typealias WrappedSequence = LazyMapSequence<LazySequence<(ASN1NodeCollection)>.Elements, Result<T, Error>>
+        
+        public struct Iterator: IteratorProtocol {
+            @usableFromInline
+            var wrapped: WrappedSequence.Iterator
+            
+            @inlinable
+            mutating public func next() -> Element? {
+                wrapped.next()
+            }
+            
+            @inlinable
+            init(_ wrapped: WrappedSequence.Iterator) {
+                self.wrapped = wrapped
+            }
+        }
+        
+        @usableFromInline
+        var wrapped: WrappedSequence
+        
+        @inlinable
+        init(_ wrapped: WrappedSequence) {
+            self.wrapped = wrapped
+        }
+        
+        @inlinable
+        public func makeIterator() -> Iterator {
+            .init(wrapped.makeIterator())
+        }
     }
 }
 
