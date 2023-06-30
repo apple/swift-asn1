@@ -867,9 +867,6 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         XCTAssertEqual(bitStrings, [
             ASN1BitString(bytes: [1]),
         ])
-        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
-            XCTAssertEqual(bitStrings, try DER.lazySet(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes)).map { try $0.get() })
-        }
     }
     
     func testSetOfTwoElementsInOrder() throws {
@@ -885,9 +882,6 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             ASN1BitString(bytes: [1]),
             ASN1BitString(bytes: [2]),
         ])
-        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
-            XCTAssertEqual(bitStrings, try DER.lazySet(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes)).map { try $0.get() })
-        }
     }
     
     func testSetOfTwoElementNotInOrder() throws {
@@ -903,9 +897,6 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             ASN1BitString(bytes: [1]),
             ASN1BitString(bytes: [2]),
         ])
-        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
-            XCTAssertEqual(bitStrings, try DER.lazySet(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes)).map { try $0.get() })
-        }
     }
     func testSetOfTwoEqualElements() throws {
         var serializer = DER.Serializer()
@@ -920,19 +911,11 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             ASN1BitString(bytes: [1]),
             ASN1BitString(bytes: [1]),
         ])
-        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
-            XCTAssertEqual(bitStrings, try DER.lazySet(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes)).map { try $0.get() })
-        }
     }
     func testSetOfTwoElementsOrderedIncorrectly() throws {
         let rootNode = try DER.parse([49, 8, 3, 2, 0, 2, 3, 2, 0, 1])
         XCTAssertThrowsError(try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: rootNode)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
-        }
-        if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
-            XCTAssertThrowsError(try DER.lazySet(of: ASN1BitString.self, identifier: .set, rootNode: rootNode)) { error in
-                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
-            }
         }
     }
     
