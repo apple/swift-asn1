@@ -130,7 +130,7 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
 }
 
 /// A big-endian `Collection` of bytes representing a fixed width integer.
-public struct IntegerBytesCollection<Integer: FixedWidthInteger & Sendable> {
+public struct IntegerBytesCollection<Integer: FixedWidthInteger> {
     @usableFromInline var integer: Integer
 
     /// Construct an ``IntegerBytesCollection`` representing the bytes of this integer.
@@ -142,7 +142,7 @@ public struct IntegerBytesCollection<Integer: FixedWidthInteger & Sendable> {
 
 extension IntegerBytesCollection: Hashable { }
 
-extension IntegerBytesCollection: Sendable { }
+extension IntegerBytesCollection: Sendable where Integer: Sendable {}
 
 extension IntegerBytesCollection: RandomAccessCollection {
     public struct Index {
