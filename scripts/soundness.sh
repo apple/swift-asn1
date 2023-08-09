@@ -54,8 +54,8 @@ fi
 printf "\033[0;32mokay.\033[0m\n"
 
 # swift-format
-SWIFT_FORMAT_SCRIPT="${here}/run-swift-format.sh"
-if ! bash "${SWIFT_FORMAT_SCRIPT}"; then
+swift_format_script="${here}/run-swift-format.sh"
+if ! bash "${swift_format_script}"; then
    exit 1
 fi
 

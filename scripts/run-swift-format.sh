@@ -27,28 +27,28 @@
 ##===----------------------------------------------------------------------===##
 set -euo pipefail
 
-log() { printf -- "** %s\n" "$*" >&2; }
-error() { printf -- "** ERROR: %s\n" "$*" >&2; }
-fatal() { error "$@"; exit 1; }
+function log() { printf -- "** %s\n" "$*" >&2; }
+function error() { printf -- "** ERROR: %s\n" "$*" >&2; }
+function fatal() { error "$*"; exit 1; }
 
-CURRENT_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT="$(git -C "${CURRENT_SCRIPT_DIR}" rev-parse --show-toplevel)"
+current_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+repo_root="$(git -C "${current_script_dir}" rev-parse --show-toplevel)"
 
-SWIFTFORMAT_BIN=${SWIFTFORMAT_BIN:-$(command -v swift-format)} || fatal "❌ SWIFTFORMAT_BIN unset and no swift-format on PATH"
+swiftformat_bin=${swiftformat_bin:-$(command -v swift-format)} || fatal "❌ swiftformat_bin unset and no swift-format on PATH"
 
-"${SWIFTFORMAT_BIN}" lint \
+"${swiftformat_bin}" lint \
   --parallel --recursive --strict \
-  "${REPO_ROOT}/Sources" "${REPO_ROOT}/Tests" \
-  && SWIFT_FORMAT_RC=$? || SWIFT_FORMAT_RC=$?
+  "${repo_root}/Sources" "${repo_root}/Tests" \
+  && swift_format_rc=$? || swift_format_rc=$?
 
-if [ "${SWIFT_FORMAT_RC}" -ne 0 ]; then
+if [[ "${swift_format_rc}" -ne 0 ]]; then
   fatal "❌ Running swift-format produced errors.
 
   To fix, run the following command:
 
     % swift-format format --parallel --recursive --in-place Sources Tests
   "
-  exit "${SWIFT_FORMAT_RC}"
+  exit "${swift_format_rc}"
 fi
 
 log "✅ Ran swift-format with no errors."
