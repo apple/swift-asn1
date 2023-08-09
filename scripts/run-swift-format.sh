@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ##===----------------------------------------------------------------------===##
 ##
 ## This source file is part of the SwiftASN1 open source project
