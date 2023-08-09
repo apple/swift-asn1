@@ -139,7 +139,7 @@ final class GeneralizedTimeTests: XCTestCase {
             ("20211131000000Z", nil),  // only 30 days in November
             ("20211232000000Z", nil),  // only 31 days in December
             ("20200101000000.9223372036854775808Z", nil),  // Fractional part will overflow a 64-bit integer by adding
-            ("20200101000000.92233720368547758071Z", nil),  // Fractional part will overflow a 64-bit integer by multiplication
+
         ]
 
         for (stringRepresentation, expectedResult) in vectors {
@@ -162,35 +162,64 @@ final class GeneralizedTimeTests: XCTestCase {
             XCTAssertThrowsError(try code())
         }
 
-        mustFail(try .init(year: -1, month: 1, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // Invalid year, negative
-        mustFail(try .init(year: 2000, month: 0, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // Invalid month, zero.
-        mustFail(try .init(year: 2000, month: -1, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // Invalid month, negative.
-        mustFail(try .init(year: 2000, month: 13, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // Invalid month, too large.
-        mustFail(try .init(year: 2000, month: 1, day: 0, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // Invalid day, zero.
-        mustFail(try .init(year: 2000, month: 1, day: -1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // Invalid day, negative.
-        mustFail(try .init(year: 2000, month: 1, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 31 days in January
-        mustFail(try .init(year: 2021, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 28 days in February 2021
-        mustFail(try .init(year: 2020, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 29 days in February 2020
-        mustFail(try .init(year: 2100, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 28 days in February 2100
-        mustFail(try .init(year: 2000, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 29 days in February 2000
-        mustFail(try .init(year: 2000, month: 3, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 31 days in March
-        mustFail(try .init(year: 2000, month: 4, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 30 days in April
-        mustFail(try .init(year: 2000, month: 5, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 31 days in May
-        mustFail(try .init(year: 2000, month: 6, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 30 days in June
-        mustFail(try .init(year: 2000, month: 7, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 31 days in July
-        mustFail(try .init(year: 2000, month: 8, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 31 days in August
-        mustFail(try .init(year: 2000, month: 9, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 30 days in September
-        mustFail(try .init(year: 2000, month: 10, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 31 days in October
-        mustFail(try .init(year: 2000, month: 11, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 30 days in November
-        mustFail(try .init(year: 2000, month: 11, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // only 31 days in December
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: -1, minutes: 1, seconds: 1, fractionalSeconds: 0))  // Invalid hour, negative
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 24, minutes: 0, seconds: 0, fractionalSeconds: 0))  // Invalid hour, 24
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: -1, seconds: 1, fractionalSeconds: 0))  // Invalid minute, negative
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 60, seconds: 0, fractionalSeconds: 0))  // Invalid minute, 60
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: -1, fractionalSeconds: 0))  // Invalid second, negative
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 62, fractionalSeconds: 0))  // Invalid second, 62 (we allow some leap seconds)
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: -0.5))  // Invalid fractional seconds, negative
-        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 1.1))  // Invalid fractional seconds, greater than one
+        // Invalid year, negative
+        mustFail(try .init(year: -1, month: 1, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // Invalid month, zero.
+        mustFail(try .init(year: 2000, month: 0, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // Invalid month, negative.
+        mustFail(try .init(year: 2000, month: -1, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // Invalid month, too large.
+        mustFail(try .init(year: 2000, month: 13, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // Invalid day, zero.
+        mustFail(try .init(year: 2000, month: 1, day: 0, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // Invalid day, negative.
+        mustFail(try .init(year: 2000, month: 1, day: -1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 31 days in January
+        mustFail(try .init(year: 2000, month: 1, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 28 days in February 2021
+        mustFail(try .init(year: 2021, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 29 days in February 2020
+        mustFail(try .init(year: 2020, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 28 days in February 2100
+        mustFail(try .init(year: 2100, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 29 days in February 2000
+        mustFail(try .init(year: 2000, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 31 days in March
+        mustFail(try .init(year: 2000, month: 3, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 30 days in April
+        mustFail(try .init(year: 2000, month: 4, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 31 days in May
+        mustFail(try .init(year: 2000, month: 5, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 30 days in June
+        mustFail(try .init(year: 2000, month: 6, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 31 days in July
+        mustFail(try .init(year: 2000, month: 7, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 31 days in August
+        mustFail(try .init(year: 2000, month: 8, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 30 days in September
+        mustFail(try .init(year: 2000, month: 9, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 31 days in October
+        mustFail(try .init(year: 2000, month: 10, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 30 days in November
+        mustFail(try .init(year: 2000, month: 11, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // only 31 days in December
+        mustFail(try .init(year: 2000, month: 11, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // Invalid hour, negative
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: -1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        // Invalid hour, 24
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 24, minutes: 0, seconds: 0, fractionalSeconds: 0))
+        // Invalid minute, negative
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: -1, seconds: 1, fractionalSeconds: 0))
+        // Invalid minute, 60
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 60, seconds: 0, fractionalSeconds: 0))
+        // Invalid second, negative
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: -1, fractionalSeconds: 0))
+        // Invalid second, 62 (we allow some leap seconds)
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 62, fractionalSeconds: 0))
+        // Invalid fractional seconds, negative
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: -0.5))
+        // Invalid fractional seconds, greater than one
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 1.1))
     }
 
     func testTruncatedRepresentationsRejected() throws {

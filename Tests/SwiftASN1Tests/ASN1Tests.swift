@@ -777,7 +777,8 @@ class ASN1Tests: XCTestCase {
             try coder.serialize(RFC5480AlgorithmIdentifier.ecdsaP256)
 
             var subCoder = DER.Serializer()
-            try subCoder.serialize(SEC1PrivateKey(privateKey: [], algorithm: .ecdsaP384, publicKey: []))  // We won't notice these are empty either, but we will notice the algo mismatch.
+            // We won't notice these are empty either, but we will notice the algo mismatch.
+            try subCoder.serialize(SEC1PrivateKey(privateKey: [], algorithm: .ecdsaP384, publicKey: []))
             let serializedKey = ASN1OctetString(contentBytes: subCoder.serializedBytes[...])
 
             try coder.serialize(serializedKey)
