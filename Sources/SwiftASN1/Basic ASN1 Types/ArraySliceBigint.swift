@@ -13,11 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 // For temporary purposes we pretend that ArraySlice is our "bigint" type. We don't really need anything else.
-extension ArraySlice: DERSerializable where Element == UInt8 { }
+extension ArraySlice: DERSerializable where Element == UInt8 {}
 
-extension ArraySlice: DERParseable where Element == UInt8 { }
+extension ArraySlice: DERParseable where Element == UInt8 {}
 
-extension ArraySlice: DERImplicitlyTaggable where Element == UInt8 { }
+extension ArraySlice: DERImplicitlyTaggable where Element == UInt8 {}
 
 extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     // We only use unsigned "bigint"s
@@ -32,7 +32,9 @@ extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     }
 
     @inlinable
-    public func withBigEndianIntegerBytes<ReturnType>(_ body: (ArraySlice<UInt8>) throws -> ReturnType) rethrows -> ReturnType {
+    public func withBigEndianIntegerBytes<ReturnType>(
+        _ body: (ArraySlice<UInt8>) throws -> ReturnType
+    ) rethrows -> ReturnType {
         return try body(self)
     }
 }

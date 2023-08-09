@@ -30,7 +30,7 @@ public protocol PEMSerializable: DERSerializable {
     /// -----END defaultPEMDiscriminator-----
     /// ```
     static var defaultPEMDiscriminator: String { get }
-    
+
     func serializeAsPEM(discriminator: String) throws -> PEMDocument
 }
 
@@ -49,7 +49,7 @@ public protocol PEMParseable: DERParseable {
     /// -----END defaultPEMDiscriminator-----
     /// ```
     static var defaultPEMDiscriminator: String { get }
-    
+
     init(pemDocument: PEMDocument) throws
 }
 
@@ -63,9 +63,9 @@ public protocol PEMParseable: DERParseable {
 public typealias PEMRepresentable = PEMSerializable & PEMParseable
 
 extension PEMParseable {
-    
+
     /// Initialize this object from a serialized PEM representation.
-    /// 
+    ///
     /// This will check that the discriminator matches ``PEMParseable/defaultPEMDiscriminator``, decode the base64 encoded string and
     /// then decode the DER encoded bytes using ``DERParseable/init(derEncoded:)-i2rf``.
     ///
@@ -75,7 +75,7 @@ extension PEMParseable {
     public init(pemEncoded pemString: String) throws {
         try self.init(pemDocument: try PEMDocument(pemString: pemString))
     }
-    
+
     /// Initialize this object from a serialized PEM representation.
     /// This will check that the ``PEMParseable/pemDiscriminator`` matches and
     /// forward the DER encoded bytes to ``DERParseable/init(derEncoded:)-i2rf``.
@@ -85,9 +85,12 @@ extension PEMParseable {
     @inlinable
     public init(pemDocument: PEMDocument) throws {
         guard pemDocument.discriminator == Self.defaultPEMDiscriminator else {
-            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect discriminator \(pemDocument.discriminator). Expected \(Self.defaultPEMDiscriminator) instead")
+            throw ASN1Error.invalidPEMDocument(
+                reason:
+                    "PEMDocument has incorrect discriminator \(pemDocument.discriminator). Expected \(Self.defaultPEMDiscriminator) instead"
+            )
         }
-            
+
         try self.init(derEncoded: pemDocument.derBytes)
     }
 }
@@ -100,10 +103,10 @@ extension PEMSerializable {
     public func serializeAsPEM(discriminator: String) throws -> PEMDocument {
         var serializer = DER.Serializer()
         try serializer.serialize(self)
-        
+
         return PEMDocument(type: discriminator, derBytes: serializer.serializedBytes)
     }
-    
+
     /// Serializes `self` as a PEM document with the ``defaultPEMDiscriminator``.
     @inlinable
     public func serializeAsPEM() throws -> PEMDocument {
@@ -115,13 +118,12 @@ extension PEMSerializable {
 public struct PEMDocument: Hashable, Sendable {
     fileprivate static let lineLength = 64
 
-    
     @available(*, deprecated, renamed: "discriminator")
     public var type: String {
         get { discriminator }
         set { discriminator = newValue }
     }
-    
+
     /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
     /// ```
     /// -----BEGIN discriminator-----
@@ -129,7 +131,7 @@ public struct PEMDocument: Hashable, Sendable {
     /// -----END discriminator-----
     /// ```
     public var discriminator: String
-    
+
     public var derBytes: [UInt8]
 
     public init(pemString: String) throws {
@@ -155,7 +157,8 @@ public struct PEMDocument: Hashable, Sendable {
         lines = lines.dropFirst().dropLast()
         guard lines.count > 0,
             lines.dropLast().allSatisfy({ $0.utf8.count == PEMDocument.lineLength }),
-            lines.last!.utf8.count <= PEMDocument.lineLength else {
+            lines.last!.utf8.count <= PEMDocument.lineLength
+        else {
             throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
         }
 
@@ -189,7 +192,9 @@ public struct PEMDocument: Hashable, Sendable {
         pemLines.append("-----BEGIN \(self.discriminator)-----")
 
         while encoded.count > 0 {
-            let prefixIndex = encoded.index(encoded.startIndex, offsetBy: Self.lineLength, limitedBy: encoded.endIndex) ?? encoded.endIndex
+            let prefixIndex =
+                encoded.index(encoded.startIndex, offsetBy: Self.lineLength, limitedBy: encoded.endIndex)
+                ?? encoded.endIndex
             pemLines.append(encoded[..<prefixIndex])
             encoded = encoded[prefixIndex...]
         }

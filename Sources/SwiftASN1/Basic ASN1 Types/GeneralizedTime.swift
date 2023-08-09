@@ -126,7 +126,15 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
     ///     - seconds: The numerical seconds
     ///     - fractionalSeconds: The numerical fractional seconds.
     @inlinable
-    public init(year: Int, month: Int, day: Int, hours: Int, minutes: Int, seconds: Int, fractionalSeconds: Double) throws {
+    public init(
+        year: Int,
+        month: Int,
+        day: Int,
+        hours: Int,
+        minutes: Int,
+        seconds: Int,
+        fractionalSeconds: Double
+    ) throws {
         self._year = year
         self._month = month
         self._day = day
@@ -167,11 +175,15 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
 
         // This also validates the month.
         guard let daysInMonth = TimeUtilities.daysInMonth(self._month, ofYear: self._year) else {
-            throw ASN1Error.invalidASN1Object(reason: "Invalid month \(self._month) of year \(self.year) for GeneralizedTime")
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid month \(self._month) of year \(self.year) for GeneralizedTime"
+            )
         }
 
         guard self._day >= 1 && self._day <= daysInMonth else {
-            throw ASN1Error.invalidASN1Object(reason: "Invalid day \(self._day) of month \(self._month) for GeneralizedTime")
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid day \(self._day) of month \(self._month) for GeneralizedTime"
+            )
         }
 
         guard self._hours >= 0 && self._hours < 24 else {
@@ -192,14 +204,16 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
 
         // Fractional seconds may not be negative and may not be 1 or more.
         guard self._fractionalSeconds >= 0 && self._fractionalSeconds < 1 else {
-            throw ASN1Error.invalidASN1Object(reason: "Invalid fractional seconds for GeneralizedTime \(self._fractionalSeconds)")
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid fractional seconds for GeneralizedTime \(self._fractionalSeconds)"
+            )
         }
     }
 }
 
 extension GeneralizedTime: Comparable {
     @inlinable
-    public static func <(lhs: GeneralizedTime, rhs: GeneralizedTime) -> Bool {
+    public static func < (lhs: GeneralizedTime, rhs: GeneralizedTime) -> Bool {
         if lhs.year < rhs.year { return true } else if lhs.year > rhs.year { return false }
         if lhs.month < rhs.month { return true } else if lhs.month > rhs.month { return false }
         if lhs.day < rhs.day { return true } else if lhs.day > rhs.day { return false }

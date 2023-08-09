@@ -64,8 +64,7 @@ extension ASN1IntegerRepresentable {
         //
         // NOTE – These rules ensure that an integer value is always encoded in the smallest possible number of octets.
         if let first = dataBytes.first, let second = dataBytes.dropFirst().first {
-            if (first == 0xFF) && second._topBitSet ||
-                (first == 0x00) && !second._topBitSet {
+            if (first == 0xFF) && second._topBitSet || (first == 0x00) && !second._topBitSet {
                 throw ASN1Error.invalidASN1IntegerEncoding(reason: "INTEGER not encoded in fewest number of octets")
             }
         }
@@ -124,7 +123,9 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
     }
 
     @inlinable
-    public func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytesCollection<Self>) throws -> ReturnType) rethrows -> ReturnType {
+    public func withBigEndianIntegerBytes<ReturnType>(
+        _ body: (IntegerBytesCollection<Self>) throws -> ReturnType
+    ) rethrows -> ReturnType {
         return try body(IntegerBytesCollection(self))
     }
 }
@@ -140,7 +141,7 @@ public struct IntegerBytesCollection<Integer: FixedWidthInteger> {
     }
 }
 
-extension IntegerBytesCollection: Hashable { }
+extension IntegerBytesCollection: Hashable {}
 
 extension IntegerBytesCollection: Sendable where Integer: Sendable {}
 
@@ -185,29 +186,29 @@ extension IntegerBytesCollection: RandomAccessCollection {
     }
 }
 
-extension IntegerBytesCollection.Index: Hashable { }
+extension IntegerBytesCollection.Index: Hashable {}
 
-extension IntegerBytesCollection.Index: Sendable { }
+extension IntegerBytesCollection.Index: Sendable {}
 
 extension IntegerBytesCollection.Index: Comparable {
     // Comparable here is backwards to the original ordering.
     @inlinable
-    public static func <(lhs: Self, rhs: Self) -> Bool {
+    public static func < (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber > rhs._byteNumber
     }
 
     @inlinable
-    public static func >(lhs: Self, rhs: Self) -> Bool {
+    public static func > (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber < rhs._byteNumber
     }
 
     @inlinable
-    public static func <=(lhs: Self, rhs: Self) -> Bool {
+    public static func <= (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber >= rhs._byteNumber
     }
 
     @inlinable
-    public static func >=(lhs: Self, rhs: Self) -> Bool {
+    public static func >= (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber <= rhs._byteNumber
     }
 }
@@ -225,25 +226,25 @@ extension IntegerBytesCollection.Index: Strideable {
     }
 }
 
-extension Int8: ASN1IntegerRepresentable { }
+extension Int8: ASN1IntegerRepresentable {}
 
-extension UInt8: ASN1IntegerRepresentable { }
+extension UInt8: ASN1IntegerRepresentable {}
 
-extension Int16: ASN1IntegerRepresentable { }
+extension Int16: ASN1IntegerRepresentable {}
 
-extension UInt16: ASN1IntegerRepresentable { }
+extension UInt16: ASN1IntegerRepresentable {}
 
-extension Int32: ASN1IntegerRepresentable { }
+extension Int32: ASN1IntegerRepresentable {}
 
-extension UInt32: ASN1IntegerRepresentable { }
+extension UInt32: ASN1IntegerRepresentable {}
 
-extension Int64: ASN1IntegerRepresentable { }
+extension Int64: ASN1IntegerRepresentable {}
 
-extension UInt64: ASN1IntegerRepresentable { }
+extension UInt64: ASN1IntegerRepresentable {}
 
-extension Int: ASN1IntegerRepresentable { }
+extension Int: ASN1IntegerRepresentable {}
 
-extension UInt: ASN1IntegerRepresentable { }
+extension UInt: ASN1IntegerRepresentable {}
 
 extension RandomAccessCollection where Element == UInt8 {
     @inlinable

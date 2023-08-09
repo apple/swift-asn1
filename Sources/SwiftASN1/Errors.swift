@@ -49,11 +49,16 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// The ASN.1 tag for the parsed field does not match the tag expected for the field.
     @inline(never)
     public static func unexpectedFieldType(
-        _ identifier: ASN1Identifier, file: String = #fileID, line: UInt = #line
+        _ identifier: ASN1Identifier,
+        file: String = #fileID,
+        line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .unexpectedFieldType, reason: "\(identifier)", file: file, line: line
+                code: .unexpectedFieldType,
+                reason: "\(identifier)",
+                file: file,
+                line: line
             )
         )
     }
@@ -62,11 +67,16 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// being decoded.
     @inline(never)
     public static func invalidASN1Object(
-        reason: String, file: String = #fileID, line: UInt = #line
+        reason: String,
+        file: String = #fileID,
+        line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .invalidASN1Object, reason: reason, file: file, line: line
+                code: .invalidASN1Object,
+                reason: reason,
+                file: file,
+                line: line
             )
         )
     }
@@ -74,11 +84,16 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// An ASN.1 integer was decoded that does not use the minimum number of bytes for its encoding.
     @inline(never)
     public static func invalidASN1IntegerEncoding(
-        reason: String, file: String = #fileID, line: UInt = #line
+        reason: String,
+        file: String = #fileID,
+        line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .invalidASN1IntegerEncoding, reason: reason, file: file, line: line
+                code: .invalidASN1IntegerEncoding,
+                reason: reason,
+                file: file,
+                line: line
             )
         )
     }
@@ -86,11 +101,15 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// An ASN.1 field was truncated and could not be decoded.
     @inline(never)
     public static func truncatedASN1Field(
-        file: String = #fileID, line: UInt = #line
+        file: String = #fileID,
+        line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .truncatedASN1Field, reason: "", file: file, line: line
+                code: .truncatedASN1Field,
+                reason: "",
+                file: file,
+                line: line
             )
         )
     }
@@ -98,11 +117,16 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// The encoding used for the field length is not supported.
     @inline(never)
     public static func unsupportedFieldLength(
-        reason: String, file: String = #fileID, line: UInt = #line
+        reason: String,
+        file: String = #fileID,
+        line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .unsupportedFieldLength, reason: reason, file: file, line: line
+                code: .unsupportedFieldLength,
+                reason: reason,
+                file: file,
+                line: line
             )
         )
     }
@@ -110,11 +134,16 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// It was not possible to parse a string as a PEM document.
     @inline(never)
     public static func invalidPEMDocument(
-        reason: String, file: String = #fileID, line: UInt = #line
+        reason: String,
+        file: String = #fileID,
+        line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .invalidPEMDocument, reason: reason, file: file, line: line
+                code: .invalidPEMDocument,
+                reason: reason,
+                file: file,
+                line: line
             )
         )
     }
@@ -122,11 +151,16 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
     /// A string was invalid.
     @inline(never)
     public static func invalidStringRepresentation(
-        reason: String, file: String = #fileID, line: UInt = #line
+        reason: String,
+        file: String = #fileID,
+        line: UInt = #line
     ) -> ASN1Error {
         return ASN1Error(
             backing: .init(
-                code: .invalidStringRepresentation, reason: reason, file: file, line: line
+                code: .invalidStringRepresentation,
+                reason: reason,
+                file: file,
+                line: line
             )
         )
     }
@@ -206,7 +240,7 @@ extension ASN1Error {
         }
 
         // Only the error code matters for equality.
-        static func ==(lhs: Backing, rhs: Backing) -> Bool {
+        static func == (lhs: Backing, rhs: Backing) -> Bool {
             return lhs.code == rhs.code
         }
 
@@ -215,4 +249,3 @@ extension ASN1Error {
         }
     }
 }
-

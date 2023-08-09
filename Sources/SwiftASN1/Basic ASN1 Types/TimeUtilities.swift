@@ -21,8 +21,9 @@ enum TimeUtilities {
         // First, there must always be a calendar date. No separators, 4
         // digits for the year, 2 digits for the month, 2 digits for the day.
         guard let rawYear = bytes._readFourDigitDecimalInteger(),
-              let rawMonth = bytes._readTwoDigitDecimalInteger(),
-              let rawDay = bytes._readTwoDigitDecimalInteger() else {
+            let rawMonth = bytes._readTwoDigitDecimalInteger(),
+            let rawDay = bytes._readTwoDigitDecimalInteger()
+        else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to load year, month, and day for GeneralizedTime")
         }
 
@@ -30,8 +31,9 @@ enum TimeUtilities {
         // to at least seconds, there are no separators, there is no time-zone (but there must be a 'Z'),
         // and there may be fractional seconds but they must not have trailing zeros.
         guard let rawHour = bytes._readTwoDigitDecimalInteger(),
-              let rawMinutes = bytes._readTwoDigitDecimalInteger(),
-              let rawSeconds = bytes._readTwoDigitDecimalInteger() else {
+            let rawMinutes = bytes._readTwoDigitDecimalInteger(),
+            let rawSeconds = bytes._readTwoDigitDecimalInteger()
+        else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to load hour, minutes, and seconds for GeneralizedTime")
         }
 
@@ -51,13 +53,15 @@ enum TimeUtilities {
             throw ASN1Error.invalidASN1Object(reason: "Trailing bytes in GeneralizedTime")
         }
 
-        return try GeneralizedTime(year: rawYear,
-                                   month: rawMonth,
-                                   day: rawDay,
-                                   hours: rawHour,
-                                   minutes: rawMinutes,
-                                   seconds: rawSeconds,
-                                   fractionalSeconds: fractionalSeconds)
+        return try GeneralizedTime(
+            year: rawYear,
+            month: rawMonth,
+            day: rawDay,
+            hours: rawHour,
+            minutes: rawMinutes,
+            seconds: rawSeconds,
+            fractionalSeconds: fractionalSeconds
+        )
     }
 
     @inlinable
@@ -67,16 +71,18 @@ enum TimeUtilities {
         // First, there must always be a calendar date. No separators, 2
         // digits for the year, 2 digits for the month, 2 digits for the day.
         guard let rawYear = bytes._readTwoDigitDecimalInteger(),
-              let rawMonth = bytes._readTwoDigitDecimalInteger(),
-              let rawDay = bytes._readTwoDigitDecimalInteger() else {
+            let rawMonth = bytes._readTwoDigitDecimalInteger(),
+            let rawDay = bytes._readTwoDigitDecimalInteger()
+        else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to load year, month, and day for UTCTime")
         }
 
         // Next there must be a _time_. Per DER rules, this time must always go
         // to at least seconds, there are no separators, there is no time-zone (but there must be a 'Z').
         guard let rawHour = bytes._readTwoDigitDecimalInteger(),
-              let rawMinutes = bytes._readTwoDigitDecimalInteger(),
-              let rawSeconds = bytes._readTwoDigitDecimalInteger() else {
+            let rawMinutes = bytes._readTwoDigitDecimalInteger(),
+            let rawSeconds = bytes._readTwoDigitDecimalInteger()
+        else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to load hour, minutes, and seconds for UTCTime")
         }
 
@@ -92,12 +98,14 @@ enum TimeUtilities {
 
         let actualYear = rawYear < 50 ? rawYear &+ 2000 : rawYear &+ 1900
 
-        return try UTCTime(year: actualYear,
-                           month: rawMonth,
-                           day: rawDay,
-                           hours: rawHour,
-                           minutes: rawMinutes,
-                           seconds: rawSeconds)
+        return try UTCTime(
+            year: actualYear,
+            month: rawMonth,
+            day: rawDay,
+            hours: rawHour,
+            minutes: rawMinutes,
+            seconds: rawSeconds
+        )
     }
 
     @inlinable
@@ -141,7 +149,8 @@ extension ArraySlice where Element == UInt8 {
     @inlinable
     mutating func _readFourDigitDecimalInteger() -> Int? {
         guard let first = self._readTwoDigitDecimalInteger(),
-              let second = self._readTwoDigitDecimalInteger() else {
+            let second = self._readTwoDigitDecimalInteger()
+        else {
             return nil
         }
 
@@ -153,12 +162,14 @@ extension ArraySlice where Element == UInt8 {
     @inlinable
     mutating func _readTwoDigitDecimalInteger() -> Int? {
         guard let firstASCII = self.popFirst(),
-              let secondASCII = self.popFirst() else {
+            let secondASCII = self.popFirst()
+        else {
             return nil
         }
 
         guard let first = Int(fromDecimalASCII: firstASCII),
-              let second = Int(fromDecimalASCII: secondASCII) else {
+            let second = Int(fromDecimalASCII: secondASCII)
+        else {
             return nil
         }
 
@@ -175,7 +186,7 @@ extension ArraySlice where Element == UInt8 {
         var numerator = 0
         var denominator = 1
 
-        while let nextASCII = self.first, let next = Int(fromDecimalASCII: nextASCII)  {
+        while let nextASCII = self.first, let next = Int(fromDecimalASCII: nextASCII) {
             self = self.dropFirst()
 
             let (newNumerator, multiplyOverflow) = numerator.multipliedReportingOverflow(by: 10)

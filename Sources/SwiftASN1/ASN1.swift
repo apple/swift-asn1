@@ -14,7 +14,7 @@
 
 /// ``DER`` defines a namespace that is used to store a number of helper methods and types
 /// for DER encoding and decoding.
-public enum DER { }
+public enum DER {}
 
 // MARK: - Parser Node
 extension DER {
@@ -64,14 +64,15 @@ extension DER {
     }
 }
 
-extension DER.ParserNode: Hashable { }
+extension DER.ParserNode: Hashable {}
 
-extension DER.ParserNode: Sendable { }
+extension DER.ParserNode: Sendable {}
 
 extension DER.ParserNode: CustomStringConvertible {
     @inlinable
     var description: String {
-        return "DER.ParserNode(identifier: \(self.identifier), depth: \(self.depth), dataBytes: \(self.dataBytes?.count ?? 0))"
+        return
+            "DER.ParserNode(identifier: \(self.identifier), depth: \(self.depth), dataBytes: \(self.dataBytes?.count ?? 0))"
     }
 }
 
@@ -86,7 +87,11 @@ extension DER {
     ///     - identifier: The ``ASN1Identifier`` that the SEQUENCE is expected to have.
     ///     - builder: A closure that will be called with the collection of nodes within the sequence.
     @inlinable
-    public static func sequence<T>(_ node: ASN1Node, identifier: ASN1Identifier, _ builder: (inout ASN1NodeCollection.Iterator) throws -> T) throws -> T {
+    public static func sequence<T>(
+        _ node: ASN1Node,
+        identifier: ASN1Identifier,
+        _ builder: (inout ASN1NodeCollection.Iterator) throws -> T
+    ) throws -> T {
         guard node.identifier == identifier, case .constructed(let nodes) = node.content else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -112,7 +117,11 @@ extension DER {
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: An array of elements representing the elements in the sequence.
     @inlinable
-    public static func sequence<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
+    public static func sequence<T: DERParseable>(
+        of: T.Type = T.self,
+        identifier: ASN1Identifier,
+        rootNode: ASN1Node
+    ) throws -> [T] {
         guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
             throw ASN1Error.unexpectedFieldType(rootNode.identifier)
         }
@@ -130,10 +139,16 @@ extension DER {
     ///     - nodes: An ``ASN1NodeCollection/Iterator`` of nodes to parse.
     /// - returns: An array of elements representing the elements in the sequence.
     @inlinable
-    public static func sequence<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, nodes: inout ASN1NodeCollection.Iterator) throws -> [T] {
+    public static func sequence<T: DERParseable>(
+        of: T.Type = T.self,
+        identifier: ASN1Identifier,
+        nodes: inout ASN1NodeCollection.Iterator
+    ) throws -> [T] {
         guard let node = nodes.next() else {
             // Not present, throw.
-            throw ASN1Error.invalidASN1Object(reason: "No sequence node available for \(T.self) and identifier \(identifier)")
+            throw ASN1Error.invalidASN1Object(
+                reason: "No sequence node available for \(T.self) and identifier \(identifier)"
+            )
         }
 
         return try sequence(of: T.self, identifier: identifier, rootNode: node)
@@ -148,11 +163,15 @@ extension DER {
     ///     - identifier: The ``ASN1Identifier`` that the SET is expected to have.
     ///     - builder: A closure that will be called with the collection of nodes within the set.
     @inlinable
-    public static func set<T>(_ node: ASN1Node, identifier: ASN1Identifier, _ builder: (inout ASN1NodeCollection.Iterator) throws -> T) throws -> T {
+    public static func set<T>(
+        _ node: ASN1Node,
+        identifier: ASN1Identifier,
+        _ builder: (inout ASN1NodeCollection.Iterator) throws -> T
+    ) throws -> T {
         // Shhhh these two are secretly the same with identifier.
         return try sequence(node, identifier: identifier, builder)
     }
-    
+
     /// Parse the node as an ASN.1 SET OF.
     ///
     /// Constructs an array of `T` elements parsed from the set.
@@ -163,15 +182,21 @@ extension DER {
     ///     - nodes: An ``ASN1NodeCollection/Iterator`` of nodes to parse.
     /// - returns: An array of elements representing the elements in the set.
     @inlinable
-    public static func set<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, nodes: inout ASN1NodeCollection.Iterator) throws -> [T] {
+    public static func set<T: DERParseable>(
+        of: T.Type = T.self,
+        identifier: ASN1Identifier,
+        nodes: inout ASN1NodeCollection.Iterator
+    ) throws -> [T] {
         guard let node = nodes.next() else {
             // Not present, throw.
-            throw ASN1Error.invalidASN1Object(reason: "No set node available for \(T.self) and identifier \(identifier)")
+            throw ASN1Error.invalidASN1Object(
+                reason: "No set node available for \(T.self) and identifier \(identifier)"
+            )
         }
 
         return try Self.set(of: T.self, identifier: identifier, rootNode: node)
     }
-    
+
     /// Parse the node as an ASN.1 SET OF.
     ///
     /// Constructs an array of `T` elements parsed from the set.
@@ -182,10 +207,14 @@ extension DER {
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: An array of elements representing the elements in the sequence.
     @inlinable
-    public static func set<T: DERParseable>(of type: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
+    public static func set<T: DERParseable>(
+        of type: T.Type = T.self,
+        identifier: ASN1Identifier,
+        rootNode: ASN1Node
+    ) throws -> [T] {
         try self.lazySet(of: type, identifier: identifier, rootNode: rootNode).map { try $0.get() }
     }
-    
+
     /// Parse the node as an ASN.1 SET OF lazily.
     ///
     /// Constructs a Sequence of `T` elements that will be lazily parsed from the set.
@@ -196,47 +225,51 @@ extension DER {
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: A `Sequence` of elements representing the `Result` of parsing the elements in the sequence.
     @inlinable
-    public static func lazySet<T: DERParseable>(of: T.Type = T.self, identifier: ASN1Identifier, rootNode: ASN1Node) throws -> LazySetOfSequence<T> {
+    public static func lazySet<T: DERParseable>(
+        of: T.Type = T.self,
+        identifier: ASN1Identifier,
+        rootNode: ASN1Node
+    ) throws -> LazySetOfSequence<T> {
         guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
             throw ASN1Error.unexpectedFieldType(rootNode.identifier)
         }
-        
+
         guard nodes.isOrderedAccordingToSetOfSemantics() else {
             throw ASN1Error.invalidASN1Object(reason: "SET OF fields are not lexicographically ordered")
         }
-        
+
         return .init(nodes.lazy.map { node in Result { try T(derEncoded: node) } })
     }
-    
+
     public struct LazySetOfSequence<T>: Sequence {
         public typealias Element = Result<T, Error>
-        
+
         @usableFromInline
         typealias WrappedSequence = LazyMapSequence<LazySequence<(ASN1NodeCollection)>.Elements, Result<T, Error>>
-        
+
         public struct Iterator: IteratorProtocol {
             @usableFromInline
             var wrapped: WrappedSequence.Iterator
-            
+
             @inlinable
             mutating public func next() -> Element? {
                 wrapped.next()
             }
-            
+
             @inlinable
             init(_ wrapped: WrappedSequence.Iterator) {
                 self.wrapped = wrapped
             }
         }
-        
+
         @usableFromInline
         var wrapped: WrappedSequence
-        
+
         @inlinable
         init(_ wrapped: WrappedSequence) {
             self.wrapped = wrapped
         }
-        
+
         @inlinable
         public func makeIterator() -> Iterator {
             .init(wrapped.makeIterator())
@@ -256,7 +289,12 @@ extension DER {
     ///
     /// - returns: The result of `builder` if the element was present, or `nil` if it was not.
     @inlinable
-    public static func optionalExplicitlyTagged<T>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T? {
+    public static func optionalExplicitlyTagged<T>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        tagNumber: UInt,
+        tagClass: ASN1Identifier.TagClass,
+        _ builder: (ASN1Node) throws -> T
+    ) throws -> T? {
         var localNodesCopy = nodes
         guard let node = localNodesCopy.next() else {
             // Node not present, return nil.
@@ -264,7 +302,7 @@ extension DER {
         }
 
         let expectedNodeID = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
-//        assert(expectedNodeID.constructed)
+        //        assert(expectedNodeID.constructed)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag. Our optional isn't present.
             return nil
@@ -281,7 +319,9 @@ extension DER {
 
         var nodeIterator = nodes.makeIterator()
         guard let child = nodeIterator.next(), nodeIterator.next() == nil else {
-            throw ASN1Error.invalidASN1Object(reason: "Too many child nodes in optionally tagged node of \(T.self) with identifier \(expectedNodeID)")
+            throw ASN1Error.invalidASN1Object(
+                reason: "Too many child nodes in optionally tagged node of \(T.self) with identifier \(expectedNodeID)"
+            )
         }
 
         return try builder(child)
@@ -298,7 +338,10 @@ extension DER {
     ///
     /// - returns: The parsed element, if it was present, or `nil` if it was not.
     @inlinable
-    public static func optionalImplicitlyTagged<T: DERImplicitlyTaggable>(_ nodes: inout ASN1NodeCollection.Iterator, tag: ASN1Identifier = T.defaultIdentifier) throws -> T? {
+    public static func optionalImplicitlyTagged<T: DERImplicitlyTaggable>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        tag: ASN1Identifier = T.defaultIdentifier
+    ) throws -> T? {
         var localNodesCopy = nodes
         guard let node = localNodesCopy.next() else {
             // Node not present, return nil.
@@ -313,7 +356,7 @@ extension DER {
         // We're good: pass the node on.
         return try T(derEncoded: &nodes, withIdentifier: tag)
     }
-    
+
     /// Parses an optional implicitly tagged element.
     ///
     /// - parameters:
@@ -335,16 +378,16 @@ extension DER {
             // Node not present, return nil.
             return nil
         }
-        
+
         let expectedNodeID = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag. Our optional isn't present.
             return nil
         }
-        
+
         // We have the right optional, so let's consume it.
         nodes = localNodesCopy
-        
+
         // We're good: pass the node on.
         return try builder(node)
     }
@@ -364,7 +407,12 @@ extension DER {
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefault<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, identifier: ASN1Identifier, defaultValue: T, _ builder: (ASN1Node) throws -> T) throws -> T {
+    public static func decodeDefault<T: DERParseable & Equatable>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        identifier: ASN1Identifier,
+        defaultValue: T,
+        _ builder: (ASN1Node) throws -> T
+    ) throws -> T {
         // A weird trick here: we only want to consume the next node _if_ it has the right tag. To achieve that,
         // we work on a copy.
         var localNodesCopy = nodes
@@ -385,7 +433,10 @@ extension DER {
         // DER forbids encoding DEFAULT values at their default state.
         // We can lift this in BER.
         guard parsed != defaultValue else {
-            throw ASN1Error.invalidASN1Object(reason: "DEFAULT for \(T.self) with identifier \(identifier) present in DER but encoded at default value \(defaultValue)")
+            throw ASN1Error.invalidASN1Object(
+                reason:
+                    "DEFAULT for \(T.self) with identifier \(identifier) present in DER but encoded at default value \(defaultValue)"
+            )
         }
 
         return parsed
@@ -404,8 +455,14 @@ extension DER {
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefault<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, identifier: ASN1Identifier, defaultValue: T) throws -> T {
-        return try Self.decodeDefault(&nodes, identifier: identifier, defaultValue: defaultValue) { try T(derEncoded: $0) }
+    public static func decodeDefault<T: DERParseable & Equatable>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        identifier: ASN1Identifier,
+        defaultValue: T
+    ) throws -> T {
+        return try Self.decodeDefault(&nodes, identifier: identifier, defaultValue: defaultValue) {
+            try T(derEncoded: $0)
+        }
     }
 
     /// Parses a value that is encoded with a DEFAULT.
@@ -420,7 +477,10 @@ extension DER {
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefault<T: DERImplicitlyTaggable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, defaultValue: T) throws -> T {
+    public static func decodeDefault<T: DERImplicitlyTaggable & Equatable>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        defaultValue: T
+    ) throws -> T {
         return try Self.decodeDefault(&nodes, identifier: T.defaultIdentifier, defaultValue: defaultValue)
     }
 
@@ -437,18 +497,27 @@ extension DER {
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefaultExplicitlyTagged<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, defaultValue: T, _ builder: (ASN1Node) throws -> T) throws -> T {
-        if let result = try optionalExplicitlyTagged(&nodes, tagNumber: tagNumber, tagClass: tagClass, builder) {
-            guard result != defaultValue else {
-                // DER forbids encoding DEFAULT values at their default state.
-                // We can lift this in BER.
-                throw ASN1Error.invalidASN1Object(reason: "DEFAULT for \(T.self) with tag number \(tagNumber) and class \(tagClass) present in DER but encoded at default value \(defaultValue)")
-            }
-
-            return result
-        } else {
+    public static func decodeDefaultExplicitlyTagged<T: DERParseable & Equatable>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        tagNumber: UInt,
+        tagClass: ASN1Identifier.TagClass,
+        defaultValue: T,
+        _ builder: (ASN1Node) throws -> T
+    ) throws -> T {
+        guard let result = try optionalExplicitlyTagged(&nodes, tagNumber: tagNumber, tagClass: tagClass, builder)
+        else {
             return defaultValue
         }
+        guard result != defaultValue else {
+            // DER forbids encoding DEFAULT values at their default state.
+            // We can lift this in BER.
+            throw ASN1Error.invalidASN1Object(
+                reason:
+                    "DEFAULT for \(T.self) with tag number \(tagNumber) and class \(tagClass) present in DER but encoded at default value \(defaultValue)"
+            )
+        }
+
+        return result
     }
 
     /// Parses a value that is encoded with a DEFAULT and an explicit tag.
@@ -465,9 +534,17 @@ extension DER {
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
     @inlinable
-    public static func decodeDefaultExplicitlyTagged<T: DERParseable & Equatable>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, defaultValue: T) throws -> T {
+    public static func decodeDefaultExplicitlyTagged<T: DERParseable & Equatable>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        tagNumber: UInt,
+        tagClass: ASN1Identifier.TagClass,
+        defaultValue: T
+    ) throws -> T {
         return try Self.decodeDefaultExplicitlyTagged(
-            &nodes, tagNumber: tagNumber, tagClass: tagClass, defaultValue: defaultValue
+            &nodes,
+            tagNumber: tagNumber,
+            tagClass: tagClass,
+            defaultValue: defaultValue
         ) {
             try T(derEncoded: $0)
         }
@@ -486,10 +563,18 @@ extension DER {
     ///
     /// - returns: The result of `builder`.
     @inlinable
-    public static func explicitlyTagged<T>(_ nodes: inout ASN1NodeCollection.Iterator, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
+    public static func explicitlyTagged<T>(
+        _ nodes: inout ASN1NodeCollection.Iterator,
+        tagNumber: UInt,
+        tagClass: ASN1Identifier.TagClass,
+        _ builder: (ASN1Node) throws -> T
+    ) throws -> T {
         guard let node = nodes.next() else {
             // Node not present, throw.
-            throw ASN1Error.invalidASN1Object(reason: "Explicitly tagged node for \(T.self) with tag number \(tagNumber) and class \(tagClass) not present")
+            throw ASN1Error.invalidASN1Object(
+                reason:
+                    "Explicitly tagged node for \(T.self) with tag number \(tagNumber) and class \(tagClass) not present"
+            )
         }
 
         return try self.explicitlyTagged(node, tagNumber: tagNumber, tagClass: tagClass, builder)
@@ -505,7 +590,12 @@ extension DER {
     ///
     /// - returns: The result of `builder`.
     @inlinable
-    public static func explicitlyTagged<T>(_ node: ASN1Node, tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ builder: (ASN1Node) throws -> T) throws -> T {
+    public static func explicitlyTagged<T>(
+        _ node: ASN1Node,
+        tagNumber: UInt,
+        tagClass: ASN1Identifier.TagClass,
+        _ builder: (ASN1Node) throws -> T
+    ) throws -> T {
         let expectedNodeID = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
         guard node.identifier == expectedNodeID else {
             // Node is a mismatch, with the wrong tag.
@@ -519,13 +609,14 @@ extension DER {
 
         var nodeIterator = nodes.makeIterator()
         guard let child = nodeIterator.next(), nodeIterator.next() == nil else {
-            throw ASN1Error.invalidASN1Object(reason: "Invalid number of child nodes for explicit tag \(expectedNodeID) for \(T.self)")
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid number of child nodes for explicit tag \(expectedNodeID) for \(T.self)"
+            )
         }
 
         return try builder(child)
     }
 }
-
 
 // MARK: - Parsing
 extension DER {
@@ -583,7 +674,9 @@ extension DER {
 
                 // We need a check here: this number needs to be greater than or equal to 0x1f, or it should have been encoded as short form.
                 guard tagNumber >= 0x1f else {
-                    throw ASN1Error.invalidASN1Object(reason: "ASN.1 tag incorrectly encoded in long form: \(tagNumber)")
+                    throw ASN1Error.invalidASN1Object(
+                        reason: "ASN.1 tag incorrectly encoded in long form: \(tagNumber)"
+                    )
                 }
                 identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
             } else {
@@ -636,7 +729,7 @@ extension DER {
     }
 }
 
-extension DER.ParseResult: Hashable { }
+extension DER.ParseResult: Hashable {}
 
 extension DER {
     /// Parses an array of bytes as DER-encoded ASN.1 bytes.
@@ -723,9 +816,9 @@ public struct ASN1NodeCollection {
     }
 }
 
-extension ASN1NodeCollection: Hashable { }
+extension ASN1NodeCollection: Hashable {}
 
-extension ASN1NodeCollection: Sendable { }
+extension ASN1NodeCollection: Sendable {}
 
 extension ASN1NodeCollection: Sequence {
     /// An iterator of ASN.1 nodes that are children of a specific constructed node.
@@ -751,16 +844,7 @@ extension ASN1NodeCollection: Sequence {
             }
 
             assert(nextNode.depth == self._depth + 1)
-            if nextNode.isConstructed {
-                // We need to feed it the next set of nodes.
-                let nodeCollection = self._nodes.prefix { $0.depth > nextNode.depth }
-                self._nodes = self._nodes.dropFirst(nodeCollection.count)
-                return ASN1Node(
-                    identifier: nextNode.identifier,
-                    content: .constructed(.init(nodes: nodeCollection, depth: nextNode.depth)),
-                    encodedBytes: nextNode.encodedBytes
-                )
-            } else {
+            guard nextNode.isConstructed else {
                 // There must be data bytes here, even if they're empty.
                 return ASN1Node(
                     identifier: nextNode.identifier,
@@ -768,6 +852,14 @@ extension ASN1NodeCollection: Sequence {
                     encodedBytes: nextNode.encodedBytes
                 )
             }
+            // We need to feed it the next set of nodes.
+            let nodeCollection = self._nodes.prefix { $0.depth > nextNode.depth }
+            self._nodes = self._nodes.dropFirst(nodeCollection.count)
+            return ASN1Node(
+                identifier: nextNode.identifier,
+                content: .constructed(.init(nodes: nodeCollection, depth: nextNode.depth)),
+                encodedBytes: nextNode.encodedBytes
+            )
         }
     }
 
@@ -853,7 +945,10 @@ extension DER {
         ///      - identifier: The tag for this ASN.1 node
         ///      - contentWriter: A callback that will be invoked that allows users to write their bytes into the output stream.
         @inlinable
-        public mutating func appendPrimitiveNode(identifier: ASN1Identifier, _ contentWriter: (inout [UInt8]) throws -> Void) rethrows {
+        public mutating func appendPrimitiveNode(
+            identifier: ASN1Identifier,
+            _ contentWriter: (inout [UInt8]) throws -> Void
+        ) rethrows {
             try self._appendNode(identifier: identifier, constructed: false) { try contentWriter(&$0._serializedBytes) }
         }
 
@@ -866,7 +961,10 @@ extension DER {
         ///      - identifier: The tag for this ASN.1 node
         ///      - contentWriter: A callback that will be invoked that allows users to write the objects contained within this constructed node.
         @inlinable
-        public mutating func appendConstructedNode(identifier: ASN1Identifier, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
+        public mutating func appendConstructedNode(
+            identifier: ASN1Identifier,
+            _ contentWriter: (inout Serializer) throws -> Void
+        ) rethrows {
             try self._appendNode(identifier: identifier, constructed: true, contentWriter)
         }
 
@@ -889,7 +987,11 @@ extension DER {
         ///     tagNumber: The number of the explicit tag.
         ///     tagClass: The number of the explicit tag.
         @inlinable
-        public mutating func serialize<T: DERSerializable>(_ node: T, explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1Identifier.TagClass) throws {
+        public mutating func serialize<T: DERSerializable>(
+            _ node: T,
+            explicitlyTaggedWithTagNumber tagNumber: UInt,
+            tagClass: ASN1Identifier.TagClass
+        ) throws {
             let identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
             return try self.serialize(node, explicitlyTaggedWithIdentifier: identifier)
         }
@@ -900,7 +1002,10 @@ extension DER {
         ///     node: The node to be serialized.
         ///     identifier: The explicit ASN.1 tag to apply.
         @inlinable
-        public mutating func serialize<T: DERSerializable>(_ node: T, explicitlyTaggedWithIdentifier identifier: ASN1Identifier) throws {
+        public mutating func serialize<T: DERSerializable>(
+            _ node: T,
+            explicitlyTaggedWithIdentifier identifier: ASN1Identifier
+        ) throws {
             try self.appendConstructedNode(identifier: identifier) { coder in
                 try coder.serialize(node)
             }
@@ -929,7 +1034,10 @@ extension DER {
         ///     node: The node to be serialized.
         ///     identifier: The implicit ASN.1 tag to apply.
         @inlinable
-        public mutating func serializeOptionalImplicitlyTagged<T: DERImplicitlyTaggable>(_ node: T?, withIdentifier identifier: ASN1Identifier) throws {
+        public mutating func serializeOptionalImplicitlyTagged<T: DERImplicitlyTaggable>(
+            _ node: T?,
+            withIdentifier identifier: ASN1Identifier
+        ) throws {
             if let node = node {
                 try node.serialize(into: &self, withIdentifier: identifier)
             }
@@ -945,7 +1053,11 @@ extension DER {
         ///     tagClass: The number of the explicit tag.
         ///     block: The block that will be invoked to encode the contents of the explicit tag.
         @inlinable
-        public mutating func serialize(explicitlyTaggedWithTagNumber tagNumber: UInt, tagClass: ASN1Identifier.TagClass, _ block: (inout Serializer) throws -> Void) rethrows {
+        public mutating func serialize(
+            explicitlyTaggedWithTagNumber tagNumber: UInt,
+            tagClass: ASN1Identifier.TagClass,
+            _ block: (inout Serializer) throws -> Void
+        ) rethrows {
             let identifier = ASN1Identifier(tagWithNumber: tagNumber, tagClass: tagClass)
             try self.appendConstructedNode(identifier: identifier) { coder in
                 try block(&coder)
@@ -958,21 +1070,27 @@ extension DER {
         ///     - elements: The members of the ASN.1 SEQUENCE OF.
         ///     - identifier: The identifier to use for the SEQUENCE OF node. Defaults to ``ASN1Identifier/sequence``.
         @inlinable
-        public mutating func serializeSequenceOf<Elements: Sequence>(_ elements: Elements, identifier: ASN1Identifier = .sequence) throws where Elements.Element: DERSerializable {
+        public mutating func serializeSequenceOf<Elements: Sequence>(
+            _ elements: Elements,
+            identifier: ASN1Identifier = .sequence
+        ) throws where Elements.Element: DERSerializable {
             try self.appendConstructedNode(identifier: identifier) { coder in
                 for element in elements {
                     try coder.serialize(element)
                 }
             }
         }
-        
+
         /// Serializes a SET OF ASN.1 nodes.
         ///
         /// - parameters:
         ///     - elements: The members of the ASN.1 SET OF.
         ///     - identifier: The identifier to use for the SET OF node. Defaults to ``ASN1Identifier/set``.
         @inlinable
-        public mutating func serializeSetOf<Elements: Sequence>(_ elements: Elements, identifier: ASN1Identifier = .set) throws where Elements.Element: DERSerializable {
+        public mutating func serializeSetOf<Elements: Sequence>(
+            _ elements: Elements,
+            identifier: ASN1Identifier = .set
+        ) throws where Elements.Element: DERSerializable {
             // We first serialize all elements into one intermediate Serializer and
             // create ArraySlices of their binary DER representation.
             var intermediateSerializer = DER.Serializer()
@@ -986,7 +1104,7 @@ extension DER {
                 // get `ArraySlice`s during the sort and write operations on demand.
                 return startIndex..<endIndex
             }
-            
+
             let serializedBytes = intermediateSerializer.serializedBytes
             // Afterwards we sort the binary representation of each element lexicographically
             let sortedRanges = serializedRanges.sorted { lhs, rhs in
@@ -1050,7 +1168,11 @@ extension DER {
         // This is the base logical function that all other append methods are built on. This one has most of the logic, and doesn't
         // police what we expect to happen in the content writer.
         @inlinable
-        mutating func _appendNode(identifier: ASN1Identifier, constructed: Bool, _ contentWriter: (inout Serializer) throws -> Void) rethrows {
+        mutating func _appendNode(
+            identifier: ASN1Identifier,
+            constructed: Bool,
+            _ contentWriter: (inout Serializer) throws -> Void
+        ) rethrows {
             // This is a tricky game to play. We want to write the identifier and the length, but we don't know what the
             // length is here. To get around that, we _assume_ the length will be one byte, and let the writer write their content.
             // If it turns out to have been longer, we recalculate how many bytes we need and shuffle them in the buffer,
@@ -1066,7 +1188,10 @@ extension DER {
 
             try contentWriter(&self)
 
-            let contentLength = self._serializedBytes.distance(from: originalEndIndex, to: self._serializedBytes.endIndex)
+            let contentLength = self._serializedBytes.distance(
+                from: originalEndIndex,
+                to: self._serializedBytes.endIndex
+            )
             let lengthBytesNeeded = contentLength._bytesNeededToEncode
             if lengthBytesNeeded == 1 {
                 // We can just set this at the top, and we're done!
@@ -1077,7 +1202,10 @@ extension DER {
 
             // Whoops, we need more than one byte to represent the length. That's annoying!
             // To sort this out we want to "move" the memory to the right.
-            self._serializedBytes._moveRange(offset: lengthBytesNeeded - 1, range: originalEndIndex..<self._serializedBytes.endIndex)
+            self._serializedBytes._moveRange(
+                offset: lengthBytesNeeded - 1,
+                range: originalEndIndex..<self._serializedBytes.endIndex
+            )
 
             // Now we can write the length bytes back. We first write the number of length bytes
             // we needed, setting the high bit. Then we write the bytes of the length.
@@ -1206,8 +1334,10 @@ extension DERImplicitlyTaggable {
     ///         will be used to construct this object.
     ///     - identifier: The ASN.1 identifier that `derEncoded` is expected to have.
     @inlinable
-    public init(derEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator,
-                withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier) throws {
+    public init(
+        derEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator,
+        withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier
+    ) throws {
         guard let node = sequenceNodeIterator.next() else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to decode \(Self.self), no ASN.1 nodes to decode")
         }
@@ -1231,7 +1361,10 @@ extension DERImplicitlyTaggable {
     ///     - derEncoded: The DER-encoded bytes representing this object.
     ///     - identifier: The ASN.1 identifier that `derEncoded` is expected to have.
     @inlinable
-    public init(derEncoded: ArraySlice<UInt8>, withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier) throws {
+    public init(
+        derEncoded: ArraySlice<UInt8>,
+        withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier
+    ) throws {
         self = try .init(derEncoded: DER.parse(derEncoded), withIdentifier: identifier)
     }
 
@@ -1275,7 +1408,9 @@ extension ArraySlice where Element == UInt8 {
             switch requiredBits {
             case 0...7:
                 // For 0 to 7 bits, the long form is unacceptable and we require the short.
-                throw ASN1Error.unsupportedFieldLength(reason: "Field length encoded in long form, but DER requires \(length) to be encoded in short form")
+                throw ASN1Error.unsupportedFieldLength(
+                    reason: "Field length encoded in long form, but DER requires \(length) to be encoded in short form"
+                )
             case 8...:
                 // For 8 or more bits, fieldLength should be the minimum required.
                 let requiredBytes = (requiredBits + 7) / 8
@@ -1284,7 +1419,9 @@ extension ArraySlice where Element == UInt8 {
                 }
             default:
                 // This is not reachable, but we'll error anyway.
-                throw ASN1Error.unsupportedFieldLength(reason: "Correctness error: computed required bits as \(requiredBits)")
+                throw ASN1Error.unsupportedFieldLength(
+                    reason: "Correctness error: computed required bits as \(requiredBits)"
+                )
             }
 
             return length
@@ -1346,15 +1483,14 @@ extension Int {
         // ASN.1 lengths are in two forms. If we can store the length in 7 bits, we should:
         // that requires only one byte. Otherwise, we need multiple bytes: work out how many,
         // plus one for the length of the length bytes.
-        if self <= 0x7F {
-            return 1
-        } else {
+        guard self <= 0x7F else {
             // We need to work out how many bytes we need. There are many fancy bit-twiddling
             // ways of doing this, but honestly we don't do this enough to need them, so we'll
             // do it the easy way. This math is done on UInt because it makes the shift semantics clean.
             // We save a branch here because we can never overflow this addition.
             return UInt(self).neededBytes &+ 1
         }
+        return 1
     }
 }
 
@@ -1374,7 +1510,7 @@ extension ASN1NodeCollection {
         guard let first = iterator.next() else {
             return true
         }
-        
+
         var previousElement = first
         while let nextElement = iterator.next() {
             guard asn1SetElementLessThanOrEqual(previousElement.encodedBytes, nextElement.encodedBytes) else {
@@ -1382,7 +1518,7 @@ extension ASN1NodeCollection {
             }
             previousElement = nextElement
         }
-        
+
         return true
     }
 }
@@ -1398,7 +1534,7 @@ func asn1SetElementLessThan(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) 
             return false
         }
     }
-    
+
     // We got to the end of the shorter element, so all current elements are equal.
     // If lhs is shorter, it comes earlier, _unless_ all of rhs's trailing elements are zero.
     let trailing = rhs.dropFirst(lhs.count)
@@ -1414,5 +1550,3 @@ func asn1SetElementLessThanOrEqual(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<U
     // https://github.com/apple/swift/blob/43c5824be892967993f4d0111206764eceeffb67/stdlib/public/core/Comparable.swift#L202
     !asn1SetElementLessThan(rhs, lhs)
 }
-
-

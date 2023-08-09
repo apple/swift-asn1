@@ -103,15 +103,20 @@ struct RFC5480AlgorithmIdentifier: DERImplicitlyTaggable, Hashable {
     }
 }
 
-
 // MARK: Algorithm Identifier Statics
 extension RFC5480AlgorithmIdentifier {
-    static let ecdsaP256 = RFC5480AlgorithmIdentifier(algorithm: .AlgorithmIdentifier.idEcPublicKey,
-                                                      parameters: try! .init(erasing: ASN1ObjectIdentifier.NamedCurves.secp256r1))
+    static let ecdsaP256 = RFC5480AlgorithmIdentifier(
+        algorithm: .AlgorithmIdentifier.idEcPublicKey,
+        parameters: try! .init(erasing: ASN1ObjectIdentifier.NamedCurves.secp256r1)
+    )
 
-    static let ecdsaP384 = RFC5480AlgorithmIdentifier(algorithm: .AlgorithmIdentifier.idEcPublicKey,
-                                                      parameters: try! .init(erasing: ASN1ObjectIdentifier.NamedCurves.secp384r1))
+    static let ecdsaP384 = RFC5480AlgorithmIdentifier(
+        algorithm: .AlgorithmIdentifier.idEcPublicKey,
+        parameters: try! .init(erasing: ASN1ObjectIdentifier.NamedCurves.secp384r1)
+    )
 
-    static let ecdsaP521 = RFC5480AlgorithmIdentifier(algorithm: .AlgorithmIdentifier.idEcPublicKey,
-                                                      parameters: try! .init(erasing: ASN1ObjectIdentifier.NamedCurves.secp521r1))
+    static let ecdsaP521 = RFC5480AlgorithmIdentifier(
+        algorithm: .AlgorithmIdentifier.idEcPublicKey,
+        parameters: try! .init(erasing: ASN1ObjectIdentifier.NamedCurves.secp521r1)
+    )
 }

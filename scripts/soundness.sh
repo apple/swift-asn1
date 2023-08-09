@@ -53,6 +53,12 @@ if git grep --color=never -i "${unacceptable_terms[@]}" -- . ":(exclude)CODE_OF_
 fi
 printf "\033[0;32mokay.\033[0m\n"
 
+# swift-format
+SWIFT_FORMAT_SCRIPT="${CURRENT_SCRIPT_DIR}/run-swift-format.sh"
+if ! bash "${SWIFT_FORMAT_SCRIPT}"; then
+   exit 1
+fi
+
 printf "=> Detecting changes in source files for CMake build\n"
 FIRST_OUT="$(git status --porcelain)"
 out=$($here/update_cmakelists.sh 2>&1)

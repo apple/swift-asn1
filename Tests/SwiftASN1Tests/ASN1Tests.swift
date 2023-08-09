@@ -18,10 +18,12 @@ import XCTest
 class ASN1Tests: XCTestCase {
     func testSimpleASN1P256SPKI() throws {
         // Given a static SPKI structure, verifies the parse.
-        let encodedSPKI = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2adMrdG7aUfZH57aeKFFM01dPnkxC18ScRb4Z6poMBgJtYlVtd9ly63URv57ZW0Ncs1LiZB7WATb3svu+1c7HQ=="
+        let encodedSPKI =
+            "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2adMrdG7aUfZH57aeKFFM01dPnkxC18ScRb4Z6poMBgJtYlVtd9ly63URv57ZW0Ncs1LiZB7WATb3svu+1c7HQ=="
         let decodedSPKI = Array(Data(base64Encoded: encodedSPKI)!)
 
-        let encodedExpectedKeyBytes = "BNmnTK3Ru2lH2R+e2nihRTNNXT55MQtfEnEW+GeqaDAYCbWJVbXfZcut1Eb+e2VtDXLNS4mQe1gE297L7vtXOx0="
+        let encodedExpectedKeyBytes =
+            "BNmnTK3Ru2lH2R+e2nihRTNNXT55MQtfEnEW+GeqaDAYCbWJVbXfZcut1Eb+e2VtDXLNS4mQe1gE297L7vtXOx0="
         let expectedKeyBytes = Array(Data(base64Encoded: encodedExpectedKeyBytes)!)
 
         let result = try DER.parse(decodedSPKI)
@@ -40,10 +42,12 @@ class ASN1Tests: XCTestCase {
     }
 
     func testSimpleASN1P384SPKI() throws {
-        let encodedSPKI = "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEcBr0TNmgagf1ysckEA/3XLGx2amgzeHjDBZREqhCIVBrLhIiIR4zrJ8dqad/Y+zI2Hu8TIUbrzS/diFpFoE0YYKBTfYMCAUtaWuMb1oaBdFzWsLfYSSzF+ON1yeJCtro"
+        let encodedSPKI =
+            "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEcBr0TNmgagf1ysckEA/3XLGx2amgzeHjDBZREqhCIVBrLhIiIR4zrJ8dqad/Y+zI2Hu8TIUbrzS/diFpFoE0YYKBTfYMCAUtaWuMb1oaBdFzWsLfYSSzF+ON1yeJCtro"
         let decodedSPKI = Array(Data(base64Encoded: encodedSPKI)!)
 
-        let encodedExpectedKeyBytes = "BHAa9EzZoGoH9crHJBAP91yxsdmpoM3h4wwWURKoQiFQay4SIiEeM6yfHamnf2PsyNh7vEyFG680v3YhaRaBNGGCgU32DAgFLWlrjG9aGgXRc1rC32EksxfjjdcniQra6A=="
+        let encodedExpectedKeyBytes =
+            "BHAa9EzZoGoH9crHJBAP91yxsdmpoM3h4wwWURKoQiFQay4SIiEeM6yfHamnf2PsyNh7vEyFG680v3YhaRaBNGGCgU32DAgFLWlrjG9aGgXRc1rC32EksxfjjdcniQra6A=="
         let expectedKeyBytes = Array(Data(base64Encoded: encodedExpectedKeyBytes)!)
 
         let result = try DER.parse(decodedSPKI)
@@ -59,10 +63,12 @@ class ASN1Tests: XCTestCase {
     }
 
     func testSimpleASN1P521SPKI() throws {
-        let encodedSPKI = "MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBTxMJZTRr9NcKmD7iTeX7ofcgz77JPTIDXOHFfS1tZHd9P0uAeK/ARwwDdsQpIKCvmtaO4O52oHqmczdrRwGtrHIBUTqaOw2Fqdiqt0fRQju9wH1Xi4h8u0h80MymUM0sbAQ70jHCeV0S0mGcJS8t3nfP+qLes30h297dPfV3SLsLg8M="
+        let encodedSPKI =
+            "MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBTxMJZTRr9NcKmD7iTeX7ofcgz77JPTIDXOHFfS1tZHd9P0uAeK/ARwwDdsQpIKCvmtaO4O52oHqmczdrRwGtrHIBUTqaOw2Fqdiqt0fRQju9wH1Xi4h8u0h80MymUM0sbAQ70jHCeV0S0mGcJS8t3nfP+qLes30h297dPfV3SLsLg8M="
         let decodedSPKI = Array(Data(base64Encoded: encodedSPKI)!)
 
-        let encodedExpectedKeyBytes = "BAFPEwllNGv01wqYPuJN5fuh9yDPvsk9MgNc4cV9LW1kd30/S4B4r8BHDAN2xCkgoK+a1o7g7nageqZzN2tHAa2scgFROpo7DYWp2Kq3R9FCO73AfVeLiHy7SHzQzKZQzSxsBDvSMcJ5XRLSYZwlLy3ed8/6ot6zfSHb3t099XdIuwuDww=="
+        let encodedExpectedKeyBytes =
+            "BAFPEwllNGv01wqYPuJN5fuh9yDPvsk9MgNc4cV9LW1kd30/S4B4r8BHDAN2xCkgoK+a1o7g7nageqZzN2tHAa2scgFROpo7DYWp2Kq3R9FCO73AfVeLiHy7SHzQzKZQzSxsBDvSMcJ5XRLSYZwlLy3ed8/6ot6zfSHb3t099XdIuwuDww=="
         let expectedKeyBytes = Array(Data(base64Encoded: encodedExpectedKeyBytes)!)
 
         let result = try DER.parse(decodedSPKI)
@@ -78,13 +84,15 @@ class ASN1Tests: XCTestCase {
     }
 
     func testASN1SEC1PrivateKeyP256() throws {
-        let encodedPrivateKey = "MHcCAQEEIFAV2+taX2/ht9HEcLQPtfyuRktTkn4S3RaCQwDmDnrloAoGCCqGSM49AwEHoUQDQgAE3Oed98X0hHmzHmmmgtf5rAVEv0jIeH61K61P5UyiCozn+fz+mlmBywvluiVvERiT9WZCd3tkPPWwbIr+a0dnwA=="
+        let encodedPrivateKey =
+            "MHcCAQEEIFAV2+taX2/ht9HEcLQPtfyuRktTkn4S3RaCQwDmDnrloAoGCCqGSM49AwEHoUQDQgAE3Oed98X0hHmzHmmmgtf5rAVEv0jIeH61K61P5UyiCozn+fz+mlmBywvluiVvERiT9WZCd3tkPPWwbIr+a0dnwA=="
         let decodedPrivateKey = Array(Data(base64Encoded: encodedPrivateKey)!)
 
         let encodedPrivateKeyBytes = "UBXb61pfb+G30cRwtA+1/K5GS1OSfhLdFoJDAOYOeuU="
         let privateKeyBytes = Array(Data(base64Encoded: encodedPrivateKeyBytes)!)
 
-        let encodedPublicKeyBytes = "BNznnffF9IR5sx5ppoLX+awFRL9IyHh+tSutT+VMogqM5/n8/ppZgcsL5bolbxEYk/VmQnd7ZDz1sGyK/mtHZ8A="
+        let encodedPublicKeyBytes =
+            "BNznnffF9IR5sx5ppoLX+awFRL9IyHh+tSutT+VMogqM5/n8/ppZgcsL5bolbxEYk/VmQnd7ZDz1sGyK/mtHZ8A="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
         let result = try DER.parse(decodedPrivateKey)
@@ -101,13 +109,15 @@ class ASN1Tests: XCTestCase {
     }
 
     func testASN1SEC1PrivateKeyP384() throws {
-        let encodedPrivateKey = "MIGkAgEBBDAWv9iH6ZivZKtk5ihjvjlZCYc9JHyykqvmJ7JVQ50ZZWTkCPtIe7RSKzm+l7NJltqgBwYFK4EEACKhZANiAAQz0BBmMxeOj5XwTL1G4fqTYO2UAiYrUMixiRFlFKVY5I6jAgiEWdNbmte8o6dByo0No5YoyDHdG637xvuzGaWd+IT5LoBAVVv3AgL3ao3dA4aVhm6Yz6G6/2o3X7AH99c="
+        let encodedPrivateKey =
+            "MIGkAgEBBDAWv9iH6ZivZKtk5ihjvjlZCYc9JHyykqvmJ7JVQ50ZZWTkCPtIe7RSKzm+l7NJltqgBwYFK4EEACKhZANiAAQz0BBmMxeOj5XwTL1G4fqTYO2UAiYrUMixiRFlFKVY5I6jAgiEWdNbmte8o6dByo0No5YoyDHdG637xvuzGaWd+IT5LoBAVVv3AgL3ao3dA4aVhm6Yz6G6/2o3X7AH99c="
         let decodedPrivateKey = Array(Data(base64Encoded: encodedPrivateKey)!)
 
         let encodedPrivateKeyBytes = "Fr/Yh+mYr2SrZOYoY745WQmHPSR8spKr5ieyVUOdGWVk5Aj7SHu0Uis5vpezSZba"
         let privateKeyBytes = Array(Data(base64Encoded: encodedPrivateKeyBytes)!)
 
-        let encodedPublicKeyBytes = "BDPQEGYzF46PlfBMvUbh+pNg7ZQCJitQyLGJEWUUpVjkjqMCCIRZ01ua17yjp0HKjQ2jlijIMd0brfvG+7MZpZ34hPkugEBVW/cCAvdqjd0DhpWGbpjPobr/ajdfsAf31w=="
+        let encodedPublicKeyBytes =
+            "BDPQEGYzF46PlfBMvUbh+pNg7ZQCJitQyLGJEWUUpVjkjqMCCIRZ01ua17yjp0HKjQ2jlijIMd0brfvG+7MZpZ34hPkugEBVW/cCAvdqjd0DhpWGbpjPobr/ajdfsAf31w=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
         let result = try DER.parse(decodedPrivateKey)
@@ -124,13 +134,16 @@ class ASN1Tests: XCTestCase {
     }
 
     func testASN1SEC1PrivateKeyP521() throws {
-        let encodedPrivateKey = "MIHcAgEBBEIBONszidL11f7D8LEbVGKG4A7768X16w35/m6OSPO7MGQcYhWHpgSV4NZ6AFKcksavZSCa59lYdAN+MA3sUjO7R/mgBwYFK4EEACOhgYkDgYYABAAzsbWlHXjMkaSQTBnBKcyPDy/x0nk+VlkYQJXkh+lPJSVEYLbrUZ1LdbfM9mGE7HpgyyELNRHy/BD1JdNnAVPemAC5VQjeGKbezrxz7D5iZNiZiQFVYtMBU3XSsuJrPWVSjBF7xIkOr06k2xg1qlOoXQ66EPHQlwEYJ3xATNKk8K2jlQ=="
+        let encodedPrivateKey =
+            "MIHcAgEBBEIBONszidL11f7D8LEbVGKG4A7768X16w35/m6OSPO7MGQcYhWHpgSV4NZ6AFKcksavZSCa59lYdAN+MA3sUjO7R/mgBwYFK4EEACOhgYkDgYYABAAzsbWlHXjMkaSQTBnBKcyPDy/x0nk+VlkYQJXkh+lPJSVEYLbrUZ1LdbfM9mGE7HpgyyELNRHy/BD1JdNnAVPemAC5VQjeGKbezrxz7D5iZNiZiQFVYtMBU3XSsuJrPWVSjBF7xIkOr06k2xg1qlOoXQ66EPHQlwEYJ3xATNKk8K2jlQ=="
         let decodedPrivateKey = Array(Data(base64Encoded: encodedPrivateKey)!)
 
-        let encodedPrivateKeyBytes = "ATjbM4nS9dX+w/CxG1RihuAO++vF9esN+f5ujkjzuzBkHGIVh6YEleDWegBSnJLGr2UgmufZWHQDfjAN7FIzu0f5"
+        let encodedPrivateKeyBytes =
+            "ATjbM4nS9dX+w/CxG1RihuAO++vF9esN+f5ujkjzuzBkHGIVh6YEleDWegBSnJLGr2UgmufZWHQDfjAN7FIzu0f5"
         let privateKeyBytes = Array(Data(base64Encoded: encodedPrivateKeyBytes)!)
 
-        let encodedPublicKeyBytes = "BAAzsbWlHXjMkaSQTBnBKcyPDy/x0nk+VlkYQJXkh+lPJSVEYLbrUZ1LdbfM9mGE7HpgyyELNRHy/BD1JdNnAVPemAC5VQjeGKbezrxz7D5iZNiZiQFVYtMBU3XSsuJrPWVSjBF7xIkOr06k2xg1qlOoXQ66EPHQlwEYJ3xATNKk8K2jlQ=="
+        let encodedPublicKeyBytes =
+            "BAAzsbWlHXjMkaSQTBnBKcyPDy/x0nk+VlkYQJXkh+lPJSVEYLbrUZ1LdbfM9mGE7HpgyyELNRHy/BD1JdNnAVPemAC5VQjeGKbezrxz7D5iZNiZiQFVYtMBU3XSsuJrPWVSjBF7xIkOr06k2xg1qlOoXQ66EPHQlwEYJ3xATNKk8K2jlQ=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
         let result = try DER.parse(decodedPrivateKey)
@@ -147,13 +160,15 @@ class ASN1Tests: XCTestCase {
     }
 
     func testASN1PKCS8PrivateKeyP256() throws {
-        let encodedPrivateKey = "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCRQo0CoBKfTOhdgQHcQIVv21vIUsxmE3t9L1LqV00bahRANCAATDXEj3jviAtzgx4bnMa/081v+FXbp7O5D1KtKVdje+ckejGVLYuYKE4Lpf5jonefi6wtoCc/sWHlbLiNV5PEB9"
+        let encodedPrivateKey =
+            "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCRQo0CoBKfTOhdgQHcQIVv21vIUsxmE3t9L1LqV00bahRANCAATDXEj3jviAtzgx4bnMa/081v+FXbp7O5D1KtKVdje+ckejGVLYuYKE4Lpf5jonefi6wtoCc/sWHlbLiNV5PEB9"
         let decodedPrivateKey = Array(Data(base64Encoded: encodedPrivateKey)!)
 
         let encodedPrivateKeyBytes = "CRQo0CoBKfTOhdgQHcQIVv21vIUsxmE3t9L1LqV00bY="
         let privateKeyBytes = Array(Data(base64Encoded: encodedPrivateKeyBytes)!)
 
-        let encodedPublicKeyBytes = "BMNcSPeO+IC3ODHhucxr/TzW/4Vduns7kPUq0pV2N75yR6MZUti5goTgul/mOid5+LrC2gJz+xYeVsuI1Xk8QH0="
+        let encodedPublicKeyBytes =
+            "BMNcSPeO+IC3ODHhucxr/TzW/4Vduns7kPUq0pV2N75yR6MZUti5goTgul/mOid5+LrC2gJz+xYeVsuI1Xk8QH0="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
         let result = try DER.parse(decodedPrivateKey)
@@ -171,13 +186,15 @@ class ASN1Tests: XCTestCase {
     }
 
     func testASN1PKCS8PrivateKeyP384() throws {
-        let encodedPrivateKey = "MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDCKfeRAkTtGQG7bGao6Ca5MDDcmxttyr6HNmNoaSkmuYvBtLGLLBWm1+VHT602xOIihZANiAAS56RzXiLO5YvFI0qh/+T9DhOXfkm3K/jJSUAqV/hP0FUlIUR824cFVdMMQA1S100mETsxdT0QDqUGAinMTUBSyk9y+jR33Fw/A068ZQRlqTCa0ThS0vwxKhM/M4vhYeDE="
+        let encodedPrivateKey =
+            "MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDCKfeRAkTtGQG7bGao6Ca5MDDcmxttyr6HNmNoaSkmuYvBtLGLLBWm1+VHT602xOIihZANiAAS56RzXiLO5YvFI0qh/+T9DhOXfkm3K/jJSUAqV/hP0FUlIUR824cFVdMMQA1S100mETsxdT0QDqUGAinMTUBSyk9y+jR33Fw/A068ZQRlqTCa0ThS0vwxKhM/M4vhYeDE="
         let decodedPrivateKey = Array(Data(base64Encoded: encodedPrivateKey)!)
 
         let encodedPrivateKeyBytes = "in3kQJE7RkBu2xmqOgmuTAw3Jsbbcq+hzZjaGkpJrmLwbSxiywVptflR0+tNsTiI"
         let privateKeyBytes = Array(Data(base64Encoded: encodedPrivateKeyBytes)!)
 
-        let encodedPublicKeyBytes = "BLnpHNeIs7li8UjSqH/5P0OE5d+Sbcr+MlJQCpX+E/QVSUhRHzbhwVV0wxADVLXTSYROzF1PRAOpQYCKcxNQFLKT3L6NHfcXD8DTrxlBGWpMJrROFLS/DEqEz8zi+Fh4MQ=="
+        let encodedPublicKeyBytes =
+            "BLnpHNeIs7li8UjSqH/5P0OE5d+Sbcr+MlJQCpX+E/QVSUhRHzbhwVV0wxADVLXTSYROzF1PRAOpQYCKcxNQFLKT3L6NHfcXD8DTrxlBGWpMJrROFLS/DEqEz8zi+Fh4MQ=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
         let result = try DER.parse(decodedPrivateKey)
@@ -195,13 +212,16 @@ class ASN1Tests: XCTestCase {
     }
 
     func testASN1PKCS8PrivateKeyP521() throws {
-        let encodedPrivateKey = "MIHuAgEAMBAGByqGSM49AgEGBSuBBAAjBIHWMIHTAgEBBEIB/rwbfr3a+rdHQvKToS6Fw1WxsVFy3Wq2ylWC+EyQv//nGiT5TQYIAV2WDmmud3WnczITapXAAe6eS66jHa+OxyGhgYkDgYYABADrY6IBU4t8BjSIvDWA4VrLILdUOFemM2G8phpJWlGpEO8Qmk28w5pdLD2j3chBvg0xBBi2k9Ked9L43R4E3+gPCAA3CY8v01xlA6npJvdAK0/Md4mY+p65Ehua95jXnSwrpF66+Q/se2ODvZPhXGKBvttxrKyBr9htmkAUv9Sdah+dWQ=="
+        let encodedPrivateKey =
+            "MIHuAgEAMBAGByqGSM49AgEGBSuBBAAjBIHWMIHTAgEBBEIB/rwbfr3a+rdHQvKToS6Fw1WxsVFy3Wq2ylWC+EyQv//nGiT5TQYIAV2WDmmud3WnczITapXAAe6eS66jHa+OxyGhgYkDgYYABADrY6IBU4t8BjSIvDWA4VrLILdUOFemM2G8phpJWlGpEO8Qmk28w5pdLD2j3chBvg0xBBi2k9Ked9L43R4E3+gPCAA3CY8v01xlA6npJvdAK0/Md4mY+p65Ehua95jXnSwrpF66+Q/se2ODvZPhXGKBvttxrKyBr9htmkAUv9Sdah+dWQ=="
         let decodedPrivateKey = Array(Data(base64Encoded: encodedPrivateKey)!)
 
-        let encodedPrivateKeyBytes = "Af68G3692vq3R0Lyk6EuhcNVsbFRct1qtspVgvhMkL//5xok+U0GCAFdlg5prnd1p3MyE2qVwAHunkuuox2vjsch"
+        let encodedPrivateKeyBytes =
+            "Af68G3692vq3R0Lyk6EuhcNVsbFRct1qtspVgvhMkL//5xok+U0GCAFdlg5prnd1p3MyE2qVwAHunkuuox2vjsch"
         let privateKeyBytes = Array(Data(base64Encoded: encodedPrivateKeyBytes)!)
 
-        let encodedPublicKeyBytes = "BADrY6IBU4t8BjSIvDWA4VrLILdUOFemM2G8phpJWlGpEO8Qmk28w5pdLD2j3chBvg0xBBi2k9Ked9L43R4E3+gPCAA3CY8v01xlA6npJvdAK0/Md4mY+p65Ehua95jXnSwrpF66+Q/se2ODvZPhXGKBvttxrKyBr9htmkAUv9Sdah+dWQ=="
+        let encodedPublicKeyBytes =
+            "BADrY6IBU4t8BjSIvDWA4VrLILdUOFemM2G8phpJWlGpEO8Qmk28w5pdLD2j3chBvg0xBBi2k9Ked9L43R4E3+gPCAA3CY8v01xlA6npJvdAK0/Md4mY+p65Ehua95jXnSwrpF66+Q/se2ODvZPhXGKBvttxrKyBr9htmkAUv9Sdah+dWQ=="
         let publicKeyBytes = Array(Data(base64Encoded: encodedPublicKeyBytes)!)
 
         let result = try DER.parse(decodedPrivateKey)
@@ -220,7 +240,8 @@ class ASN1Tests: XCTestCase {
 
     func testRejectDripFedASN1SPKIP256() throws {
         // This test drip-feeds an ASN.1 P256 SPKI block. It should never parse correctly until we feed the entire block.
-        let encodedSPKI = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2adMrdG7aUfZH57aeKFFM01dPnkxC18ScRb4Z6poMBgJtYlVtd9ly63URv57ZW0Ncs1LiZB7WATb3svu+1c7HQ=="
+        let encodedSPKI =
+            "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2adMrdG7aUfZH57aeKFFM01dPnkxC18ScRb4Z6poMBgJtYlVtd9ly63URv57ZW0Ncs1LiZB7WATb3svu+1c7HQ=="
         let decodedSPKI = Array(Data(base64Encoded: encodedSPKI)!)
 
         for index in decodedSPKI.indices {
@@ -416,12 +437,12 @@ class ASN1Tests: XCTestCase {
 
     func testStraightforwardPEMDocumentParsing() throws {
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
-AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
-O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
------END EC PRIVATE KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
         let document = try PEMDocument(pemString: simplePEM)
         XCTAssertEqual(document.discriminator, "EC PRIVATE KEY")
         XCTAssertEqual(document.derBytes.count, 121)
@@ -437,15 +458,15 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
         let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: serializer.serializedBytes)
         XCTAssertEqual(reserialized2.pemString, simplePEM)
     }
-    
+
     func testStraightforwardPEMParsing() throws {
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
-AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
-O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
------END EC PRIVATE KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
         let pkey = try SEC1PrivateKey(pemEncoded: simplePEM)
 
         let reserialized = try pkey.serializeAsPEM().pemString
@@ -460,12 +481,12 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
     func testTruncatedPEMDocumentsAreRejected() throws {
         // We drip feed the PEM one extra character at a time. It never parses successfully.
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
-AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
-O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
------END EC PRIVATE KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
         for index in simplePEM.indices.dropLast() {
             XCTAssertThrowsError(try PEMDocument(pemString: String(simplePEM[..<index]))) { error in
                 XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
@@ -474,7 +495,7 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
                 XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
             }
         }
-        
+
         XCTAssertNoThrow(try PEMDocument(pemString: simplePEM))
         XCTAssertNoThrow(try SEC1PrivateKey(pemEncoded: simplePEM))
     }
@@ -482,16 +503,16 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
     func testMismatchedDiscriminatorsAreRejected() throws {
         // Different discriminators is not allowed.
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
-AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
-O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
------END EC PUBLIC KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PUBLIC KEY-----
+            """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
-        
+
         XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
@@ -500,16 +521,16 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
     func testOverlongLinesAreForbidden() throws {
         // This is arguably an excessive restriction, but we should try to be fairly strict here.
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
-AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzGO
-9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
------END EC PRIVATE KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzGO
+            9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
-        
+
         XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
@@ -518,16 +539,16 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzGO
     func testEarlyShortLinesAreForbidden() throws {
         // This is arguably an excessive restriction, but we should try to be fairly strict here.
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
-AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJz
-GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
------END EC PRIVATE KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJz
+            GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
-        
+
         XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
@@ -535,13 +556,13 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 
     func testEmptyPEMDocument() throws {
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
------END EC PRIVATE KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            -----END EC PRIVATE KEY-----
+            """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
-        
+
         XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
@@ -549,16 +570,16 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 
     func testInvalidBase64IsForbidden() throws {
         let simplePEM = """
------BEGIN EC PRIVATE KEY-----
-MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
-AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
-O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
------END EC PRIVATE KEY-----
-"""
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
-        
+
         XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
@@ -600,7 +621,6 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             }
         }
     }
-
 
     func testBitstringWithNoContent() throws {
         // We don't allow bitstrings with no content.
@@ -658,15 +678,17 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testNotConsumingTaggedObject() throws {
         // We should error if there are two nodes inside an explicitly tagged object.
         let weirdASN1: [UInt8] = [
-            0x30, 0x08,       // Sequence, containing...
-            0xA2, 0x06,       // Context specific tag 2, 3 byte body, containing...
-            0x02, 0x01, 0x00, // Integer 0 and
-            0x02, 0x01, 0x01  // Integer 1
+            0x30, 0x08,  // Sequence, containing...
+            0xA2, 0x06,  // Context specific tag 2, 3 byte body, containing...
+            0x02, 0x01, 0x00,  // Integer 0 and
+            0x02, 0x01, 0x01,  // Integer 1
 
         ]
         let parsed = try DER.parse(weirdASN1)
         try DER.sequence(parsed, identifier: .sequence) { nodes in
-            XCTAssertThrowsError(try DER.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in })) { error in
+            XCTAssertThrowsError(
+                try DER.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in })
+            ) { error in
                 XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
             }
         }
@@ -674,7 +696,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 
     func testSPKIWithUnexpectedKeyTypeOID() throws {
         // This is an SPKI object for RSA instead of EC. This is a 1024-bit RSA key, so hopefully no-one will think to use it.
-        let rsaSPKI = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQEcP8qgwq5JhGgl1mKMeOWbb0WFKkJKj4Tvm4RFWGKDYg/p+Fm8vHwPSICqU9HJ+dHF2Ty0M6WVwVlf6RJdJGsrp1s9cbxfc/74PdQUssIhUjhlBO2RFlQECbgNpw5UleRB9FLnEDp33qMgdr7nwXiYCTjd04QSkdU3mXJYrFfwIDAQAB"
+        let rsaSPKI =
+            "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQEcP8qgwq5JhGgl1mKMeOWbb0WFKkJKj4Tvm4RFWGKDYg/p+Fm8vHwPSICqU9HJ+dHF2Ty0M6WVwVlf6RJdJGsrp1s9cbxfc/74PdQUssIhUjhlBO2RFlQECbgNpw5UleRB9FLnEDp33qMgdr7nwXiYCTjd04QSkdU3mXJYrFfwIDAQAB"
         let decodedSPKI = Array(Data(base64Encoded: rsaSPKI)!)
 
         var serializer = DER.Serializer()
@@ -695,17 +718,18 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             78, 249, 184, 68, 85, 134, 40, 54, 32, 254, 159, 133, 155, 203, 199, 192,
             244, 136, 10, 165, 61, 28, 159, 157, 28, 93, 147, 203, 67, 58, 89, 92,
             21, 149, 254, 145, 37, 210, 70, 178, 186, 117, 179, 215, 27, 197, 247,
-            63, 239, 131, 221, 65, 75, 44, 34, 21, 35, 134, 80, 78, 217, 17, 101, 64
-            , 64, 155, 128, 218, 112, 229, 73, 94, 68, 31, 69, 46, 113, 3, 167, 125,
+            63, 239, 131, 221, 65, 75, 44, 34, 21, 35, 134, 80, 78, 217, 17, 101, 64, 64, 155, 128, 218, 112, 229, 73,
+            94, 68, 31, 69, 46, 113, 3, 167, 125,
             234, 50, 7, 107, 238, 124, 23, 137, 128, 147, 141, 221, 56, 65, 41, 29,
-            83, 121, 151, 37, 138, 197, 127, 2, 3, 1, 0, 1
+            83, 121, 151, 37, 138, 197, 127, 2, 3, 1, 0, 1,
         ]
         XCTAssertEqual(spki.key.bytes, expectedKey)
     }
 
     func testSPKIWithUnsupportedCurve() throws {
         // This is an EC SPKI object with an unsupported named curve.
-        let b64SPKI = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEzN09Sbb+mhMIlUbOdoIoND8lNcoQPd/yZDjQi1IDyDQEvVvz1yhi5J0FPLAlM3hE2o/a+rASUz2UP4fX5Cpnxw=="
+        let b64SPKI =
+            "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEzN09Sbb+mhMIlUbOdoIoND8lNcoQPd/yZDjQi1IDyDQEvVvz1yhi5J0FPLAlM3hE2o/a+rASUz2UP4fX5Cpnxw=="
         let decodedSPKI = Array(Data(base64Encoded: b64SPKI)!)
 
         let parsed = try DER.parse(decodedSPKI)
@@ -718,7 +742,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             52, 63, 37, 53, 202, 16, 61, 223, 242, 100, 56, 208, 139, 82, 3, 200,
             52, 4, 189, 91, 243, 215, 40, 98, 228, 157, 5, 60, 176, 37, 51, 120, 68,
             218, 143, 218, 250, 176, 18, 83, 61, 148, 63, 135, 215, 228, 42, 103,
-            199
+            199,
         ]
         XCTAssertEqual(spki.key.bytes, expectedKey)
     }
@@ -735,7 +759,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 
     func testSEC1PrivateKeyUnsupportedKeyType() throws {
         // This is an EC SPKI object with an unsupported named curve.
-        let b64SEC1 = "MHQCAQEEINIuVmNF7g1wNCJWXDpgL+09jATtaS1n0SxqqQneHi+woAcGBSuBBAAKoUQDQgAEB7v/p7gvuV0aDx02EF6a+pr563p+FzRJXI+COWHdr+XRcjg6vEi4n3Jj7ksmEg4t1x6E1xFyTvF3eV/B/XVXbw=="
+        let b64SEC1 =
+            "MHQCAQEEINIuVmNF7g1wNCJWXDpgL+09jATtaS1n0SxqqQneHi+woAcGBSuBBAAKoUQDQgAEB7v/p7gvuV0aDx02EF6a+pr563p+FzRJXI+COWHdr+XRcjg6vEi4n3Jj7ksmEg4t1x6E1xFyTvF3eV/B/XVXbw=="
         let decodedSEC1 = Array(Data(base64Encoded: b64SEC1)!)
 
         let parsed = try DER.parse(decodedSEC1)
@@ -766,7 +791,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 
     func testNodeSlices() throws {
         // This is an SPKI object for RSA instead of EC. This is a 1024-bit RSA key, so hopefully no-one will think to use it.
-        let rsaSPKI = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQEcP8qgwq5JhGgl1mKMeOWbb0WFKkJKj4Tvm4RFWGKDYg/p+Fm8vHwPSICqU9HJ+dHF2Ty0M6WVwVlf6RJdJGsrp1s9cbxfc/74PdQUssIhUjhlBO2RFlQECbgNpw5UleRB9FLnEDp33qMgdr7nwXiYCTjd04QSkdU3mXJYrFfwIDAQAB"
+        let rsaSPKI =
+            "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQEcP8qgwq5JhGgl1mKMeOWbb0WFKkJKj4Tvm4RFWGKDYg/p+Fm8vHwPSICqU9HJ+dHF2Ty0M6WVwVlf6RJdJGsrp1s9cbxfc/74PdQUssIhUjhlBO2RFlQECbgNpw5UleRB9FLnEDp33qMgdr7nwXiYCTjd04QSkdU3mXJYrFfwIDAQAB"
         let decodedSPKI = Array(Data(base64Encoded: rsaSPKI)!)
 
         let parsed = try DER.parse(decodedSPKI)
@@ -814,7 +840,10 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
     func testOptionalImplicitlyTaggedWithCustomTag() throws {
         var serializer = DER.Serializer()
         try serializer.appendConstructedNode(identifier: .sequence) { serializer in
-            try serializer.serializeOptionalImplicitlyTagged(1, withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific))
+            try serializer.serializeOptionalImplicitlyTagged(
+                1,
+                withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific)
+            )
         }
         let bytes = serializer.serializedBytes
 
@@ -826,11 +855,14 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         }
         XCTAssertEqual(int, 1)
     }
-    
+
     func testOptionalImplicitlyTaggedWithBuilder() throws {
         var serializer = DER.Serializer()
         try serializer.appendConstructedNode(identifier: .sequence) { serializer in
-            try serializer.serializeOptionalImplicitlyTagged(1, withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific))
+            try serializer.serializeOptionalImplicitlyTagged(
+                1,
+                withIdentifier: ASN1Identifier(tagWithNumber: 1, tagClass: .contextSpecific)
+            )
         }
         let bytes = serializer.serializedBytes
 
@@ -856,19 +888,26 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let s = String(describing: any)
         XCTAssertEqual(s, "ASN1Any([5, 0])")
     }
-    
+
     func testSetOfSingleElement() throws {
         var serializer = DER.Serializer()
         try serializer.serializeSetOf([
-            ASN1BitString(bytes: [1]),
+            ASN1BitString(bytes: [1])
         ])
         XCTAssertEqual(serializer.serializedBytes, [49, 4, 3, 2, 0, 1])
-        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
-        XCTAssertEqual(bitStrings, [
-            ASN1BitString(bytes: [1]),
-        ])
+        let bitStrings = try DER.set(
+            of: ASN1BitString.self,
+            identifier: .set,
+            rootNode: try DER.parse(serializer.serializedBytes)
+        )
+        XCTAssertEqual(
+            bitStrings,
+            [
+                ASN1BitString(bytes: [1])
+            ]
+        )
     }
-    
+
     func testSetOfTwoElementsInOrder() throws {
         var serializer = DER.Serializer()
         try serializer.serializeSetOf([
@@ -876,14 +915,21 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             ASN1BitString(bytes: [2]),
         ])
         XCTAssertEqual(serializer.serializedBytes, [49, 8, 3, 2, 0, 1, 3, 2, 0, 2])
-        
-        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
-        XCTAssertEqual(bitStrings, [
-            ASN1BitString(bytes: [1]),
-            ASN1BitString(bytes: [2]),
-        ])
+
+        let bitStrings = try DER.set(
+            of: ASN1BitString.self,
+            identifier: .set,
+            rootNode: try DER.parse(serializer.serializedBytes)
+        )
+        XCTAssertEqual(
+            bitStrings,
+            [
+                ASN1BitString(bytes: [1]),
+                ASN1BitString(bytes: [2]),
+            ]
+        )
     }
-    
+
     func testSetOfTwoElementNotInOrder() throws {
         var serializer = DER.Serializer()
         try serializer.serializeSetOf([
@@ -891,12 +937,19 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             ASN1BitString(bytes: [1]),
         ])
         XCTAssertEqual(serializer.serializedBytes, [49, 8, 3, 2, 0, 1, 3, 2, 0, 2])
-        
-        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
-        XCTAssertEqual(bitStrings, [
-            ASN1BitString(bytes: [1]),
-            ASN1BitString(bytes: [2]),
-        ])
+
+        let bitStrings = try DER.set(
+            of: ASN1BitString.self,
+            identifier: .set,
+            rootNode: try DER.parse(serializer.serializedBytes)
+        )
+        XCTAssertEqual(
+            bitStrings,
+            [
+                ASN1BitString(bytes: [1]),
+                ASN1BitString(bytes: [2]),
+            ]
+        )
     }
     func testSetOfTwoEqualElements() throws {
         var serializer = DER.Serializer()
@@ -905,12 +958,19 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             ASN1BitString(bytes: [1]),
         ])
         XCTAssertEqual(serializer.serializedBytes, [49, 8, 3, 2, 0, 1, 3, 2, 0, 1])
-        
-        let bitStrings = try DER.set(of: ASN1BitString.self, identifier: .set, rootNode: try DER.parse(serializer.serializedBytes))
-        XCTAssertEqual(bitStrings, [
-            ASN1BitString(bytes: [1]),
-            ASN1BitString(bytes: [1]),
-        ])
+
+        let bitStrings = try DER.set(
+            of: ASN1BitString.self,
+            identifier: .set,
+            rootNode: try DER.parse(serializer.serializedBytes)
+        )
+        XCTAssertEqual(
+            bitStrings,
+            [
+                ASN1BitString(bytes: [1]),
+                ASN1BitString(bytes: [1]),
+            ]
+        )
     }
     func testSetOfTwoElementsOrderedIncorrectly() throws {
         let rootNode = try DER.parse([49, 8, 3, 2, 0, 2, 3, 2, 0, 1])
@@ -918,7 +978,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
-    
+
     func testASN1SetOfOrder() {
         func assertSetOfLessThanOrEqual(
             _ lhs: ArraySlice<UInt8>,
@@ -929,7 +989,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
             XCTAssert(
                 asn1SetElementLessThanOrEqual(lhs, rhs),
                 "\(lhs) is not less than or equal to \(rhs)",
-                file: file, line: line
+                file: file,
+                line: line
             )
         }
         assertSetOfLessThanOrEqual([1], [1])
