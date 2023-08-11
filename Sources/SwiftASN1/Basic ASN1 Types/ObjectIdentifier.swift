@@ -115,7 +115,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
 
 extension ASN1ObjectIdentifier: Hashable {}
 
-extension ASN1ObjectIdentifier: Sendable { }
+extension ASN1ObjectIdentifier: Sendable {}
 
 extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
     @inlinable
@@ -256,7 +256,7 @@ extension ASN1ObjectIdentifier {
 
         /// The 'dc' ('domainComponent' in RFC 1274) attribute type is a string
         /// holding one component, a label, of a DNS domain name naming a host.
-        public static let domainComponent: ASN1ObjectIdentifier = [0, 9, 2342, 19200300, 100, 1, 25]
+        public static let domainComponent: ASN1ObjectIdentifier = [0, 9, 2342, 19_200_300, 100, 1, 25]
 
         /// The emailAddress attribute type specifies the electronic-mail address
         /// or addresses of a subject as an unstructured ASCII string.
@@ -281,7 +281,7 @@ extension ArraySlice where Element == UInt8 {
             throw ASN1Error.invalidASN1Object(reason: "Invalid encoding for OID subidentifier")
         }
 
-        let oidSlice = self[self.startIndex ... subidentifierEndIndex]
+        let oidSlice = self[self.startIndex...subidentifierEndIndex]
 
         guard let firstByte = oidSlice.first, firstByte != 0x80 else {
             // If the first byte is 0x80 then we have a leading 0 byte. All numbers encoded this way

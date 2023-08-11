@@ -21,7 +21,7 @@ public struct ASN1Null: DERImplicitlyTaggable, Hashable, Sendable {
 
     /// Construct a new ASN.1 null.
     @inlinable
-    public init() { }
+    public init() {}
 
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {

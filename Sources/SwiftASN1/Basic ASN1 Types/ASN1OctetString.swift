@@ -52,9 +52,9 @@ public struct ASN1OctetString: DERImplicitlyTaggable {
     }
 }
 
-extension ASN1OctetString: Hashable { }
+extension ASN1OctetString: Hashable {}
 
-extension ASN1OctetString: Sendable { }
+extension ASN1OctetString: Sendable {}
 
 extension ASN1OctetString {
     @inlinable

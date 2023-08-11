@@ -160,9 +160,9 @@ extension ASN1Identifier {
     public static let utcTime = ASN1Identifier(shortIdentifier: 0x17)
 }
 
-extension ASN1Identifier: Hashable { }
+extension ASN1Identifier: Hashable {}
 
-extension ASN1Identifier: Sendable { }
+extension ASN1Identifier: Sendable {}
 
 extension ASN1Identifier: CustomStringConvertible {
     @inlinable

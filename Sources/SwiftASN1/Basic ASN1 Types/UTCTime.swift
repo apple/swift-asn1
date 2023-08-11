@@ -183,7 +183,7 @@ public struct UTCTime: DERImplicitlyTaggable, Hashable, Sendable {
 
 extension UTCTime: Comparable {
     @inlinable
-    public static func <(lhs: UTCTime, rhs: UTCTime) -> Bool {
+    public static func < (lhs: UTCTime, rhs: UTCTime) -> Bool {
         if lhs.year < rhs.year { return true } else if lhs.year > rhs.year { return false }
         if lhs.month < rhs.month { return true } else if lhs.month > rhs.month { return false }
         if lhs.day < rhs.day { return true } else if lhs.day > rhs.day { return false }
