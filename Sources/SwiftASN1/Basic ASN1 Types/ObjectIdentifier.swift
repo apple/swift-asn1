@@ -65,62 +65,60 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
 
     @inlinable
     var oidComponents: [UInt] {
-        get {
-            var content = bytes
-            // We have to parse the content. From the spec:
-            //
-            // > Each subidentifier is represented as a series of (one or more) octets. Bit 8 of each octet indicates whether it
-            // > is the last in the series: bit 8 of the last octet is zero, bit 8 of each preceding octet is one. Bits 7 to 1 of
-            // > the octets in the series collectively encode the subidentifier. Conceptually, these groups of bits are concatenated
-            // > to form an unsigned binary number whose most significant bit is bit 7 of the first octet and whose least significant
-            // > bit is bit 1 of the last octet. The subidentifier shall be encoded in the fewest possible octets[...].
-            // >
-            // > The number of subidentifiers (N) shall be one less than the number of object identifier components in the object identifier
-            // > value being encoded.
-            // >
-            // > The numerical value of the first subidentifier is derived from the values of the first _two_ object identifier components
-            // > in the object identifier value being encoded, using the formula:
-            // >
-            // >  (X*40) + Y
-            // >
-            // > where X is the value of the first object identifier component and Y is the value of the second object identifier component.
-            //
-            // Yeah, this is a bit bananas, but basically there are only 3 first OID components (0, 1, 2) and there are no more than 39 children
-            // of nodes 0 or 1. In my view this is too clever by half, but the ITU.T didn't ask for my opinion when they were coming up with this
-            // scheme, likely because I was in middle school at the time.
-            var subcomponents = [UInt]()
-            while content.count > 0 {
-                do {
-                    subcomponents.append(try content.readUIntUsing8BitBytesASN1Discipline())
-                } catch {
-                    preconditionFailure(
-                        """
-                        Error while trying to read UInt using 8 bit ASN.1 Discipline: \(error). \
-                        ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible.
-                        """
-                    )
-                }
-            }
-
-            // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
-            // taking the quotient and remainder when dividing by 40.
-            var oidComponents = [UInt]()
-            oidComponents.reserveCapacity(subcomponents.count + 1)
-
-            // We'd like to work on the slice here.
-            var subcomponentSlice = subcomponents[...]
-            guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
+        var content = bytes
+        // We have to parse the content. From the spec:
+        //
+        // > Each subidentifier is represented as a series of (one or more) octets. Bit 8 of each octet indicates whether it
+        // > is the last in the series: bit 8 of the last octet is zero, bit 8 of each preceding octet is one. Bits 7 to 1 of
+        // > the octets in the series collectively encode the subidentifier. Conceptually, these groups of bits are concatenated
+        // > to form an unsigned binary number whose most significant bit is bit 7 of the first octet and whose least significant
+        // > bit is bit 1 of the last octet. The subidentifier shall be encoded in the fewest possible octets[...].
+        // >
+        // > The number of subidentifiers (N) shall be one less than the number of object identifier components in the object identifier
+        // > value being encoded.
+        // >
+        // > The numerical value of the first subidentifier is derived from the values of the first _two_ object identifier components
+        // > in the object identifier value being encoded, using the formula:
+        // >
+        // >  (X*40) + Y
+        // >
+        // > where X is the value of the first object identifier component and Y is the value of the second object identifier component.
+        //
+        // Yeah, this is a bit bananas, but basically there are only 3 first OID components (0, 1, 2) and there are no more than 39 children
+        // of nodes 0 or 1. In my view this is too clever by half, but the ITU.T didn't ask for my opinion when they were coming up with this
+        // scheme, likely because I was in middle school at the time.
+        var subcomponents = [UInt]()
+        while content.count > 0 {
+            do {
+                subcomponents.append(try content.readUIntUsing8BitBytesASN1Discipline())
+            } catch {
                 preconditionFailure(
-                    "Zero components in OID. ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible."
+                    """
+                    Error while trying to read UInt using 8 bit ASN.1 Discipline: \(error). \
+                    ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible.
+                    """
                 )
             }
-
-            let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
-            oidComponents.append(firstSubcomponent)
-            oidComponents.append(secondSubcomponent)
-            oidComponents.append(contentsOf: subcomponentSlice)
-            return oidComponents
         }
+
+        // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
+        // taking the quotient and remainder when dividing by 40.
+        var oidComponents = [UInt]()
+        oidComponents.reserveCapacity(subcomponents.count + 1)
+
+        // We'd like to work on the slice here.
+        var subcomponentSlice = subcomponents[...]
+        guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
+            preconditionFailure(
+                "Zero components in OID. ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible."
+            )
+        }
+
+        let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
+        oidComponents.append(firstSubcomponent)
+        oidComponents.append(secondSubcomponent)
+        oidComponents.append(contentsOf: subcomponentSlice)
+        return oidComponents
     }
 
     @inlinable
