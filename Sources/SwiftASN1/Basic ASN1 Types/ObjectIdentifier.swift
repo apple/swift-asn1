@@ -44,13 +44,28 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
         guard case .primitive(let content) = node.content else {
             preconditionFailure("ASN.1 parser generated primitive node with constructed content")
         }
+        
+        try Self.validateObjectIdentifierInEncodedForm(content)
 
         self.bytes = content
     }
     
     @inlinable
+    static func validateObjectIdentifierInEncodedForm(_ content: ArraySlice<UInt8>) throws {
+        var content = content
+        
+        guard content.count >= 1 else {
+            throw ASN1Error.invalidASN1Object(reason: "Zero components in OID")
+        }
+        
+        while content.count > 0 {
+            _ = try content.readUIntUsing8BitBytesASN1Discipline()
+        }
+    }
+    
+    @inlinable
     var oidComponents: [UInt] {
-        get throws {
+        get {
             var content = bytes
             // We have to parse the content. From the spec:
             //
@@ -75,7 +90,16 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
             // scheme, likely because I was in middle school at the time.
             var subcomponents = [UInt]()
             while content.count > 0 {
-                subcomponents.append(try content.readUIntUsing8BitBytesASN1Discipline())
+                do {
+                    subcomponents.append(try content.readUIntUsing8BitBytesASN1Discipline())
+                } catch {
+                    preconditionFailure(
+                        """
+                        Error while trying to read UInt using 8 bit ASN.1 Discipline: \(error). \
+                        ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible.
+                        """
+                    )
+                }
             }
 
             // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
@@ -86,7 +110,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
             // We'd like to work on the slice here.
             var subcomponentSlice = subcomponents[...]
             guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
-                throw ASN1Error.invalidASN1Object(reason: "Zero components in OID")
+                preconditionFailure("Zero components in OID. ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible.")
             }
 
             let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
@@ -136,11 +160,7 @@ extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
 extension ASN1ObjectIdentifier: CustomStringConvertible {
     @inlinable
     public var description: String {
-        do {
-            return try self.oidComponents.map { String($0) }.joined(separator: ".")
-        } catch {
-            return "invalid OID \(String(reflecting: error))"
-        }
+        self.oidComponents.map { String($0) }.joined(separator: ".")
     }
 }
 
