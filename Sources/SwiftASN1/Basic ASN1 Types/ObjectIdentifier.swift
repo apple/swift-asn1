@@ -44,25 +44,25 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
         guard case .primitive(let content) = node.content else {
             preconditionFailure("ASN.1 parser generated primitive node with constructed content")
         }
-        
+
         try Self.validateObjectIdentifierInEncodedForm(content)
 
         self.bytes = content
     }
-    
+
     @inlinable
     static func validateObjectIdentifierInEncodedForm(_ content: ArraySlice<UInt8>) throws {
         var content = content
-        
+
         guard content.count >= 1 else {
             throw ASN1Error.invalidASN1Object(reason: "Zero components in OID")
         }
-        
+
         while content.count > 0 {
             _ = try content.readUIntUsing8BitBytesASN1Discipline()
         }
     }
-    
+
     @inlinable
     var oidComponents: [UInt] {
         get {
@@ -110,7 +110,9 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
             // We'd like to work on the slice here.
             var subcomponentSlice = subcomponents[...]
             guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
-                preconditionFailure("Zero components in OID. ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible.")
+                preconditionFailure(
+                    "Zero components in OID. ASN1ObjectIdentifier validates the encoded format during initialisation and this should be impossible."
+                )
             }
 
             let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
