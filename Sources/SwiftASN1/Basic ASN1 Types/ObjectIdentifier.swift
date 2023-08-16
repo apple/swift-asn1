@@ -33,7 +33,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
     }
 
     @usableFromInline
-    var _oidComponents: [UInt]
+    var bytes: ArraySlice<UInt8>
 
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
@@ -41,69 +41,66 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
 
-        guard case .primitive(var content) = node.content else {
+        guard case .primitive(let content) = node.content else {
             preconditionFailure("ASN.1 parser generated primitive node with constructed content")
         }
 
-        // We have to parse the content. From the spec:
-        //
-        // > Each subidentifier is represented as a series of (one or more) octets. Bit 8 of each octet indicates whether it
-        // > is the last in the series: bit 8 of the last octet is zero, bit 8 of each preceding octet is one. Bits 7 to 1 of
-        // > the octets in the series collectively encode the subidentifier. Conceptually, these groups of bits are concatenated
-        // > to form an unsigned binary number whose most significant bit is bit 7 of the first octet and whose least significant
-        // > bit is bit 1 of the last octet. The subidentifier shall be encoded in the fewest possible octets[...].
-        // >
-        // > The number of subidentifiers (N) shall be one less than the number of object identifier components in the object identifier
-        // > value being encoded.
-        // >
-        // > The numerical value of the first subidentifier is derived from the values of the first _two_ object identifier components
-        // > in the object identifier value being encoded, using the formula:
-        // >
-        // >  (X*40) + Y
-        // >
-        // > where X is the value of the first object identifier component and Y is the value of the second object identifier component.
-        //
-        // Yeah, this is a bit bananas, but basically there are only 3 first OID components (0, 1, 2) and there are no more than 39 children
-        // of nodes 0 or 1. In my view this is too clever by half, but the ITU.T didn't ask for my opinion when they were coming up with this
-        // scheme, likely because I was in middle school at the time.
-        var subcomponents = [UInt]()
-        while content.count > 0 {
-            subcomponents.append(try content.readUIntUsing8BitBytesASN1Discipline())
+        self.bytes = content
+    }
+    
+    @inlinable
+    var oidComponents: [UInt] {
+        get throws {
+            var content = bytes
+            // We have to parse the content. From the spec:
+            //
+            // > Each subidentifier is represented as a series of (one or more) octets. Bit 8 of each octet indicates whether it
+            // > is the last in the series: bit 8 of the last octet is zero, bit 8 of each preceding octet is one. Bits 7 to 1 of
+            // > the octets in the series collectively encode the subidentifier. Conceptually, these groups of bits are concatenated
+            // > to form an unsigned binary number whose most significant bit is bit 7 of the first octet and whose least significant
+            // > bit is bit 1 of the last octet. The subidentifier shall be encoded in the fewest possible octets[...].
+            // >
+            // > The number of subidentifiers (N) shall be one less than the number of object identifier components in the object identifier
+            // > value being encoded.
+            // >
+            // > The numerical value of the first subidentifier is derived from the values of the first _two_ object identifier components
+            // > in the object identifier value being encoded, using the formula:
+            // >
+            // >  (X*40) + Y
+            // >
+            // > where X is the value of the first object identifier component and Y is the value of the second object identifier component.
+            //
+            // Yeah, this is a bit bananas, but basically there are only 3 first OID components (0, 1, 2) and there are no more than 39 children
+            // of nodes 0 or 1. In my view this is too clever by half, but the ITU.T didn't ask for my opinion when they were coming up with this
+            // scheme, likely because I was in middle school at the time.
+            var subcomponents = [UInt]()
+            while content.count > 0 {
+                subcomponents.append(try content.readUIntUsing8BitBytesASN1Discipline())
+            }
+
+            // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
+            // taking the quotient and remainder when dividing by 40.
+            var oidComponents = [UInt]()
+            oidComponents.reserveCapacity(subcomponents.count + 1)
+
+            // We'd like to work on the slice here.
+            var subcomponentSlice = subcomponents[...]
+            guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
+                throw ASN1Error.invalidASN1Object(reason: "Zero components in OID")
+            }
+
+            let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
+            oidComponents.append(firstSubcomponent)
+            oidComponents.append(secondSubcomponent)
+            oidComponents.append(contentsOf: subcomponentSlice)
+            return oidComponents
         }
-
-        // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
-        // taking the quotient and remainder when dividing by 40.
-        var oidComponents = [UInt]()
-        oidComponents.reserveCapacity(subcomponents.count + 1)
-
-        // We'd like to work on the slice here.
-        var subcomponentSlice = subcomponents[...]
-        guard let firstEncodedSubcomponent = subcomponentSlice.popFirst() else {
-            throw ASN1Error.invalidASN1Object(reason: "Zero components in OID")
-        }
-
-        let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
-        oidComponents.append(firstSubcomponent)
-        oidComponents.append(secondSubcomponent)
-        oidComponents.append(contentsOf: subcomponentSlice)
-
-        self._oidComponents = oidComponents
     }
 
     @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
-            var components = self._oidComponents[...]
-            guard let firstComponent = components.popFirst(), let secondComponent = components.popFirst() else {
-                preconditionFailure("Invalid number of OID components: must be at least two!")
-            }
-
-            let serializedFirstComponent = (firstComponent * 40) + secondComponent
-            ASN1ObjectIdentifier._writeOIDSubidentifier(serializedFirstComponent, into: &bytes)
-
-            while let component = components.popFirst() {
-                ASN1ObjectIdentifier._writeOIDSubidentifier(component, into: &bytes)
-            }
+            bytes.append(contentsOf: self.bytes)
         }
     }
 
@@ -120,14 +117,30 @@ extension ASN1ObjectIdentifier: Sendable {}
 extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
     @inlinable
     public init(arrayLiteral elements: UInt...) {
-        self._oidComponents = elements
+        var bytes = [UInt8]()
+        var components = elements[...]
+        guard let firstComponent = components.popFirst(), let secondComponent = components.popFirst() else {
+            preconditionFailure("Invalid number of OID components: must be at least two!")
+        }
+
+        let serializedFirstComponent = (firstComponent * 40) + secondComponent
+        ASN1ObjectIdentifier._writeOIDSubidentifier(serializedFirstComponent, into: &bytes)
+
+        while let component = components.popFirst() {
+            ASN1ObjectIdentifier._writeOIDSubidentifier(component, into: &bytes)
+        }
+        self.bytes = bytes[...]
     }
 }
 
 extension ASN1ObjectIdentifier: CustomStringConvertible {
     @inlinable
     public var description: String {
-        self._oidComponents.map { String($0) }.joined(separator: ".")
+        do {
+            return try self.oidComponents.map { String($0) }.joined(separator: ".")
+        } catch {
+            return "invalid OID \(String(reflecting: error))"
+        }
     }
 }
 
