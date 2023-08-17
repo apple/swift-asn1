@@ -118,12 +118,6 @@ extension PEMSerializable {
 public struct PEMDocument: Hashable, Sendable {
     fileprivate static let lineLength = 64
 
-    @available(*, deprecated, renamed: "discriminator")
-    public var type: String {
-        get { discriminator }
-        set { discriminator = newValue }
-    }
-
     /// The PEM discriminator is in the first line of a PEM string after `BEGIN` and at the end of the string after `END` e.g.
     /// ```
     /// -----BEGIN discriminator-----
