@@ -189,8 +189,7 @@ extension Array where Element == UInt8 {
             self.append(topByte)
 
             // Then we encode this in base128, just like an OID subidentifier.
-            // TODO: Adjust the ASN1Identifier to use UInt for its storage.
-            self.writeUsing7BitBytesASN1Discipline(unsignedInteger: UInt(identifier.tagNumber))
+            self.writeUsing7BitBytesASN1Discipline(unsignedInteger: identifier.tagNumber)
         }
     }
 }
