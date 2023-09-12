@@ -446,6 +446,9 @@ class ASN1Tests: XCTestCase {
         let document = try PEMDocument(pemString: simplePEM)
         XCTAssertEqual(document.discriminator, "EC PRIVATE KEY")
         XCTAssertEqual(document.derBytes.count, 121)
+        
+        let documents = try PEMDocument.multiple(pemString: simplePEM)
+        XCTAssertEqual(documents, [document])
 
         let parsed = try DER.parse(document.derBytes)
         let pkey = try SEC1PrivateKey(derEncoded: parsed)
@@ -457,6 +460,38 @@ class ASN1Tests: XCTestCase {
         XCTAssertNoThrow(try serializer.serialize(pkey))
         let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: serializer.serializedBytes)
         XCTAssertEqual(reserialized2.pemString, simplePEM)
+    }
+    
+    func testStraightforwardMultiPEMDocumentParsing() throws {
+        let simplePEM = """
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
+        let documents = try PEMDocument.multiple(pemString: simplePEM)
+        XCTAssertEqual(documents.count, 2)
+        for document in documents {
+            XCTAssertEqual(document.discriminator, "EC PRIVATE KEY")
+            XCTAssertEqual(document.derBytes.count, 121)
+            
+            
+            let parsed = try DER.parse(document.derBytes)
+            let pkey = try SEC1PrivateKey(derEncoded: parsed)
+            
+            let reserialized = document.pemString
+            
+            var serializer = DER.Serializer()
+            XCTAssertNoThrow(try serializer.serialize(pkey))
+            let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: serializer.serializedBytes)
+            XCTAssertEqual(reserialized2.pemString, reserialized)
+        }
     }
 
     func testStraightforwardPEMParsing() throws {

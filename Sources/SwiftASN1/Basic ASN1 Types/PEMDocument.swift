@@ -127,41 +127,16 @@ public struct PEMDocument: Hashable, Sendable {
     public var discriminator: String
 
     public var derBytes: [UInt8]
-
+    
     public init(pemString: String) throws {
-        // A PEM document looks like this:
-        //
-        // -----BEGIN <SOME DISCRIMINATOR>-----
-        // <base64 encoded bytes, 64 characters per line>
-        // -----END <SOME DISCRIMINATOR>-----
-        //
-        // This function attempts to parse this string as a PEM document, and returns the discriminator type
-        // and the base64 decoded bytes.
-        var lines = pemString.split { $0.isNewline }[...]
-        guard let first = lines.first, let last = lines.last else {
-            throw ASN1Error.invalidPEMDocument(reason: "Leading or trailing line missing.")
+        let documents = try PEMDocument.multiple(pemString: pemString)
+        if documents.count == 0 {
+            throw ASN1Error.invalidPEMDocument(reason: "could not find PEM start marker")
+        } else if documents.count == 1 {
+            self = documents.first!
+        } else {
+            throw ASN1Error.invalidPEMDocument(reason: "Multiple PEMDocuments found")
         }
-
-        guard let discriminator = first.pemStartDiscriminator, discriminator == last.pemEndDiscriminator else {
-            throw ASN1Error.invalidPEMDocument(reason: "Leading or trailing line missing PEM discriminator")
-        }
-
-        // All but the last line must be 64 bytes. The force unwrap is safe because we require the lines to be
-        // greater than zero.
-        lines = lines.dropFirst().dropLast()
-        guard lines.count > 0,
-            lines.dropLast().allSatisfy({ $0.utf8.count == PEMDocument.lineLength }),
-            lines.last!.utf8.count <= PEMDocument.lineLength
-        else {
-            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
-        }
-
-        guard let derBytes = Data(base64Encoded: lines.joined()) else {
-            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
-        }
-
-        self.discriminator = discriminator
-        self.derBytes = Array(derBytes)
     }
 
     public init(type: String, derBytes: [UInt8]) {
@@ -199,32 +174,116 @@ public struct PEMDocument: Hashable, Sendable {
     }
 }
 
-extension Substring {
-    fileprivate var pemStartDiscriminator: String? {
-        return self.pemDiscriminator(expectedPrefix: "-----BEGIN ", expectedSuffix: "-----")
+extension PEMDocument {
+    public static func multiple(pemString: String) throws -> [PEMDocument] {
+        var pemString = pemString.utf8[...]
+        var pemDocuments = [PEMDocument]()
+        while true {
+            guard let (discriminator, base64EncodedDER) = try pemString.readNextPEMDocument() else {
+                // we reached the end
+                return pemDocuments
+            }
+            guard let base64EncodedDERString = String(base64EncodedDER) else {
+                return pemDocuments
+            }
+            
+            guard let data = Data(base64Encoded: base64EncodedDERString, options: .ignoreUnknownCharacters) else {
+                throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
+            }
+            guard let type = String(discriminator) else {
+                return pemDocuments
+            }
+            let derBytes = Array(data)
+            pemDocuments.append(PEMDocument(type: type, derBytes: derBytes))
+        }
     }
+}
 
-    fileprivate var pemEndDiscriminator: String? {
-        return self.pemDiscriminator(expectedPrefix: "-----END ", expectedSuffix: "-----")
-    }
-
-    private func pemDiscriminator(expectedPrefix: String, expectedSuffix: String) -> String? {
-        var utf8Bytes = self.utf8[...]
-
-        // We want to split this sequence into three parts: the prefix, the middle, and the end
-        let prefixSize = expectedPrefix.utf8.count
-        let suffixSize = expectedSuffix.utf8.count
-
-        let prefix = utf8Bytes.prefix(prefixSize)
-        utf8Bytes = utf8Bytes.dropFirst(prefixSize)
-        let suffix = utf8Bytes.suffix(suffixSize)
-        utf8Bytes = utf8Bytes.dropLast(suffixSize)
-
-        guard prefix.elementsEqual(expectedPrefix.utf8), suffix.elementsEqual(expectedSuffix.utf8) else {
+extension Substring.UTF8View {
+    /// A PEM document looks like this:
+    /// ```
+    /// -----BEGIN <SOME DISCRIMINATOR>-----
+    /// <base64 encoded bytes, 64 characters per line>
+    /// -----END <SOME DISCRIMINATOR>-----
+    /// ```
+    /// This function attempts find the BEGIN and END marker.
+    /// It then tries to extract the discriminator and the base64 encoded.
+    /// - Returns: `discriminator` found after BEGIN and END markers and `base64EncodedDerBytes`.
+    /// The `base64EncodedDerBytes` is as found in the original string and will still contain new lines if present in the original.
+    mutating func readNextPEMDocument() throws -> (discriminator: Self, base64EncodedDerBytes: Self)? {
+        /// First find the BEGIN marker: `-----BEGIN <SOME DISCRIMINATOR>-----
+        guard
+            let beginDiscriminatorPrefix = self.firstRange(of: "-----BEGIN ".utf8[...]),
+            let beginDiscriminatorSuffix = self[beginDiscriminatorPrefix.upperBound...].firstRange(of: "-----\n".utf8[...])
+        else {
             return nil
         }
+        let beginDiscriminator = self[beginDiscriminatorPrefix.upperBound..<beginDiscriminatorSuffix.lowerBound]
+        
+        /// and then find the END marker: `-----END <SOME DISCRIMINATOR>-----
+        guard
+            let endDiscriminatorPrefix = self[beginDiscriminatorSuffix.upperBound...].firstRange(of: "-----END ".utf8[...]),
+            let endDiscriminatorSuffix = self[endDiscriminatorPrefix.upperBound...].firstRange(of: "-----".utf8[...])
+        else {
+            let pemBegin = self[beginDiscriminatorPrefix.lowerBound..<beginDiscriminatorSuffix.upperBound]
+            let pemEnd = "-----END \(beginDiscriminator)-----"
+            throw ASN1Error.invalidPEMDocument(
+                reason: "PEMDocument has \(String(reflecting: String(pemBegin))) but not \(String(reflecting: pemEnd))"
+            )
+        }
+        let endDiscriminator = self[endDiscriminatorPrefix.upperBound..<endDiscriminatorSuffix.lowerBound]
+        
+        /// discriminator found in the BEGIN and END markers need to match
+        guard beginDiscriminator.elementsEqual(endDiscriminator) else {
+            throw ASN1Error.invalidPEMDocument(
+                reason: "PEMDocument begin and end discriminator don't match. BEGIN: \(String(reflecting: String(beginDiscriminator))). END: \(String(reflecting: String(endDiscriminator)))"
+            )
+        }
+        
+        /// everything between the BEGIN and END markers is considered the base64 encoded bytes
+        let base64EncodedDerBytes = self[beginDiscriminatorSuffix.upperBound..<endDiscriminatorPrefix.lowerBound]
+        
+        /// move `self` to the end of the END marker
+        self = self[endDiscriminatorPrefix.upperBound...]
+        
+        return (
+            discriminator: beginDiscriminator,
+            base64EncodedDerBytes: base64EncodedDerBytes
+        )
+    }
+}
 
-        return String(utf8Bytes)
+extension Substring.UTF8View {
+    func firstRange(of other: Self) -> Range<Index>? {
+        guard other.count >= 1 else {
+            return self.startIndex..<self.startIndex
+        }
+        let otherWithoutFirst = other.dropFirst()
+        
+        var currentSearchRange = self
+        while currentSearchRange.count >= other.count {
+            // find the first occurrence of first element in other
+            guard let firstIndexOfOther = currentSearchRange.firstIndex(of: other.first!) else {
+                return nil
+            }
+            // this is now the start of a potential match.
+            // we have already checked the first element so we can skip that and 
+            // continue our search from the second element
+            let secondIndexOfOther = currentSearchRange.index(after: firstIndexOfOther)
+            guard let searchEndIndex = currentSearchRange.index(firstIndexOfOther, offsetBy: other.count, limitedBy: currentSearchRange.endIndex) else {
+                // not enough elements remaining
+                return nil
+            }
+            // check that all elements are equal
+            if currentSearchRange[secondIndexOfOther..<searchEndIndex].elementsEqual(otherWithoutFirst) {
+                // we found a match
+                return firstIndexOfOther..<searchEndIndex
+            } else {
+                // we continue our search one after the current match
+                currentSearchRange = self[secondIndexOfOther...]
+            }
+        }
+        return nil
     }
 }
 
