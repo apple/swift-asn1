@@ -447,7 +447,7 @@ class ASN1Tests: XCTestCase {
         XCTAssertEqual(document.discriminator, "EC PRIVATE KEY")
         XCTAssertEqual(document.derBytes.count, 121)
         
-        let documents = try PEMDocument.multiple(pemString: simplePEM)
+        let documents = try PEMDocument.parseMultiple(pemString: simplePEM)
         XCTAssertEqual(documents, [document])
 
         let parsed = try DER.parse(document.derBytes)
@@ -475,7 +475,7 @@ class ASN1Tests: XCTestCase {
             O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
             -----END EC PRIVATE KEY-----
             """
-        let documents = try PEMDocument.multiple(pemString: simplePEM)
+        let documents = try PEMDocument.parseMultiple(pemString: simplePEM)
         XCTAssertEqual(documents.count, 2)
         for document in documents {
             XCTAssertEqual(document.discriminator, "EC PRIVATE KEY")
@@ -490,6 +490,85 @@ class ASN1Tests: XCTestCase {
             var serializer = DER.Serializer()
             XCTAssertNoThrow(try serializer.serialize(pkey))
             let reserialized2 = PEMDocument(type: "EC PRIVATE KEY", derBytes: serializer.serializedBytes)
+            XCTAssertEqual(reserialized2.pemString, reserialized)
+        }
+    }
+    
+    func testMultiPEMDocumentParsing() throws {
+        let multiPEM = """
+        -----BEGIN CERTIFICATE-----
+        MIIDljCCAn6gAwIBAgIQC5McOtY5Z+pnI7/Dr5r0SzANBgkqhkiG9w0BAQsFADBl
+        MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+        d3cuZGlnaWNlcnQuY29tMSQwIgYDVQQDExtEaWdpQ2VydCBBc3N1cmVkIElEIFJv
+        b3QgRzIwHhcNMTMwODAxMTIwMDAwWhcNMzgwMTE1MTIwMDAwWjBlMQswCQYDVQQG
+        EwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNl
+        cnQuY29tMSQwIgYDVQQDExtEaWdpQ2VydCBBc3N1cmVkIElEIFJvb3QgRzIwggEi
+        MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDZ5ygvUj82ckmIkzTz+GoeMVSA
+        n61UQbVH35ao1K+ALbkKz3X9iaV9JPrjIgwrvJUXCzO/GU1BBpAAvQxNEP4Htecc
+        biJVMWWXvdMX0h5i89vqbFCMP4QMls+3ywPgym2hFEwbid3tALBSfK+RbLE4E9Hp
+        EgjAALAcKxHad3A2m67OeYfcgnDmCXRwVWmvo2ifv922ebPynXApVfSr/5Vh88lA
+        bx3RvpO704gqu52/clpWcTs/1PPRCv4o76Pu2ZmvA9OPYLfykqGxvYmJHzDNw6Yu
+        YjOuFgJ3RFrngQo8p0Quebg/BLxcoIfhG69Rjs3sLPr4/m3wOnyqi+RnlTGNAgMB
+        AAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgGGMB0GA1UdDgQW
+        BBTOw0q5mVXyuNtgv6l+vVa1lzan1jANBgkqhkiG9w0BAQsFAAOCAQEAyqVVjOPI
+        QW5pJ6d1Ee88hjZv0p3GeDgdaZaikmkuOGybfQTUiaWxMTeKySHMq2zNixya1r9I
+        0jJmwYrA8y8678Dj1JGG0VDjA9tzd29KOVPt3ibHtX2vK0LRdWLjSisCx1BL4Gni
+        lmwORGYQRI+tBev4eaymG+g3NJ1TyWGqolKvSnAWhsI6yLETcDbYz+70CjTVW0z9
+        B5yiutkBclzzTcHdDrEcDcRjvq30FPuJ7KJBDkzMyFdA0G4Dqs0MjomZmWzwPDCv
+        ON9vvKO+KSAnq3T/EyJ43pdSVR6DtVQgA+6uwE9W3jfMw3+qBCe703e4YtsXfJwo
+        IhNzbM8m9Yop5w==
+        -----END CERTIFICATE-----
+        -----BEGIN CERTIFICATE-----
+        MIICRjCCAc2gAwIBAgIQC6Fa+h3foLVJRK/NJKBs7DAKBggqhkjOPQQDAzBlMQsw
+        CQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cu
+        ZGlnaWNlcnQuY29tMSQwIgYDVQQDExtEaWdpQ2VydCBBc3N1cmVkIElEIFJvb3Qg
+        RzMwHhcNMTMwODAxMTIwMDAwWhcNMzgwMTE1MTIwMDAwWjBlMQswCQYDVQQGEwJV
+        UzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQu
+        Y29tMSQwIgYDVQQDExtEaWdpQ2VydCBBc3N1cmVkIElEIFJvb3QgRzMwdjAQBgcq
+        hkjOPQIBBgUrgQQAIgNiAAQZ57ysRGXtzbg/WPuNsVepRC0FFfLvC/8QdJ+1YlJf
+        Zn4f5dwbRXkLzMZTCp2NXQLZqVneAlr2lSoOjThKiknGvMYDOAdfVdp+CW7if17Q
+        RSAPWXYQ1qAk8C3eNvJsKTmjQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/
+        BAQDAgGGMB0GA1UdDgQWBBTL0L2p4ZgFUaFNN6KDec6NHSrkhDAKBggqhkjOPQQD
+        AwNnADBkAjAlpIFFAmsSS3V0T8gj43DydXLefInwz5FyYZ5eEJJZVrmDxxDnOOlY
+        JjZ91eQ0hjkCMHw2U/Aw5WJjOpnitqM7mzT6HtoQknFekROn3aRukswy1vUhZscv
+        6pZjamVFkpUBtA==
+        -----END CERTIFICATE-----
+        -----BEGIN CERTIFICATE-----
+        MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh
+        MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+        d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD
+        QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT
+        MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
+        b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG
+        9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB
+        CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97
+        nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt
+        43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P
+        T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4
+        gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO
+        BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR
+        TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw
+        DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr
+        hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg
+        06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF
+        PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls
+        YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk
+        CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=
+        -----END CERTIFICATE-----
+        """
+        
+        let documents = try PEMDocument.parseMultiple(pemString: multiPEM)
+        XCTAssertEqual(documents.count, 3)
+        for document in documents {
+            XCTAssertEqual(document.discriminator, "CERTIFICATE")
+            
+            let parsed = try DER.parse(document.derBytes)
+            
+            let reserialized = document.pemString
+            
+            var serializer = DER.Serializer()
+            XCTAssertNoThrow(serializer.serialize(parsed))
+            let reserialized2 = PEMDocument(type: "CERTIFICATE", derBytes: serializer.serializedBytes)
             XCTAssertEqual(reserialized2.pemString, reserialized)
         }
     }
@@ -592,6 +671,22 @@ class ASN1Tests: XCTestCase {
     func testEmptyPEMDocument() throws {
         let simplePEM = """
             -----BEGIN EC PRIVATE KEY-----
+            -----END EC PRIVATE KEY-----
+            """
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
+
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
+    }
+    
+    func testPEMDocumentWithOnlyNewLines() throws {
+        let simplePEM = """
+            -----BEGIN EC PRIVATE KEY-----
+            
+            
             -----END EC PRIVATE KEY-----
             """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in

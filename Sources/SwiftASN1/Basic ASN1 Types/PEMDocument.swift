@@ -129,14 +129,16 @@ public struct PEMDocument: Hashable, Sendable {
     public var derBytes: [UInt8]
     
     public init(pemString: String) throws {
-        let documents = try PEMDocument.multiple(pemString: pemString)
-        if documents.count == 0 {
+        var pemString = pemString.utf8[...]
+        
+        guard let document = try pemString.readNextPEMDocument()?.decode() else {
             throw ASN1Error.invalidPEMDocument(reason: "could not find PEM start marker")
-        } else if documents.count == 1 {
-            self = documents.first!
-        } else {
+        }
+        guard try pemString.readNextPEMDocument() == nil else {
             throw ASN1Error.invalidPEMDocument(reason: "Multiple PEMDocuments found")
         }
+        
+        self = document
     }
 
     public init(type: String, derBytes: [UInt8]) {
@@ -175,27 +177,46 @@ public struct PEMDocument: Hashable, Sendable {
 }
 
 extension PEMDocument {
-    public static func multiple(pemString: String) throws -> [PEMDocument] {
+    /// Attempts to parse and decode multiple PEM documents inside a single String.
+    /// - Parameter pemString: The PEM-encoded string containing zero or more ``PEMDocument``s
+    /// - Returns: parsed and decoded PEM documents
+    public static func parseMultiple(pemString: String) throws -> [PEMDocument] {
         var pemString = pemString.utf8[...]
         var pemDocuments = [PEMDocument]()
         while true {
-            guard let (discriminator, base64EncodedDER) = try pemString.readNextPEMDocument() else {
+            guard let lazyPEMDocument = try pemString.readNextPEMDocument() else {
                 // we reached the end
                 return pemDocuments
             }
-            guard let base64EncodedDERString = String(base64EncodedDER) else {
-                return pemDocuments
-            }
             
-            guard let data = Data(base64Encoded: base64EncodedDERString, options: .ignoreUnknownCharacters) else {
-                throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
-            }
-            guard let type = String(discriminator) else {
-                return pemDocuments
-            }
-            let derBytes = Array(data)
-            pemDocuments.append(PEMDocument(type: type, derBytes: derBytes))
+            pemDocuments.append(try lazyPEMDocument.decode())
         }
+    }
+}
+
+
+/// A PEM document that has not yet decoded the base64 string found between the start and end marker.
+struct LazyPEMDocument {
+    var discriminator: Substring.UTF8View
+    var base64EncodedDERString: Substring.UTF8View
+    
+    func decode() throws -> PEMDocument {
+        guard let base64EncodedDERString = String(base64EncodedDERString) else {
+            throw ASN1Error.invalidPEMDocument(reason: "base64EncodedDERString is not valid UTF-8")
+        }
+        
+        guard let data = Data(base64Encoded: base64EncodedDERString, options: .ignoreUnknownCharacters) else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
+        }
+        guard data.isEmpty == false else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has an empty body")
+        }
+        guard let type = String(discriminator) else {
+            throw ASN1Error.invalidPEMDocument(reason: "discriminator is not valid UTF-8")
+        }
+        
+        let derBytes = Array(data)
+        return PEMDocument(type: type, derBytes: derBytes)
     }
 }
 
@@ -210,7 +231,7 @@ extension Substring.UTF8View {
     /// It then tries to extract the discriminator and the base64 encoded.
     /// - Returns: `discriminator` found after BEGIN and END markers and `base64EncodedDerBytes`.
     /// The `base64EncodedDerBytes` is as found in the original string and will still contain new lines if present in the original.
-    mutating func readNextPEMDocument() throws -> (discriminator: Self, base64EncodedDerBytes: Self)? {
+    fileprivate mutating func readNextPEMDocument() throws -> LazyPEMDocument? {
         /// First find the BEGIN marker: `-----BEGIN <SOME DISCRIMINATOR>-----
         guard
             let beginDiscriminatorPrefix = self.firstRange(of: "-----BEGIN ".utf8[...]),
@@ -241,15 +262,44 @@ extension Substring.UTF8View {
         }
         
         /// everything between the BEGIN and END markers is considered the base64 encoded bytes
-        let base64EncodedDerBytes = self[beginDiscriminatorSuffix.upperBound..<endDiscriminatorPrefix.lowerBound]
+        let base64EncodedDERString = self[beginDiscriminatorSuffix.upperBound..<endDiscriminatorPrefix.lowerBound]
+        
+        try base64EncodedDERString.checkLineLengthsOfBase64EncodedString()
         
         /// move `self` to the end of the END marker
         self = self[endDiscriminatorPrefix.upperBound...]
         
-        return (
-            discriminator: beginDiscriminator,
-            base64EncodedDerBytes: base64EncodedDerBytes
-        )
+        return LazyPEMDocument(discriminator: beginDiscriminator, base64EncodedDERString: base64EncodedDERString)
+    }
+    
+    
+    /// verify line length limits according to RFC
+    ///
+    /// [4.3.2.4  Step 4: Printable Encoding](https://www.rfc-editor.org/rfc/rfc1421#section-4.3)
+    ///
+    /// [...]
+    /// To represent the encapsulated text of a PEM message, the encoding
+    /// function's output is delimited into text lines (using local
+    /// conventions), with each line except the last containing exactly 64
+    /// printable characters and the final line containing 64 or fewer
+    /// printable characters.
+    ///
+    private func checkLineLengthsOfBase64EncodedString() throws {
+        var message = self
+        let lastIndex = message.index(before: message.endIndex)
+        while message.isEmpty == false {
+            let expectedNewLineIndex = message.index(message.startIndex, offsetBy: 64, limitedBy: lastIndex) ?? lastIndex
+            guard
+                let actualNewLineIndex = message.firstIndex(of: UInt8(ascii: "\n")),
+                actualNewLineIndex == expectedNewLineIndex
+            else {
+                throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
+            }
+            
+            let nextLineStart = message.index(after: expectedNewLineIndex)
+            
+            message = message[nextLineStart...]
+        }
     }
 }
 
