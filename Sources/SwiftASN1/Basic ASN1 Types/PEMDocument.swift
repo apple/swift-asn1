@@ -127,17 +127,17 @@ public struct PEMDocument: Hashable, Sendable {
     public var discriminator: String
 
     public var derBytes: [UInt8]
-    
+
     public init(pemString: String) throws {
         var pemString = pemString.utf8[...]
-        
+
         guard let document = try pemString.readNextPEMDocument()?.decode() else {
             throw ASN1Error.invalidPEMDocument(reason: "could not find PEM start marker")
         }
         guard try pemString.readNextPEMDocument() == nil else {
             throw ASN1Error.invalidPEMDocument(reason: "Multiple PEMDocuments found")
         }
-        
+
         self = document
     }
 
@@ -188,23 +188,22 @@ extension PEMDocument {
                 // we reached the end
                 return pemDocuments
             }
-            
+
             pemDocuments.append(try lazyPEMDocument.decode())
         }
     }
 }
 
-
 /// A PEM document that has not yet decoded the base64 string found between the start and end marker.
 struct LazyPEMDocument {
     var discriminator: Substring.UTF8View
     var base64EncodedDERString: Substring.UTF8View
-    
+
     func decode() throws -> PEMDocument {
         guard let base64EncodedDERString = String(base64EncodedDERString) else {
             throw ASN1Error.invalidPEMDocument(reason: "base64EncodedDERString is not valid UTF-8")
         }
-        
+
         guard let data = Data(base64Encoded: base64EncodedDERString, options: .ignoreUnknownCharacters) else {
             throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
         }
@@ -214,7 +213,7 @@ struct LazyPEMDocument {
         guard let type = String(discriminator) else {
             throw ASN1Error.invalidPEMDocument(reason: "discriminator is not valid UTF-8")
         }
-        
+
         let derBytes = Array(data)
         return PEMDocument(type: type, derBytes: derBytes)
     }
@@ -235,15 +234,19 @@ extension Substring.UTF8View {
         /// First find the BEGIN marker: `-----BEGIN <SOME DISCRIMINATOR>-----
         guard
             let beginDiscriminatorPrefix = self.firstRange(of: "-----BEGIN ".utf8[...]),
-            let beginDiscriminatorSuffix = self[beginDiscriminatorPrefix.upperBound...].firstRange(of: "-----\n".utf8[...])
+            let beginDiscriminatorSuffix = self[beginDiscriminatorPrefix.upperBound...].firstRange(
+                of: "-----\n".utf8[...]
+            )
         else {
             return nil
         }
         let beginDiscriminator = self[beginDiscriminatorPrefix.upperBound..<beginDiscriminatorSuffix.lowerBound]
-        
+
         /// and then find the END marker: `-----END <SOME DISCRIMINATOR>-----
         guard
-            let endDiscriminatorPrefix = self[beginDiscriminatorSuffix.upperBound...].firstRange(of: "-----END ".utf8[...]),
+            let endDiscriminatorPrefix = self[beginDiscriminatorSuffix.upperBound...].firstRange(
+                of: "-----END ".utf8[...]
+            ),
             let endDiscriminatorSuffix = self[endDiscriminatorPrefix.upperBound...].firstRange(of: "-----".utf8[...])
         else {
             let pemBegin = self[beginDiscriminatorPrefix.lowerBound..<beginDiscriminatorSuffix.upperBound]
@@ -253,26 +256,26 @@ extension Substring.UTF8View {
             )
         }
         let endDiscriminator = self[endDiscriminatorPrefix.upperBound..<endDiscriminatorSuffix.lowerBound]
-        
+
         /// discriminator found in the BEGIN and END markers need to match
         guard beginDiscriminator.elementsEqual(endDiscriminator) else {
             throw ASN1Error.invalidPEMDocument(
-                reason: "PEMDocument begin and end discriminator don't match. BEGIN: \(String(reflecting: String(beginDiscriminator))). END: \(String(reflecting: String(endDiscriminator)))"
+                reason:
+                    "PEMDocument begin and end discriminator don't match. BEGIN: \(String(reflecting: String(beginDiscriminator))). END: \(String(reflecting: String(endDiscriminator)))"
             )
         }
-        
+
         /// everything between the BEGIN and END markers is considered the base64 encoded bytes
         let base64EncodedDERString = self[beginDiscriminatorSuffix.upperBound..<endDiscriminatorPrefix.lowerBound]
-        
+
         try base64EncodedDERString.checkLineLengthsOfBase64EncodedString()
-        
+
         /// move `self` to the end of the END marker
         self = self[endDiscriminatorPrefix.upperBound...]
-        
+
         return LazyPEMDocument(discriminator: beginDiscriminator, base64EncodedDERString: base64EncodedDERString)
     }
-    
-    
+
     /// verify line length limits according to RFC
     ///
     /// [4.3.2.4  Step 4: Printable Encoding](https://www.rfc-editor.org/rfc/rfc1421#section-4.3)
@@ -288,16 +291,17 @@ extension Substring.UTF8View {
         var message = self
         let lastIndex = message.index(before: message.endIndex)
         while message.isEmpty == false {
-            let expectedNewLineIndex = message.index(message.startIndex, offsetBy: 64, limitedBy: lastIndex) ?? lastIndex
+            let expectedNewLineIndex =
+                message.index(message.startIndex, offsetBy: 64, limitedBy: lastIndex) ?? lastIndex
             guard
                 let actualNewLineIndex = message.firstIndex(of: UInt8(ascii: "\n")),
                 actualNewLineIndex == expectedNewLineIndex
             else {
                 throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
             }
-            
+
             let nextLineStart = message.index(after: expectedNewLineIndex)
-            
+
             message = message[nextLineStart...]
         }
     }
@@ -309,7 +313,7 @@ extension Substring.UTF8View {
             return self.startIndex..<self.startIndex
         }
         let otherWithoutFirst = other.dropFirst()
-        
+
         var currentSearchRange = self
         while currentSearchRange.count >= other.count {
             // find the first occurrence of first element in other
@@ -317,10 +321,16 @@ extension Substring.UTF8View {
                 return nil
             }
             // this is now the start of a potential match.
-            // we have already checked the first element so we can skip that and 
+            // we have already checked the first element so we can skip that and
             // continue our search from the second element
             let secondIndexOfOther = currentSearchRange.index(after: firstIndexOfOther)
-            guard let searchEndIndex = currentSearchRange.index(firstIndexOfOther, offsetBy: other.count, limitedBy: currentSearchRange.endIndex) else {
+            guard
+                let searchEndIndex = currentSearchRange.index(
+                    firstIndexOfOther,
+                    offsetBy: other.count,
+                    limitedBy: currentSearchRange.endIndex
+                )
+            else {
                 // not enough elements remaining
                 return nil
             }
