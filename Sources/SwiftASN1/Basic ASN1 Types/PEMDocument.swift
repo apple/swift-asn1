@@ -183,23 +183,24 @@ extension PEMDocument {
     public static func parseMultiple(pemString: String) throws -> [PEMDocument] {
         var pemString = pemString.utf8[...]
         var pemDocuments = [PEMDocument]()
-        while true {
-            guard let lazyPEMDocument = try pemString.readNextPEMDocument() else {
-                // we reached the end
-                return pemDocuments
-            }
-
+        while let lazyPEMDocument = try pemString.readNextPEMDocument() {
             pemDocuments.append(try lazyPEMDocument.decode())
         }
+        return pemDocuments
     }
 }
 
 /// A PEM document that has not yet decoded the base64 string found between the start and end marker.
 struct LazyPEMDocument {
+    /// `discriminator` found after BEGIN and END markers
     var discriminator: Substring.UTF8View
+    /// The `base64EncodedDERString` is as found in the original string and will still contain new lines if present in the original.
     var base64EncodedDERString: Substring.UTF8View
 
     func decode() throws -> PEMDocument {
+        guard let type = String(discriminator) else {
+            throw ASN1Error.invalidPEMDocument(reason: "discriminator is not valid UTF-8")
+        }
         guard let base64EncodedDERString = String(base64EncodedDERString) else {
             throw ASN1Error.invalidPEMDocument(reason: "base64EncodedDERString is not valid UTF-8")
         }
@@ -207,11 +208,8 @@ struct LazyPEMDocument {
         guard let data = Data(base64Encoded: base64EncodedDERString, options: .ignoreUnknownCharacters) else {
             throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
         }
-        guard data.isEmpty == false else {
+        if data.isEmpty {
             throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has an empty body")
-        }
-        guard let type = String(discriminator) else {
-            throw ASN1Error.invalidPEMDocument(reason: "discriminator is not valid UTF-8")
         }
 
         let derBytes = Array(data)
@@ -227,27 +225,33 @@ extension Substring.UTF8View {
     /// -----END <SOME DISCRIMINATOR>-----
     /// ```
     /// This function attempts find the BEGIN and END marker.
-    /// It then tries to extract the discriminator and the base64 encoded.
-    /// - Returns: `discriminator` found after BEGIN and END markers and `base64EncodedDerBytes`.
-    /// The `base64EncodedDerBytes` is as found in the original string and will still contain new lines if present in the original.
+    /// It then tries to extract the discriminator and the base64 encoded string between the START and END marker.
     fileprivate mutating func readNextPEMDocument() throws -> LazyPEMDocument? {
-        /// First find the BEGIN marker: `-----BEGIN <SOME DISCRIMINATOR>-----
+        /// First find the BEGIN marker: `-----BEGIN <SOME DISCRIMINATOR>-----`
         guard
-            let beginDiscriminatorPrefix = self.firstRange(of: "-----BEGIN ".utf8[...]),
-            let beginDiscriminatorSuffix = self[beginDiscriminatorPrefix.upperBound...].firstRange(
-                of: "-----\n".utf8[...]
+            let (
+                beginDiscriminatorPrefix,
+                beginDiscriminatorInfix,
+                beginDiscriminatorSuffix
+            ) = self.firstRangesOf(
+                prefix: "-----BEGIN ",
+                suffix: "-----\n"
             )
         else {
             return nil
         }
-        let beginDiscriminator = self[beginDiscriminatorPrefix.upperBound..<beginDiscriminatorSuffix.lowerBound]
+        let beginDiscriminator = self[beginDiscriminatorInfix]
 
-        /// and then find the END marker: `-----END <SOME DISCRIMINATOR>-----
+        /// and then find the END marker: `-----END <SOME DISCRIMINATOR>-----`
         guard
-            let endDiscriminatorPrefix = self[beginDiscriminatorSuffix.upperBound...].firstRange(
-                of: "-----END ".utf8[...]
-            ),
-            let endDiscriminatorSuffix = self[endDiscriminatorPrefix.upperBound...].firstRange(of: "-----".utf8[...])
+            let (
+                endDiscriminatorPrefix,
+                endDiscriminatorInfix,
+                endDiscriminatorSuffix
+            ) = self[beginDiscriminatorSuffix.upperBound...].firstRangesOf(
+                prefix: "-----END ",
+                suffix: "-----"
+            )
         else {
             let pemBegin = self[beginDiscriminatorPrefix.lowerBound..<beginDiscriminatorSuffix.upperBound]
             let pemEnd = "-----END \(beginDiscriminator)-----"
@@ -255,7 +259,7 @@ extension Substring.UTF8View {
                 reason: "PEMDocument has \(String(reflecting: String(pemBegin))) but not \(String(reflecting: pemEnd))"
             )
         }
-        let endDiscriminator = self[endDiscriminatorPrefix.upperBound..<endDiscriminatorSuffix.lowerBound]
+        let endDiscriminator = self[endDiscriminatorInfix]
 
         /// discriminator found in the BEGIN and END markers need to match
         guard beginDiscriminator.elementsEqual(endDiscriminator) else {
@@ -265,13 +269,13 @@ extension Substring.UTF8View {
             )
         }
 
-        /// everything between the BEGIN and END markers is considered the base64 encoded bytes
+        /// everything between the BEGIN and END markers is considered the base64 encoded string
         let base64EncodedDERString = self[beginDiscriminatorSuffix.upperBound..<endDiscriminatorPrefix.lowerBound]
 
         try base64EncodedDERString.checkLineLengthsOfBase64EncodedString()
 
         /// move `self` to the end of the END marker
-        self = self[endDiscriminatorPrefix.upperBound...]
+        self = self[endDiscriminatorSuffix.upperBound...]
 
         return LazyPEMDocument(discriminator: beginDiscriminator, base64EncodedDERString: base64EncodedDERString)
     }
@@ -290,9 +294,10 @@ extension Substring.UTF8View {
     private func checkLineLengthsOfBase64EncodedString() throws {
         var message = self
         let lastIndex = message.index(before: message.endIndex)
-        while message.isEmpty == false {
+        while !message.isEmpty {
             let expectedNewLineIndex =
                 message.index(message.startIndex, offsetBy: 64, limitedBy: lastIndex) ?? lastIndex
+
             guard
                 let actualNewLineIndex = message.firstIndex(of: UInt8(ascii: "\n")),
                 actualNewLineIndex == expectedNewLineIndex
@@ -308,6 +313,38 @@ extension Substring.UTF8View {
 }
 
 extension Substring.UTF8View {
+    func firstRangesOf(
+        `prefix`: Substring,
+        suffix: Substring
+    ) -> (
+        prefix: Range<Index>,
+        infix: Range<Index>,
+        suffix: Range<Index>
+    )? {
+        self.firstRangesOf(prefix: `prefix`.utf8, suffix: suffix.utf8)
+    }
+
+    func firstRangesOf(
+        `prefix`: Self,
+        suffix: Self
+    ) -> (
+        prefix: Range<Index>,
+        infix: Range<Index>,
+        suffix: Range<Index>
+    )? {
+        guard
+            let prefixRange = self.firstRange(of: `prefix`),
+            let suffixRange = self[prefixRange.upperBound...].firstRange(of: suffix)
+        else {
+            return nil
+        }
+        return (
+            prefix: prefixRange,
+            infix: prefixRange.upperBound..<suffixRange.lowerBound,
+            suffix: suffixRange
+        )
+    }
+
     func firstRange(of other: Self) -> Range<Index>? {
         guard other.count >= 1 else {
             return self.startIndex..<self.startIndex
