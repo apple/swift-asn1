@@ -78,13 +78,9 @@ public struct ASN1Identifier {
 
     /// Produces a tag from components.
     ///
-    /// This is equivalent to ``init(tagWithNumber:tagClass:constructed:)``, but sets
-    /// `constructed` to `true` in all cases.
-    ///
     /// - parameters:
     ///     - number: The tag number.
     ///     - tagClass: The class of the ASN.1 tag.
-    ///     - constructed: Whether this is a constructed tag.
     @inlinable
     public init(tagWithNumber number: UInt, tagClass: TagClass) {
         self.tagNumber = number

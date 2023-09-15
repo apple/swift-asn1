@@ -221,7 +221,7 @@ We can decode it like so:
 ```swift
 init(derEncoded rootNode: ASN1Node) throws {
     self = try DER.sequence(rootNode, identifier: .sequence) { nodes in
-        let value = try Int64(derEncoded: &nodes, identifier: .init(tagWithNumber: 0, tagClass: .contextSpecific, constructed: false))
+        let value = try Int64(derEncoded: &nodes, withIdentifier: .init(tagWithNumber: 0, tagClass: .contextSpecific))
 
         return ContainsImplicitTag(value: value)
     }
@@ -233,7 +233,7 @@ We can also encode it similarly:
 ```swift
 func serialize(into coder: inout DER.Serializer) throws {
     try coder.appendConstructedNode(identifier: .sequence) { coder in
-        try self.value.serialize(into: &coder, withIdentifier: .init(tagWithNumber: 0, tagClass: .contextSpecific, constructed: false))
+        try self.value.serialize(into: &coder, withIdentifier: .init(tagWithNumber: 0, tagClass: .contextSpecific))
     }
 }
 ```
