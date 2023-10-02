@@ -17,7 +17,9 @@
 /// In DER format, this is always in the form of `YYYYMMDDHHMMSSZ`. The type in
 /// general is capable of expressing fractional seconds. The time is always in the
 /// UTC time zone.
-public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
+///
+/// In BER format, seconds may be omitted, and timezone offsets can be present.
+public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .generalizedTime
@@ -157,6 +159,12 @@ public struct GeneralizedTime: DERImplicitlyTaggable, Hashable, Sendable {
         }
 
         self = try TimeUtilities.generalizedTimeFromBytes(content)
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        // TODO: BER supports relaxed timestamp parsing, which is not yet supported
+        self = try .init(derEncoded: node, withIdentifier: identifier)
     }
 
     @inlinable

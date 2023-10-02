@@ -26,7 +26,7 @@
 ///
 /// This object also has a number of pre-existing values defined in namespaces. Users are encouraged to create their own namespaces to
 /// make it easier to use OIDs in their own serialization code.
-public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
+public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .objectIdentifier
@@ -126,6 +126,11 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(contentsOf: self.bytes)
         }
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identiifer: ASN1Identifier) throws {
+        self = try .init(derEncoded: node, withIdentifier: identiifer)
     }
 
     @inlinable

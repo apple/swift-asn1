@@ -19,6 +19,12 @@ extension ArraySlice: DERParseable where Element == UInt8 {}
 
 extension ArraySlice: DERImplicitlyTaggable where Element == UInt8 {}
 
+extension ArraySlice: BERSerializable where Element == UInt8 {}
+
+extension ArraySlice: BERParseable where Element == UInt8 {}
+
+extension ArraySlice: BERImplicitlyTaggable where Element == UInt8 {}
+
 extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     // We only use unsigned "bigint"s
     @inlinable
@@ -29,6 +35,11 @@ extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     @inlinable
     public init(derIntegerBytes: ArraySlice<UInt8>) throws {
         self = derIntegerBytes
+    }
+
+    @inlinable
+    public init(berIntegerBytes: ArraySlice<UInt8>) throws {
+        self = berIntegerBytes
     }
 
     @inlinable

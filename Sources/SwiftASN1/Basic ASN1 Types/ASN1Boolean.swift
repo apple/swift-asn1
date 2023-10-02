@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension Bool: DERImplicitlyTaggable {
+extension Bool: DERImplicitlyTaggable, BERImplicitlyTaggable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .boolean
@@ -38,6 +38,26 @@ extension Bool: DERImplicitlyTaggable {
         case let byte:
             // If we come to support BER then these values are all "true" as well.
             throw ASN1Error.invalidASN1Object(reason: "Invalid byte for ASN1Bool: \(byte)")
+        }
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        guard node.identifier == identifier else {
+            throw ASN1Error.unexpectedFieldType(node.identifier)
+        }
+
+        guard case .primitive(let bytes) = node.content, bytes.count == 1 else {
+            throw ASN1Error.invalidASN1Object(reason: "Invalid content for ASN1Bool")
+        }
+
+        switch bytes[bytes.startIndex] {
+        case 0:
+            // Boolean false
+            self = false
+        default:
+            // Boolean true in BER
+            self = true
         }
     }
 

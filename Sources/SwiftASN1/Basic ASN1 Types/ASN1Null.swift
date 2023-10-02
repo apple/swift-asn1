@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 /// An ASN1 NULL represents nothing.
-public struct ASN1Null: DERImplicitlyTaggable, Hashable, Sendable {
+public struct ASN1Null: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .null
@@ -32,6 +32,11 @@ public struct ASN1Null: DERImplicitlyTaggable, Hashable, Sendable {
         guard content.count == 0 else {
             throw ASN1Error.invalidASN1Object(reason: "ASN1Null must be empty, received \(content.count) bytes")
         }
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self = try .init(derEncoded: node, withIdentifier: identifier)
     }
 
     @inlinable
