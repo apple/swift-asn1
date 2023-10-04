@@ -49,3 +49,4 @@ To use swift-asn1, add the following dependency to your Package.swift:
 
 Consult [the documentation](https://swiftpackageindex.com/apple/swift-asn1/main/documentation/swiftasn1) for
 examples of how to use the code. A number of examples are also present in the repository itself.
+
