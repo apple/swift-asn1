@@ -11,9 +11,15 @@ services:
   test:
     image: swift-asn1:22.04-main
     environment:
+      - SWIFT_VERSION=main
       - WARN_AS_ERROR_ARG=-Xswiftc -warnings-as-errors
       - IMPORT_CHECK_ARG=--explicit-target-dependency-import-check error
       # - SANITIZER_ARG=--sanitize=thread # TSan broken still
 
   shell:
     image: swift-asn1:22.04-main
+    
+  update-benchmark-baseline:
+    image: swift-asn1:22.04-main
+    environment:
+      - SWIFT_VERSION=main
