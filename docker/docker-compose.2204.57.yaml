@@ -12,8 +12,16 @@ services:
   test:
     image: swift-asn1:22.04-5.7
     environment:
+      - SWIFT_VERSION=5.7
       - WARN_AS_ERROR_ARG=-Xswiftc -warnings-as-errors
       # - SANITIZER_ARG=--sanitize=thread # TSan broken still
 
   shell:
     image: swift-asn1:22.04-5.7
+    environment:
+      - SWIFT_VERSION=5.7
+    
+  update-benchmark-baseline:
+    image: swift-asn1:22.04-5.7
+    environment:
+      - SWIFT_VERSION=5.7
