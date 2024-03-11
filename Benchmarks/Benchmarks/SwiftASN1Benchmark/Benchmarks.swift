@@ -28,7 +28,7 @@ let benchmarks = {
         ]
     )
 
-    Benchmark("Parse WebPKI Roots from multi PEM to PEMDocument ") { benchmark, run in
+    Benchmark("Parse_WebPKI_Roots_from_multi_PEM_to_PEMDocument") { benchmark, run in
         for _ in benchmark.scaledIterations {
             run()
         }
@@ -36,7 +36,7 @@ let benchmarks = {
         try! parseWebPKIFromMultiPEMStringToPEMDocument()
     }
 
-    Benchmark("Parse WebPKI Roots from PEM to PEMDocument") { benchmark, run in
+    Benchmark("Parse_WebPKI_Roots_from_PEM_to_PEMDocument") { benchmark, run in
         for _ in benchmark.scaledIterations {
             run()
         }
