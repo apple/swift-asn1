@@ -38,9 +38,10 @@ enum TimeUtilities {
         }
 
         // There may be some fractional seconds.
-        var fractionalSeconds: Double = 0
+        var rawFractionalSeconds = ArraySlice<UInt8>()
         if bytes.first == UInt8(ascii: ".") {
-            fractionalSeconds = try bytes._readFractionalSeconds()
+            bytes.removeFirst()
+            rawFractionalSeconds = try bytes._readRawFractionalSeconds()
         }
 
         // The next character _must_ be Z, or the encoding is invalid.
@@ -60,7 +61,7 @@ enum TimeUtilities {
             hours: rawHour,
             minutes: rawMinutes,
             seconds: rawSeconds,
-            fractionalSeconds: fractionalSeconds
+            rawFractionalSeconds: rawFractionalSeconds
         )
     }
 
@@ -178,41 +179,44 @@ extension ArraySlice where Element == UInt8 {
         return (first &* 10) &+ (second)
     }
 
-    /// This may only be called if there's a leading period: we precondition on this fact.
     @inlinable
-    mutating func _readFractionalSeconds() throws -> Double {
-        precondition(self.popFirst() == UInt8(ascii: "."))
-
-        var numerator = 0
-        var denominator = 1
-
-        while let nextASCII = self.first, let next = Int(fromDecimalASCII: nextASCII) {
-            self = self.dropFirst()
-
-            let (newNumerator, multiplyOverflow) = numerator.multipliedReportingOverflow(by: 10)
-            let (newDenominator, secondMultiplyOverflow) = denominator.multipliedReportingOverflow(by: 10)
-            let (newNumeratorWithAdded, addingOverflow) = newNumerator.addingReportingOverflow(next)
-
-            // If the new denominator overflows, we just cap to the old value.
-            if !secondMultiplyOverflow {
-                denominator = newDenominator
-            }
-
-            // If the numerator overflows, we don't support the result.
-            if multiplyOverflow || addingOverflow {
-                throw ASN1Error.invalidASN1Object(reason: "Numerator overflow when calculating fractional seconds")
-            }
-
-            numerator = newNumeratorWithAdded
+    mutating func _readRawFractionalSeconds() throws -> ArraySlice<UInt8> {
+        guard let nonDecimalASCIIIndex = self.firstIndex(where: { Int(fromDecimalASCII: $0) == nil }) else {
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid fractional seconds"
+            )
         }
 
-        // Ok, we're either at the end or the next character is a Z. One final check: there may not have
-        // been any trailing zeros here. This means the number may not be 0 mod 10.
-        if numerator % 10 == 0 {
-            throw ASN1Error.invalidASN1Object(reason: "Trailing zeros in fractional seconds")
+        // If `nonDecimalASCIIIndex == self.startIndex`, then it means that there is a decimal point
+        // but there are no fractional seconds
+        if nonDecimalASCIIIndex == self.startIndex {
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid fractional seconds"
+            )
         }
 
-        return Double(numerator) / Double(denominator)
+        let rawFractionalSeconds = self[..<nonDecimalASCIIIndex]
+        self = self[nonDecimalASCIIIndex...]
+        return rawFractionalSeconds
+    }
+
+    @inlinable
+    mutating func append(fractionalSeconds: Double) throws {
+        // Fractional seconds may not be negative and may not be 1 or more.
+        guard fractionalSeconds >= 0 && fractionalSeconds < 1 else {
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid fractional seconds"
+            )
+        }
+
+        if fractionalSeconds != 0 {
+            let fractionalSecondsAsString = String(fractionalSeconds)
+
+            assert(fractionalSecondsAsString.starts(with: "0."), "Invalid fractional seconds")
+            assert(fractionalSecondsAsString.last != "0", "Trailing zeros in fractional seconds")
+
+            self.append(contentsOf: fractionalSecondsAsString.utf8.dropFirst(2))
+        }
     }
 }
 
@@ -226,16 +230,9 @@ extension Array where Element == UInt8 {
         self._appendTwoDigitDecimal(generalizedTime.minutes)
         self._appendTwoDigitDecimal(generalizedTime.seconds)
 
-        // Ok, tricky moment here. Is the fractional part non-zero? If it is, we need to write it out as well.
-        if generalizedTime.fractionalSeconds != 0 {
-            let stringified = String(generalizedTime.fractionalSeconds)
-            assert(stringified.starts(with: "0."))
-
-            self.append(contentsOf: stringified.utf8.dropFirst(1))
-            // Remove any trailing zeros from self, they are forbidden.
-            while self.last == 0 {
-                self = self.dropLast()
-            }
+        if generalizedTime.rawFractionalSeconds.count > 0 {
+            self.append(UInt8(ascii: "."))
+            self.append(contentsOf: generalizedTime.rawFractionalSeconds)
         }
 
         self.append(UInt8(ascii: "Z"))
@@ -298,5 +295,30 @@ extension Int {
         }
 
         self = converted
+    }
+}
+
+extension Double {
+    @inlinable
+    init(fromRawFractionalSeconds rawFractionalSeconds: ArraySlice<UInt8>) throws {
+        if rawFractionalSeconds.count == 0 {
+            self = 0
+            return
+        }
+
+        if rawFractionalSeconds.last == UInt8(ascii: "0") {
+            throw ASN1Error.invalidASN1Object(reason: "Trailing zeros in raw fractional seconds")
+        }
+
+        let rawFractionalSecondsAsString = String(decoding: rawFractionalSeconds, as: UTF8.self)
+        let fractionalSecondsAsString = "0.\(rawFractionalSecondsAsString)"
+
+        guard let fractionalSeconds = Double(fractionalSecondsAsString) else {
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid raw fractional seconds"
+            )
+        }
+
+        self = fractionalSeconds
     }
 }

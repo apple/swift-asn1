@@ -33,81 +33,166 @@ final class GeneralizedTimeTests: XCTestCase {
                 try .init(year: 1992, month: 5, day: 21, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
             ),
             (
+                "19920521000000Z",
+                try .init(year: 1992, month: 5, day: 21, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),
+            (
                 "19920622123421Z",
                 try .init(year: 1992, month: 6, day: 22, hours: 12, minutes: 34, seconds: 21, fractionalSeconds: 0)
+            ),
+            (
+                "19920622123421Z",
+                try .init(year: 1992, month: 6, day: 22, hours: 12, minutes: 34, seconds: 21, rawFractionalSeconds: ArraySlice<UInt8>())
             ),
             (
                 "19920722132100.3Z",
                 try .init(year: 1992, month: 7, day: 22, hours: 13, minutes: 21, seconds: 0, fractionalSeconds: 0.3)
             ),
             (
+                "19920722132100.3Z",
+                try .init(year: 1992, month: 7, day: 22, hours: 13, minutes: 21, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>([51]))
+            ),
+            (
                 "19851106210627.3Z",
                 try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, fractionalSeconds: 0.3)
+            ),
+            (
+                "19851106210627.3Z",
+                try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, rawFractionalSeconds: ArraySlice<UInt8>([51]))
             ),
             (
                 "19851106210627.14159Z",
                 try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, fractionalSeconds: 0.14159)
             ),
             (
+                "19851106210627.14159Z",
+                try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, rawFractionalSeconds: ArraySlice<UInt8>([49, 52, 49, 53, 57]))
+            ),
+            (
                 "20210131000000Z",
                 try .init(year: 2021, month: 1, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 31 days in January
+            ),
+            (
+                "20210131000000Z",
+                try .init(year: 2021, month: 1, day: 31, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 31 days in January
             (
                 "20210228000000Z",
                 try .init(year: 2021, month: 2, day: 28, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 28 days in February 2021
+            ),
+            (
+                "20210228000000Z",
+                try .init(year: 2021, month: 2, day: 28, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 28 days in February 2021
             (
                 "20200229000000Z",
                 try .init(year: 2020, month: 2, day: 29, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 29 days in February 2020
+            ),
+            (
+                "20200229000000Z",
+                try .init(year: 2020, month: 2, day: 29, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 29 days in February 2020
             (
                 "21000228000000Z",
                 try .init(year: 2100, month: 2, day: 28, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 28 days in February 2100
+            ),
+            (
+                "21000228000000Z",
+                try .init(year: 2100, month: 2, day: 28, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 28 days in February 2100
             (
                 "20000229000000Z",
                 try .init(year: 2000, month: 2, day: 29, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 29 days in February 2000
+            ),
+            (
+                "20000229000000Z",
+                try .init(year: 2000, month: 2, day: 29, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 29 days in February 2000
             (
                 "20210331000000Z",
                 try .init(year: 2021, month: 3, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 31 days in March
+            ),
+            (
+                "20210331000000Z",
+                try .init(year: 2021, month: 3, day: 31, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 31 days in March
             (
                 "20210430000000Z",
                 try .init(year: 2021, month: 4, day: 30, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 30 days in April
+            ),
+            (
+                "20210430000000Z",
+                try .init(year: 2021, month: 4, day: 30, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 30 days in April
             (
                 "20210531000000Z",
                 try .init(year: 2021, month: 5, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 31 days in May
+            ),
+            (
+                "20210531000000Z",
+                try .init(year: 2021, month: 5, day: 31, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 31 days in May
             (
                 "20210630000000Z",
                 try .init(year: 2021, month: 6, day: 30, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 30 days in June
+            ),
+            (
+                "20210630000000Z",
+                try .init(year: 2021, month: 6, day: 30, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 30 days in June
             (
                 "20210731000000Z",
                 try .init(year: 2021, month: 7, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 31 days in July
+            ),
+            (
+                "20210731000000Z",
+                try .init(year: 2021, month: 7, day: 31, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 31 days in July
             (
                 "20210831000000Z",
                 try .init(year: 2021, month: 8, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 31 days in August
+            ),
+            (
+                "20210831000000Z",
+                try .init(year: 2021, month: 8, day: 31, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 31 days in August
             (
                 "20210930000000Z",
                 try .init(year: 2021, month: 9, day: 30, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 30 days in September
+            ),
+            (
+                "20210930000000Z",
+                try .init(year: 2021, month: 9, day: 30, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 30 days in September
             (
                 "20211031000000Z",
                 try .init(year: 2021, month: 10, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 31 days in October
+            ),
+            (
+                "20211031000000Z",
+                try .init(year: 2021, month: 10, day: 31, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 31 days in October
             (
                 "20211130000000Z",
                 try .init(year: 2021, month: 11, day: 30, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 30 days in November
+            ),
+            (
+                "20211130000000Z",
+                try .init(year: 2021, month: 11, day: 30, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 30 days in November
             (
                 "20211231000000Z",
                 try .init(year: 2021, month: 12, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)
-            ),  // only 31 days in December
+            ),
+            (
+                "20211231000000Z",
+                try .init(year: 2021, month: 12, day: 31, hours: 0, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>())
+            ),// only 31 days in December
+            (
+                "19851106210627.10000000000000001Z",
+                try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, rawFractionalSeconds: ArraySlice<UInt8>([49, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 49]))
+            ),// `fractionalSeconds` loses precision and becomes 0.1 (as opposed to 0.10000000000000001).
+              // But `GeneralizedTime` round-trips when serialized and deserialized, as `rawFractionalSeconds` is preserved.
 
             // Invalid representations
             ("19920520240000Z", nil),  // midnight may not be 2400000
@@ -137,8 +222,8 @@ final class GeneralizedTimeTests: XCTestCase {
             ("20210931000000Z", nil),  // only 30 days in September
             ("20211032000000Z", nil),  // only 31 days in October
             ("20211131000000Z", nil),  // only 30 days in November
-            ("20211232000000Z", nil),  // only 31 days in December
-            ("20200101000000.9223372036854775808Z", nil),  // Fractional part will overflow a 64-bit integer by adding
+            ("19920521000000.", nil),  // invalid fractional seconds and missing trailing Z
+            ("19920521000000.Z", nil),  // invalid fractional seconds
 
         ]
 
@@ -164,58 +249,85 @@ final class GeneralizedTimeTests: XCTestCase {
 
         // Invalid year, negative
         mustFail(try .init(year: -1, month: 1, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: -1, month: 1, day: 1, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid month, zero.
         mustFail(try .init(year: 2000, month: 0, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 0, day: 1, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid month, negative.
         mustFail(try .init(year: 2000, month: -1, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: -1, day: 1, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid month, too large.
         mustFail(try .init(year: 2000, month: 13, day: 1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 13, day: 1, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid day, zero.
         mustFail(try .init(year: 2000, month: 1, day: 0, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 0, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid day, negative.
         mustFail(try .init(year: 2000, month: 1, day: -1, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: -1, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 31 days in January
         mustFail(try .init(year: 2000, month: 1, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 32, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 28 days in February 2021
         mustFail(try .init(year: 2021, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2021, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 29 days in February 2020
         mustFail(try .init(year: 2020, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2020, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 28 days in February 2100
         mustFail(try .init(year: 2100, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2100, month: 2, day: 29, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 29 days in February 2000
         mustFail(try .init(year: 2000, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 2, day: 30, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 31 days in March
         mustFail(try .init(year: 2000, month: 3, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 3, day: 32, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 30 days in April
         mustFail(try .init(year: 2000, month: 4, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 4, day: 31, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 31 days in May
         mustFail(try .init(year: 2000, month: 5, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 5, day: 32, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 30 days in June
         mustFail(try .init(year: 2000, month: 6, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 6, day: 31, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 31 days in July
         mustFail(try .init(year: 2000, month: 7, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 7, day: 32, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 31 days in August
         mustFail(try .init(year: 2000, month: 8, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 8, day: 32, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 30 days in September
         mustFail(try .init(year: 2000, month: 9, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 9, day: 31, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 31 days in October
         mustFail(try .init(year: 2000, month: 10, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 10, day: 32, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 30 days in November
         mustFail(try .init(year: 2000, month: 11, day: 31, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 11, day: 31, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // only 31 days in December
         mustFail(try .init(year: 2000, month: 11, day: 32, hours: 1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 11, day: 32, hours: 1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid hour, negative
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: -1, minutes: 1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: -1, minutes: 1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid hour, 24
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: 24, minutes: 0, seconds: 0, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 24, minutes: 0, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid minute, negative
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: -1, seconds: 1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: -1, seconds: 1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid minute, 60
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 60, seconds: 0, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 60, seconds: 0, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid second, negative
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: -1, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: -1, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid second, 62 (we allow some leap seconds)
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 62, fractionalSeconds: 0))
+        mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 62, rawFractionalSeconds: ArraySlice<UInt8>()))
         // Invalid fractional seconds, negative
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: -0.5))
         // Invalid fractional seconds, greater than one
