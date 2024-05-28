@@ -25,7 +25,7 @@ services:
 
   test:
     <<: *common
-    command: /bin/bash -xcl "swift $${SWIFT_TEST_VERB-test} $${WARN_AS_ERROR_ARG-} $${SANITIZER_ARG-} $${IMPORT_CHECK_ARG-} && cd Benchmarks && swift package benchmark baseline check --check-absolute-path Thresholds/$${SWIFT_VERSION-}/"
+    command: /bin/bash -xcl "swift $${SWIFT_TEST_VERB-test} $${WARN_AS_ERROR_ARG-} $${SANITIZER_ARG-} $${IMPORT_CHECK_ARG-} $${EXPLICIT_SENDABLE_ARG-} $${STRICT_CONCURRENCY_ARG} && cd Benchmarks && swift package benchmark baseline check --check-absolute-path Thresholds/$${SWIFT_VERSION-}/"
 
   update-benchmark-baseline:
     <<: *common
@@ -36,3 +36,4 @@ services:
   shell:
     <<: *common
     entrypoint: /bin/bash
+
