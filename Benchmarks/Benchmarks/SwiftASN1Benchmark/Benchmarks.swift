@@ -23,8 +23,6 @@ let benchmarks = {
             .readSyscalls,
             .writeSyscalls,
             .memoryLeaked,
-            .retainCount,
-            .releaseCount,
         ]
     )
 
