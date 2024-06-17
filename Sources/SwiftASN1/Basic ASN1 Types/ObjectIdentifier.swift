@@ -63,6 +63,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
         }
     }
 
+    /// An array representing the OID components
     @inlinable
     public var oidComponents: [UInt] {
         var content = bytes
@@ -144,12 +145,14 @@ extension ASN1ObjectIdentifier: Hashable {}
 extension ASN1ObjectIdentifier: Sendable {}
 
 extension ASN1ObjectIdentifier {
+    /// Initializes ``ASN1ObjectIdentifier`` from its OID components
+    /// - Parameter elements: The OID components
     @inlinable
     public init(elements: some Collection<UInt>) throws {
         var bytes = [UInt8]()
 
         guard elements.count >= 2 else {
-            throw ASN1Error.invalidNumberOfOIDComponents(
+            throw ASN1Error.tooFewOIDComponents(
                 reason: "Invalid number of OID components: must be at least two!"
             )
         }

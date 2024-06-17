@@ -1029,11 +1029,11 @@ class ASN1Tests: XCTestCase {
 
     func testOIDArrayInitializerInvalid() {
         XCTAssertThrowsError(try ASN1ObjectIdentifier(elements: [1])) { error in
-            XCTAssertEqual((error as? ASN1Error)?.code, .invalidNumberOfOIDComponents)
+            XCTAssertEqual((error as? ASN1Error)?.code, .tooFewOIDComponents)
         }
 
         XCTAssertThrowsError(try ASN1ObjectIdentifier(elements: [])) { error in
-            XCTAssertEqual((error as? ASN1Error)?.code, .invalidNumberOfOIDComponents)
+            XCTAssertEqual((error as? ASN1Error)?.code, .tooFewOIDComponents)
         }
     }
 
@@ -1055,7 +1055,7 @@ class ASN1Tests: XCTestCase {
         }
 
         XCTAssertThrowsError(try ASN1ObjectIdentifier(dotRepresentation: "25")) { error in
-            XCTAssertEqual((error as? ASN1Error)?.code, .invalidNumberOfOIDComponents)
+            XCTAssertEqual((error as? ASN1Error)?.code, .tooFewOIDComponents)
         }
     }
 
