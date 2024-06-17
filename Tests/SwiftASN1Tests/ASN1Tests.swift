@@ -1019,6 +1019,46 @@ class ASN1Tests: XCTestCase {
         XCTAssertEqual(s, "ASN1Any([5, 0])")
     }
 
+    func testOIDArrayInitializer() {
+        let oidArray = try! ASN1ObjectIdentifier(elements: [1, 2, 865, 11241, 3])
+        XCTAssertEqual(oidArray.oidComponents, [1, 2, 865, 11241, 3])
+
+        let anotherOidArray = try! ASN1ObjectIdentifier(elements: [1, 2, 865])
+        XCTAssertEqual(anotherOidArray.oidComponents, [1, 2, 865])
+    }
+
+    func testOIDArrayInitializerInvalid() {
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(elements: [1])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidNumberOfOIDComponents)
+        }
+
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(elements: [])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidNumberOfOIDComponents)
+        }
+    }
+
+    func testOIDStringInitializer() {
+        let oidFromString: ASN1ObjectIdentifier = "1.2.865.11241.3"
+        let oidFromArrayLiteral: ASN1ObjectIdentifier = [1, 2, 865, 11241, 3]
+
+        XCTAssertEqual(oidFromString, oidFromArrayLiteral)
+        XCTAssertEqual(oidFromString.oidComponents, [1, 2, 865, 11241, 3])
+    }
+
+    func testOIDStringInitializerInvalid() {
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(dotRepresentation: "1..2.865.11241.3")) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidStringRepresentation)
+        }
+
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(dotRepresentation: "1.2.<invalid>.11241.3")) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidStringRepresentation)
+        }
+
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(dotRepresentation: "25")) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidNumberOfOIDComponents)
+        }
+    }
+
     func testSetOfSingleElement() throws {
         var serializer = DER.Serializer()
         try serializer.serializeSetOf([

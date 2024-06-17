@@ -64,7 +64,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
     }
 
     @inlinable
-    var oidComponents: [UInt] {
+    public var oidComponents: [UInt] {
         var content = bytes
         // We have to parse the content. From the spec:
         //
@@ -143,22 +143,60 @@ extension ASN1ObjectIdentifier: Hashable {}
 
 extension ASN1ObjectIdentifier: Sendable {}
 
-extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
+extension ASN1ObjectIdentifier {
     @inlinable
-    public init(arrayLiteral elements: UInt...) {
+    public init(elements: some Collection<UInt>) throws {
         var bytes = [UInt8]()
-        var components = elements[...]
-        guard let firstComponent = components.popFirst(), let secondComponent = components.popFirst() else {
-            preconditionFailure("Invalid number of OID components: must be at least two!")
+
+        guard elements.count >= 2 else {
+            throw ASN1Error.invalidNumberOfOIDComponents(
+                reason: "Invalid number of OID components: must be at least two!"
+            )
         }
 
-        let serializedFirstComponent = (firstComponent * 40) + secondComponent
+        var iterator = elements.makeIterator()
+
+        // Safe to force unwrap first two elements as length >= 2 check has been performed above
+        let serializedFirstComponent = (iterator.next()! * 40) + iterator.next()!
         ASN1ObjectIdentifier._writeOIDSubidentifier(serializedFirstComponent, into: &bytes)
 
-        while let component = components.popFirst() {
+        while let component = iterator.next() {
             ASN1ObjectIdentifier._writeOIDSubidentifier(component, into: &bytes)
         }
         self.bytes = bytes[...]
+    }
+}
+
+extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
+    @inlinable
+    public init(stringLiteral dotRepresentation: String) {
+        // To allow for invalid strings to be tested, parsing is performed in a separate initializer that  `throws`
+        // (this initializer conforms to ExpressibleByStringLiteral so cannot throw)
+        try! self.init(dotRepresentation: dotRepresentation)
+    }
+
+    @inlinable
+    init(dotRepresentation: String) throws {
+        let octetArray = dotRepresentation.utf8.split(
+            separator: UInt8(ascii: "."),
+            omittingEmptySubsequences: false
+        )
+
+        try self.init(
+            elements: octetArray.lazy.map { octet in
+                guard let uintOctet = UInt(Substring(octet)) else {
+                    throw ASN1Error.invalidStringRepresentation(reason: "Invalid octet in OID")
+                }
+                return uintOctet
+            }
+        )
+    }
+}
+
+extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
+    @inlinable
+    public init(arrayLiteral elements: UInt...) {
+        try! self.init(elements: elements)
     }
 }
 
