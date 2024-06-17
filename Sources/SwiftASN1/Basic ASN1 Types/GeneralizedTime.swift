@@ -289,7 +289,11 @@ extension GeneralizedTime: Comparable {
         if lhs.hours < rhs.hours { return true } else if lhs.hours > rhs.hours { return false }
         if lhs.minutes < rhs.minutes { return true } else if lhs.minutes > rhs.minutes { return false }
         if lhs.seconds < rhs.seconds { return true } else if lhs.seconds > rhs.seconds { return false }
-        if lhs.fractionalSeconds < rhs.fractionalSeconds { return true } else if lhs.fractionalSeconds > rhs.fractionalSeconds { return false }
+        if lhs.fractionalSeconds < rhs.fractionalSeconds {
+            return true
+        } else if lhs.fractionalSeconds > rhs.fractionalSeconds {
+            return false
+        }
 
         for (lhsByte, rhsByte) in zip(lhs.rawFractionalSeconds, rhs.rawFractionalSeconds) {
             if lhsByte != rhsByte {
@@ -299,6 +303,6 @@ extension GeneralizedTime: Comparable {
 
         // Since the above `zip` iteration stops at the length of the shorter `Sequence`, finally,
         // compare the length of the two `Sequence`s.
-        return lhs.rawFractionalSeconds.count < rhs.rawFractionalSeconds.count;
+        return lhs.rawFractionalSeconds.count < rhs.rawFractionalSeconds.count
     }
 }
