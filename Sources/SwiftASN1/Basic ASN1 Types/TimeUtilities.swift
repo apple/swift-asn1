@@ -205,7 +205,7 @@ extension ArraySlice where Element == UInt8 {
         // Fractional seconds may not be negative and may not be 1 or more.
         guard fractionalSeconds >= 0 && fractionalSeconds < 1 else {
             throw ASN1Error.invalidASN1Object(
-                reason: "Invalid fractional seconds"
+                reason: "Invalid fractional seconds: \(fractionalSeconds)"
             )
         }
 

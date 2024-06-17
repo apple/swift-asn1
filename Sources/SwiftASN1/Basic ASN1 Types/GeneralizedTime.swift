@@ -133,6 +133,8 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     @usableFromInline var _hours: Int
     @usableFromInline var _minutes: Int
     @usableFromInline var _seconds: Int
+    /// `_fractionalSeconds` is a cached value and `_rawFractionalSeconds` is the source of truth for the numerical
+    /// fractonal seconds. (No information is lost in the conversion from `_fractionalSeconds` to `_rawFractionalSeconds`.)
     @usableFromInline var _fractionalSeconds: Double
     @usableFromInline var _rawFractionalSeconds: ArraySlice<UInt8>
 
@@ -181,7 +183,7 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     ///     - rawFractionalSeconds: The ArraySlice of bytes from which the fractional seconds will be computed.
     ///     (Preserved due to a possible overflow when computing a Double from this ArraySlice.)
     @inlinable
-    internal init(
+    public init(
         year: Int,
         month: Int,
         day: Int,
