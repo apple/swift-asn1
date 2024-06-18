@@ -150,17 +150,15 @@ extension ASN1ObjectIdentifier {
     @inlinable
     public init(elements: some Collection<UInt>) throws {
         var bytes = [UInt8]()
+        var iterator = elements.makeIterator()
 
-        guard elements.count >= 2 else {
+        guard let firstComponent = iterator.next(), let secondComponent = iterator.next() else {
             throw ASN1Error.tooFewOIDComponents(
                 reason: "Invalid number of OID components: must be at least two!"
             )
         }
 
-        var iterator = elements.makeIterator()
-
-        // Safe to force unwrap first two elements as length >= 2 check has been performed above
-        let serializedFirstComponent = (iterator.next()! * 40) + iterator.next()!
+        let serializedFirstComponent = (firstComponent * 40) + secondComponent
         ASN1ObjectIdentifier._writeOIDSubidentifier(serializedFirstComponent, into: &bytes)
 
         while let component = iterator.next() {
@@ -178,8 +176,10 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
         try! self.init(dotRepresentation: dotRepresentation)
     }
 
+    /// Initializes an instance from a `Substring` containing the dot represented OID
+    /// - Parameter dotRepresentation: The dot represented OID
     @inlinable
-    init(dotRepresentation: String) throws {
+    public init(dotRepresentation: Substring) throws {
         let octetArray = dotRepresentation.utf8.split(
             separator: UInt8(ascii: "."),
             omittingEmptySubsequences: false
@@ -193,6 +193,13 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
                 return uintOctet
             }
         )
+    }
+
+    /// Initializes an instance from a `String` containing the dot represented OID
+    /// - Parameter dotRepresentation: The dot represented OID
+    @inlinable
+    public init(dotRepresentation: String) throws {
+        try self.init(dotRepresentation: Substring(dotRepresentation))
     }
 }
 
