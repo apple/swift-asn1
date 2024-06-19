@@ -105,6 +105,24 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
         }
         set {
             self._fractionalSeconds = newValue
+            self._rawFractionalSeconds = ArraySlice<UInt8>()
+            try! self._rawFractionalSeconds.append(fractionalSeconds: self._fractionalSeconds)
+
+            try! self._validate()
+        }
+    }
+
+    /// The ArraySlice of bytes from which the fractional seconds will be computed. (Preserved due to a possible overflow
+    /// when computing a Double from this ArraySlice.)
+    @inlinable
+    public var rawFractionalSeconds: ArraySlice<UInt8> {
+        get {
+            return self._rawFractionalSeconds
+        }
+        set {
+            self._rawFractionalSeconds = newValue
+            self._fractionalSeconds = try! Double(fromRawFractionalSeconds: self._rawFractionalSeconds)
+
             try! self._validate()
         }
     }
@@ -115,7 +133,10 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     @usableFromInline var _hours: Int
     @usableFromInline var _minutes: Int
     @usableFromInline var _seconds: Int
+    /// `_fractionalSeconds` is a cached value and `_rawFractionalSeconds` is the source of truth for the numerical
+    /// fractonal seconds. (No information is lost in the conversion from `_fractionalSeconds` to `_rawFractionalSeconds`.)
     @usableFromInline var _fractionalSeconds: Double
+    @usableFromInline var _rawFractionalSeconds: ArraySlice<UInt8>
 
     /// Construct a new ``GeneralizedTime`` from individual components.
     ///
@@ -144,6 +165,41 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
         self._minutes = minutes
         self._seconds = seconds
         self._fractionalSeconds = fractionalSeconds
+        self._rawFractionalSeconds = ArraySlice<UInt8>()
+        try self._rawFractionalSeconds.append(fractionalSeconds: self._fractionalSeconds)
+
+        try self._validate()
+    }
+
+    /// Construct a new ``GeneralizedTime`` from individual components.
+    ///
+    /// - parameters:
+    ///     - year: The numerical year
+    ///     - month: The numerical month
+    ///     - day: The numerical day
+    ///     - hours: The numerical hours
+    ///     - minutes: The numerical minutes
+    ///     - seconds: The numerical seconds
+    ///     - rawFractionalSeconds: The ArraySlice of bytes from which the fractional seconds will be computed.
+    ///     (Preserved due to a possible overflow when computing a Double from this ArraySlice.)
+    @inlinable
+    public init(
+        year: Int,
+        month: Int,
+        day: Int,
+        hours: Int,
+        minutes: Int,
+        seconds: Int,
+        rawFractionalSeconds: ArraySlice<UInt8>
+    ) throws {
+        self._year = year
+        self._month = month
+        self._day = day
+        self._hours = hours
+        self._minutes = minutes
+        self._seconds = seconds
+        self._rawFractionalSeconds = rawFractionalSeconds
+        self._fractionalSeconds = try Double(fromRawFractionalSeconds: self._rawFractionalSeconds)
 
         try self._validate()
     }
@@ -216,6 +272,11 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
                 reason: "Invalid fractional seconds for GeneralizedTime \(self._fractionalSeconds)"
             )
         }
+
+        // When `rawFractionalSeconds` is converted to a `Double`, it must be equal to `fractionalSeconds`.
+        assert(
+            (try? Double(fromRawFractionalSeconds: self._rawFractionalSeconds)) == self._fractionalSeconds
+        )
     }
 }
 
@@ -228,6 +289,20 @@ extension GeneralizedTime: Comparable {
         if lhs.hours < rhs.hours { return true } else if lhs.hours > rhs.hours { return false }
         if lhs.minutes < rhs.minutes { return true } else if lhs.minutes > rhs.minutes { return false }
         if lhs.seconds < rhs.seconds { return true } else if lhs.seconds > rhs.seconds { return false }
-        return lhs.fractionalSeconds < rhs.fractionalSeconds
+        if lhs.fractionalSeconds < rhs.fractionalSeconds {
+            return true
+        } else if lhs.fractionalSeconds > rhs.fractionalSeconds {
+            return false
+        }
+
+        for (lhsByte, rhsByte) in zip(lhs.rawFractionalSeconds, rhs.rawFractionalSeconds) {
+            if lhsByte != rhsByte {
+                return lhsByte < rhsByte
+            }
+        }
+
+        // Since the above `zip` iteration stops at the length of the shorter `Sequence`, finally,
+        // compare the length of the two `Sequence`s.
+        return lhs.rawFractionalSeconds.count < rhs.rawFractionalSeconds.count
     }
 }
