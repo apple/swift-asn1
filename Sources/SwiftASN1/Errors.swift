@@ -164,6 +164,23 @@ public struct ASN1Error: Error, Hashable, CustomStringConvertible {
             )
         )
     }
+
+    /// Too few OID components were provided. There must be at least two or more.
+    @inline(never)
+    public static func tooFewOIDComponents(
+        reason: String,
+        file: String = #fileID,
+        line: UInt = #line
+    ) -> ASN1Error {
+        return ASN1Error(
+            backing: .init(
+                code: .tooFewOIDComponents,
+                reason: reason,
+                file: file,
+                line: line
+            )
+        )
+    }
 }
 
 extension ASN1Error {
@@ -181,6 +198,7 @@ extension ASN1Error {
             case unsupportedFieldLength
             case invalidPEMDocument
             case invalidStringRepresentation
+            case tooFewOIDComponents
         }
 
         fileprivate var backingCode: BackingCode
@@ -210,6 +228,9 @@ extension ASN1Error {
 
         /// A string was invalid.
         public static let invalidStringRepresentation = ErrorCode(.invalidStringRepresentation)
+
+        /// Too few OID components were provided. There must be at least two or more.
+        public static let tooFewOIDComponents = ErrorCode(.tooFewOIDComponents)
 
         public var description: String {
             return String(describing: self.backingCode)
