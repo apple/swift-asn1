@@ -29,12 +29,3 @@ let package = Package(
         .testTarget(name: "SwiftASN1Tests", dependencies: ["SwiftASN1"]),
     ]
 )
-
-// If the `SWIFTCI_USE_LOCAL_DEPS` environment variable is set,
-// we're building in the Swift.org CI system alongside other projects in the Swift toolchain and
-// we can depend on local versions of our dependencies instead of fetching them remotely.
-if ProcessInfo.processInfo.environment["SWIFTCI_USE_LOCAL_DEPS"] == nil {
-    package.dependencies += [
-        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
-    ]
-}
