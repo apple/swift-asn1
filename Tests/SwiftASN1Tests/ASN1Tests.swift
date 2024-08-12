@@ -1153,7 +1153,7 @@ class ASN1Tests: XCTestCase {
         func assertSetOfLessThanOrEqual(
             _ lhs: ArraySlice<UInt8>,
             _ rhs: ArraySlice<UInt8>,
-            file: StaticString = #file,
+            file: StaticString = #filePath,
             line: UInt = #line
         ) {
             XCTAssert(
