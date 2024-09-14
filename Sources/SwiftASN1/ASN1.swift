@@ -268,10 +268,10 @@ extension ASN1.ParseResult: Hashable {}
 // MARK: - LazySetOfSequence
 extension ASN1 {
     public struct LazySetOfSequence<T>: Sequence {
-        public typealias Element = Result<T, Error>
+        public typealias Element = Result<T, any Error>
 
         @usableFromInline
-        typealias WrappedSequence = LazyMapSequence<LazySequence<(ASN1NodeCollection)>.Elements, Result<T, Error>>
+        typealias WrappedSequence = LazyMapSequence<LazySequence<(ASN1NodeCollection)>.Elements, Result<T, any Error>>
 
         public struct Iterator: IteratorProtocol {
             @usableFromInline
