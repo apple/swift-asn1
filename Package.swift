@@ -16,6 +16,10 @@
 import PackageDescription
 import class Foundation.ProcessInfo
 
+let upcomingFeatureSwiftSettings: [SwiftSetting] = [
+    .enableUpcomingFeature("ExistentialAny"),
+]
+
 let package = Package(
     name: "swift-asn1",
     products: [
@@ -24,9 +28,14 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftASN1",
-            exclude: ["CMakeLists.txt"]
+            exclude: ["CMakeLists.txt"],
+            swiftSettings: upcomingFeatureSwiftSettings
         ),
-        .testTarget(name: "SwiftASN1Tests", dependencies: ["SwiftASN1"]),
+        .testTarget(
+            name: "SwiftASN1Tests",
+            dependencies: ["SwiftASN1"],
+            swiftSettings: upcomingFeatureSwiftSettings
+        )
     ]
 )
 
