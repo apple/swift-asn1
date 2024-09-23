@@ -608,8 +608,8 @@ class ASN1Tests: XCTestCase {
             -----END EC PRIVATE KEY-----
             """
 
-        let pemDocumentWithLF = try PEMDocument(pemString: simplePEMWithLF, lineEnding: .LF)
-        let pemDocumentWithCRLF = try PEMDocument(pemString: simplePEMWithCRLF, lineEnding: .CRLF)
+        let pemDocumentWithLF = try PEMDocument(pemString: simplePEMWithLF)
+        let pemDocumentWithCRLF = try PEMDocument(pemString: simplePEMWithCRLF)
 
         XCTAssertEqual(pemDocumentWithLF.discriminator, "EC PRIVATE KEY")
         XCTAssertEqual(pemDocumentWithLF.derBytes.count, 121)
@@ -618,6 +618,36 @@ class ASN1Tests: XCTestCase {
         XCTAssertEqual(pemDocumentWithCRLF.derBytes.count, 121)
 
         XCTAssertEqual(pemDocumentWithLF.derBytes, pemDocumentWithCRLF.derBytes)
+    }
+
+    func testPEMInconsistentLineEndingParsing() throws {
+        let simplePEMWithConsistentLFLineEnding = """
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
+
+        // No carriage return \r in line 3.
+        let simplePEMWithInconsistentLineEnding = """
+            -----BEGIN EC PRIVATE KEY-----\r
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49\r
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==\r
+            -----END EC PRIVATE KEY-----
+            """
+
+        let consistentPEMDocument = try PEMDocument(pemString: simplePEMWithConsistentLFLineEnding)
+        let inconsistentPEMDocument = try PEMDocument(pemString: simplePEMWithInconsistentLineEnding)
+
+        XCTAssertEqual(consistentPEMDocument.discriminator, "EC PRIVATE KEY")
+        XCTAssertEqual(consistentPEMDocument.derBytes.count, 121)
+
+        XCTAssertEqual(inconsistentPEMDocument.discriminator, "EC PRIVATE KEY")
+        XCTAssertEqual(inconsistentPEMDocument.derBytes.count, 121)
+
+        XCTAssertEqual(consistentPEMDocument.derBytes, inconsistentPEMDocument.derBytes)
     }
 
     func testStraightforwardPEMAndPrivateKeyLineEndingParsing() throws {
@@ -637,11 +667,17 @@ class ASN1Tests: XCTestCase {
             -----END EC PRIVATE KEY-----
             """
 
-        let pemDocumentWithLF = try PEMDocument(pemString: simplePEMWithLF, lineEnding: .LF)
-        let pemDocumentWithCRLF = try PEMDocument(pemString: simplePEMWithCRLF, lineEnding: .CRLF)
+        let pemDocumentWithLF = try PEMDocument(pemString: simplePEMWithLF)
+        let pemDocumentWithCRLF = try PEMDocument(pemString: simplePEMWithCRLF)
 
-        let pemFromPKWithLF = try SEC1PrivateKey(pemEncoded: simplePEMWithLF, lineEnding: .LF).serializeAsPEM()
-        let pemFromPKWithCRLF = try SEC1PrivateKey(pemEncoded: simplePEMWithCRLF, lineEnding: .CRLF).serializeAsPEM()
+        let privateKeyFromPEMWithLF = try SEC1PrivateKey(pemEncoded: simplePEMWithLF)
+        let privateKeyFromPEMWithCRLF = try SEC1PrivateKey(pemEncoded: simplePEMWithCRLF)
+
+        XCTAssertEqual(privateKeyFromPEMWithLF.privateKey, privateKeyFromPEMWithCRLF.privateKey)
+        XCTAssertEqual(privateKeyFromPEMWithLF.publicKey, privateKeyFromPEMWithCRLF.publicKey)
+
+        let pemFromPKWithLF = try privateKeyFromPEMWithLF.serializeAsPEM()
+        let pemFromPKWithCRLF = try privateKeyFromPEMWithCRLF.serializeAsPEM()
 
         XCTAssertEqual(pemDocumentWithLF.derBytes, pemFromPKWithLF.derBytes)
         XCTAssertEqual(pemDocumentWithCRLF.derBytes, pemFromPKWithCRLF.derBytes)
@@ -666,8 +702,8 @@ class ASN1Tests: XCTestCase {
             -----END EC PRIVATE KEY-----
             """
 
-        let privateKeyFromPEMWithLF = try SEC1PrivateKey(pemEncoded: simplePEMWithLF, lineEnding: .LF)
-        let privateKeyFromPEMWithCRLF = try SEC1PrivateKey(pemEncoded: simplePEMWithCRLF, lineEnding: .CRLF)
+        let privateKeyFromPEMWithLF = try SEC1PrivateKey(pemEncoded: simplePEMWithLF)
+        let privateKeyFromPEMWithCRLF = try SEC1PrivateKey(pemEncoded: simplePEMWithCRLF)
 
         var lfSerializer = DER.Serializer()
         var crlfSerializer = DER.Serializer()
@@ -796,11 +832,11 @@ class ASN1Tests: XCTestCase {
             \r
             -----END EC PRIVATE KEY-----
             """
-        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM, lineEnding: .CRLF)) { error in
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
 
-        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM, lineEnding: .CRLF)) { error in
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
     }
