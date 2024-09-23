@@ -19,7 +19,7 @@ import Foundation
 ///
 /// Users implementing this type are expected to just provide the ``defaultPEMDiscriminator``
 ///
-/// A PEM `String` can be serialized by constructing a ``PEMDocument`` by calling ``PEMSerializable/serializeAsPEM()`` and then accessing the ``PEMDocument/pemString`` preropty.
+/// A PEM `String` can be serialized by constructing a ``PEMDocument`` by calling ``PEMSerializable/serializeAsPEM()`` and then accessing the ``PEMDocument/pemString`` property.
 public protocol PEMSerializable: DERSerializable {
     /// The PEM discriminator identifying this object type.
     ///
@@ -32,13 +32,15 @@ public protocol PEMSerializable: DERSerializable {
     static var defaultPEMDiscriminator: String { get }
 
     func serializeAsPEM(discriminator: String) throws -> PEMDocument
+
+    func serializeAsPEM(discriminator: String, lineEnding: LineEnding) throws -> PEMDocument
 }
 
 /// Defines a type that can be parsed from a PEM-encoded form.
 ///
 /// Users implementing this type are expected to just provide the ``defaultPEMDiscriminator``.
 ///
-/// Objects that are ``PEMParseable`` can be construct from a PEM `String` through ``PEMParseable/init(pemEncoded:)``.
+/// Objects that are ``PEMParseable`` can be constructed from a PEM `String` through ``PEMParseable/init(pemEncoded:)``.
 public protocol PEMParseable: DERParseable {
     /// The PEM discriminator identifying this object type.
     ///
@@ -69,19 +71,20 @@ extension PEMParseable {
     /// This will check that the discriminator matches ``PEMParseable/defaultPEMDiscriminator``, decode the base64 encoded string and
     /// then decode the DER encoded bytes using ``DERParseable/init(derEncoded:)-i2rf``.
     ///
-    /// - parameters:
-    ///     - pemEncoded: The PEM-encoded string representing this object.
+    /// - Parameters:
+    ///   - pemString: The PEM-encoded string representing this object.
+    ///   - lineEnding: The new line delimiter. LF used as default.
     @inlinable
-    public init(pemEncoded pemString: String) throws {
-        try self.init(pemDocument: try PEMDocument(pemString: pemString))
+    public init(pemEncoded pemString: String, lineEnding: LineEnding = .LF) throws {
+        try self.init(pemDocument: try PEMDocument(pemString: pemString, lineEnding: lineEnding))
     }
 
     /// Initialize this object from a serialized PEM representation.
     /// This will check that the ``PEMParseable/pemDiscriminator`` matches and
     /// forward the DER encoded bytes to ``DERParseable/init(derEncoded:)-i2rf``.
     ///
-    /// - parameters:
-    ///     - pemDocument: DER-encoded PEM document
+    /// - Parameters:
+    ///   - pemDocument: DER-encoded PEM document
     @inlinable
     public init(pemDocument: PEMDocument) throws {
         guard pemDocument.discriminator == Self.defaultPEMDiscriminator else {
@@ -97,20 +100,33 @@ extension PEMParseable {
 
 extension PEMSerializable {
     /// Serializes `self` as a PEM document with given `discriminator`.
+    /// - note: The LF line ending delimiter is assumed by default.
+    /// Use ``serializeAsPEM(discriminator:lineEnding:)-8098p`` to specify the line ending delimiter.
+    ///
     /// - Parameter discriminator: PEM discriminator used in for the BEGIN and END encapsulation boundaries.
     /// - Returns: DER encoded PEM document
     @inlinable
     public func serializeAsPEM(discriminator: String) throws -> PEMDocument {
-        var serializer = DER.Serializer()
-        try serializer.serialize(self)
-
-        return PEMDocument(type: discriminator, derBytes: serializer.serializedBytes)
+        return try self.serializeAsPEM(discriminator: discriminator, lineEnding: .LF)
     }
 
     /// Serializes `self` as a PEM document with the ``defaultPEMDiscriminator``.
     @inlinable
     public func serializeAsPEM() throws -> PEMDocument {
         try self.serializeAsPEM(discriminator: Self.defaultPEMDiscriminator)
+    }
+
+    /// Serializes `self` as a PEM document with given `discriminator`.
+    /// - Parameters:
+    ///   - discriminator: PEM discriminator used in for the BEGIN and END encapsulation boundaries.
+    ///   - lineEnding: The new line delimiter.
+    /// - Returns: DER encoded PEM document
+    @inlinable
+    public func serializeAsPEM(discriminator: String, lineEnding: LineEnding) throws -> PEMDocument {
+        var serializer = DER.Serializer()
+        try serializer.serialize(self)
+
+        return PEMDocument(type: discriminator, derBytes: serializer.serializedBytes, lineEnding: lineEnding)
     }
 }
 
@@ -128,22 +144,25 @@ public struct PEMDocument: Hashable, Sendable {
 
     public var derBytes: [UInt8]
 
-    public init(pemString: String) throws {
+    public let lineEnding: LineEnding
+
+    public init(pemString: String, lineEnding: LineEnding = .LF) throws {
         var pemString = pemString.utf8[...]
 
-        guard let document = try pemString.readNextPEMDocument()?.decode() else {
+        guard let document = try pemString.readNextPEMDocument(lineEnding: lineEnding)?.decode() else {
             throw ASN1Error.invalidPEMDocument(reason: "could not find PEM start marker")
         }
-        guard try pemString.readNextPEMDocument() == nil else {
+        guard try pemString.readNextPEMDocument(lineEnding: lineEnding) == nil else {
             throw ASN1Error.invalidPEMDocument(reason: "Multiple PEMDocuments found")
         }
 
         self = document
     }
 
-    public init(type: String, derBytes: [UInt8]) {
+    public init(type: String, derBytes: [UInt8], lineEnding: LineEnding = .LF) {
         self.discriminator = type
         self.derBytes = derBytes
+        self.lineEnding = lineEnding
     }
 
     /// PEM string is a base 64 encoded string of ``derBytes`` enclosed in BEGIN and END encapsulation boundaries with the specified ``discriminator`` type.
@@ -172,18 +191,20 @@ public struct PEMDocument: Hashable, Sendable {
 
         pemLines.append("-----END \(self.discriminator)-----")
 
-        return pemLines.joined(separator: "\n")
+        return pemLines.joined(separator: self.lineEnding.toString())
     }
 }
 
 extension PEMDocument {
     /// Attempts to parse and decode multiple PEM documents inside a single String.
-    /// - Parameter pemString: The PEM-encoded string containing zero or more ``PEMDocument``s
+    /// - Parameters:
+    ///   - pemString: The PEM-encoded string containing zero or more ``PEMDocument``s
+    ///   - lineEnding: The new line delimiter. LF used as default.
     /// - Returns: parsed and decoded PEM documents
-    public static func parseMultiple(pemString: String) throws -> [PEMDocument] {
+    public static func parseMultiple(pemString: String, lineEnding: LineEnding = .LF) throws -> [PEMDocument] {
         var pemString = pemString.utf8[...]
         var pemDocuments = [PEMDocument]()
-        while let lazyPEMDocument = try pemString.readNextPEMDocument() {
+        while let lazyPEMDocument = try pemString.readNextPEMDocument(lineEnding: lineEnding) {
             pemDocuments.append(try lazyPEMDocument.decode())
         }
         return pemDocuments
@@ -196,6 +217,8 @@ struct LazyPEMDocument {
     var discriminator: Substring.UTF8View
     /// The `base64EncodedDERString` is as found in the original string and will still contain new lines if present in the original.
     var base64EncodedDERString: Substring.UTF8View
+
+    let lineEnding: LineEnding
 
     func decode() throws -> PEMDocument {
         guard let type = String(discriminator) else {
@@ -213,7 +236,7 @@ struct LazyPEMDocument {
         }
 
         let derBytes = Array(data)
-        return PEMDocument(type: type, derBytes: derBytes)
+        return PEMDocument(type: type, derBytes: derBytes, lineEnding: self.lineEnding)
     }
 }
 
@@ -226,7 +249,7 @@ extension Substring.UTF8View {
     /// ```
     /// This function attempts find the BEGIN and END marker.
     /// It then tries to extract the discriminator and the base64 encoded string between the START and END marker.
-    fileprivate mutating func readNextPEMDocument() throws -> LazyPEMDocument? {
+    fileprivate mutating func readNextPEMDocument(lineEnding: LineEnding = .LF) throws -> LazyPEMDocument? {
         /// First find the BEGIN marker: `-----BEGIN <SOME DISCRIMINATOR>-----`
         guard
             let (
@@ -235,7 +258,7 @@ extension Substring.UTF8View {
                 beginDiscriminatorSuffix
             ) = self.firstRangesOf(
                 prefix: "-----BEGIN ",
-                suffix: "-----\n"
+                suffix: "-----" + lineEnding.toString()
             )
         else {
             return nil
@@ -272,12 +295,16 @@ extension Substring.UTF8View {
         /// everything between the BEGIN and END markers is considered the base64 encoded string
         let base64EncodedDERString = self[beginDiscriminatorSuffix.upperBound..<endDiscriminatorPrefix.lowerBound]
 
-        try base64EncodedDERString.checkLineLengthsOfBase64EncodedString()
+        try base64EncodedDERString.checkLineLengthsOfBase64EncodedString(lineEnding: lineEnding)
 
         /// move `self` to the end of the END marker
         self = self[endDiscriminatorSuffix.upperBound...]
 
-        return LazyPEMDocument(discriminator: beginDiscriminator, base64EncodedDERString: base64EncodedDERString)
+        return LazyPEMDocument(
+            discriminator: beginDiscriminator,
+            base64EncodedDERString: base64EncodedDERString,
+            lineEnding: lineEnding
+        )
     }
 
     /// verify line length limits according to RFC
@@ -291,21 +318,35 @@ extension Substring.UTF8View {
     /// printable characters and the final line containing 64 or fewer
     /// printable characters.
     ///
-    private func checkLineLengthsOfBase64EncodedString() throws {
+    /// - Parameter lineEnding: The new line delimiter. LF used as default.
+    private func checkLineLengthsOfBase64EncodedString(lineEnding: LineEnding = .LF) throws {
         var message = self
-        let lastIndex = message.index(before: message.endIndex)
+        let lastLFIndex = message.index(before: message.endIndex)
+        let lastCRLFIndex = message.index(before: lastLFIndex)
+
         while !message.isEmpty {
-            let expectedNewLineIndex =
-                message.index(message.startIndex, offsetBy: 64, limitedBy: lastIndex) ?? lastIndex
+            let expectedNewLineIndex: String.UTF8View.Index
+            let actualNewLineIndex: String.UTF8View.Index?
+
+            switch lineEnding {
+            case .CRLF:
+                expectedNewLineIndex =
+                    message.index(message.startIndex, offsetBy: 64, limitedBy: lastCRLFIndex) ?? lastCRLFIndex
+                actualNewLineIndex = message.firstRange(of: Substring(lineEnding.toString()).utf8)?.lowerBound
+            case .LF:
+                expectedNewLineIndex =
+                    message.index(message.startIndex, offsetBy: 64, limitedBy: lastLFIndex) ?? lastLFIndex
+                actualNewLineIndex = message.firstIndex(of: UInt8(ascii: "\n"))
+            }
 
             guard
-                let actualNewLineIndex = message.firstIndex(of: UInt8(ascii: "\n")),
+                let actualNewLineIndex = actualNewLineIndex,
                 actualNewLineIndex == expectedNewLineIndex
             else {
                 throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
             }
 
-            let nextLineStart = message.index(after: expectedNewLineIndex)
+            let nextLineStart = message.index(expectedNewLineIndex, offsetBy: lineEnding == .CRLF ? 2 : 1)
 
             message = message[nextLineStart...]
         }
@@ -381,6 +422,21 @@ extension Substring.UTF8View {
             }
         }
         return nil
+    }
+}
+
+/// Represents new line delimiters.
+public enum LineEnding: Sendable {
+    case CRLF
+    case LF
+
+    /// A String representation of the value of the new line delimiter.
+    /// - Returns: The value of the new line delimiter.
+    func toString() -> String {
+        switch self {
+        case .CRLF: return "\r\n"
+        case .LF: return "\n"
+        }
     }
 }
 
