@@ -224,7 +224,7 @@ extension Substring.UTF8View {
         return self.starts(with: LineEnding.LF.utf8) || self.starts(with: LineEnding.CRLF.utf8)
     }
 
-    /// An optional `index` value that is offset from `self.startIndex` by the new line character sequence.
+    /// An optional `Index` value that is offset from `self.startIndex` by the new line character sequence.
     /// - Returns: The `Index` denoting the position immediately after the new line character sequence.
     /// `nil` is returned if `self` does not start with a new line.
     fileprivate func offsetNewLine() -> Index? {
