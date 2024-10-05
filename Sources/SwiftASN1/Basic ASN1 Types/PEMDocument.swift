@@ -218,16 +218,10 @@ struct LazyPEMDocument {
 }
 
 extension Substring.UTF8View {
-    /// Checks whether `self` starts with a new line character.
-    /// - Returns: `true` if `self` starts with a new line character; otherwise, `false`.
-    fileprivate func startsWithNewLine() -> Bool {
-        return self.starts(with: LineEnding.LF.utf8) || self.starts(with: LineEnding.CRLF.utf8)
-    }
-
     /// An optional `Index` value that is offset from `self.startIndex` by the new line character sequence.
     /// - Returns: The `Index` denoting the position immediately after the new line character sequence.
     /// `nil` is returned if `self` does not start with a new line.
-    fileprivate func offsetNewLine() -> Index? {
+    fileprivate var offsetNewLine: Index? {
         if self.starts(with: LineEnding.LF.utf8) {
             return self.index(after: self.startIndex)
         }
@@ -256,8 +250,7 @@ extension Substring.UTF8View {
                 prefix: "-----BEGIN ",
                 suffix: "-----"
             ),
-            self[beginDiscriminatorSuffix.upperBound...].startsWithNewLine(),
-            let messageStart = self[beginDiscriminatorSuffix.upperBound...].offsetNewLine()
+            let messageStart = self[beginDiscriminatorSuffix.upperBound...].offsetNewLine
         else {
             return nil
         }
@@ -321,8 +314,7 @@ extension Substring.UTF8View {
 
             // The current line cannot contain any "\n" and the end index must be a new line.
             guard message[..<expectedNewLineIndex].firstIndex(of: UInt8(ascii: "\n")) == nil,
-                message[expectedNewLineIndex...].startsWithNewLine(),
-                let nextLineStart = message[expectedNewLineIndex...].offsetNewLine()
+                let nextLineStart = message[expectedNewLineIndex...].offsetNewLine
             else {
                 throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
             }
@@ -405,9 +397,9 @@ extension Substring.UTF8View {
 }
 
 /// Represents new line delimiters.
-public enum LineEnding {
-    public static let LF = "\n"
-    public static let CRLF = "\r\n"
+enum LineEnding {
+    static let LF = "\n"
+    static let CRLF = "\r\n"
 }
 
 #endif
