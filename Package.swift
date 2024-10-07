@@ -23,7 +23,7 @@ let upcomingFeatureSwiftSettings: [SwiftSetting] = [
 let package = Package(
     name: "swift-asn1",
     products: [
-        .library(name: "SwiftASN1", targets: ["SwiftASN1"]),
+        .library(name: "SwiftASN1", targets: ["SwiftASN1"])
     ],
     targets: [
         .target(
