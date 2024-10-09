@@ -19,7 +19,7 @@ import Foundation
 ///
 /// Users implementing this type are expected to just provide the ``defaultPEMDiscriminator``
 ///
-/// A PEM `String` can be serialized by constructing a ``PEMDocument`` by calling ``PEMSerializable/serializeAsPEM()`` and then accessing the ``PEMDocument/pemString`` preropty.
+/// A PEM `String` can be serialized by constructing a ``PEMDocument`` by calling ``PEMSerializable/serializeAsPEM()`` and then accessing the ``PEMDocument/pemString`` property.
 public protocol PEMSerializable: DERSerializable {
     /// The PEM discriminator identifying this object type.
     ///
@@ -38,7 +38,7 @@ public protocol PEMSerializable: DERSerializable {
 ///
 /// Users implementing this type are expected to just provide the ``defaultPEMDiscriminator``.
 ///
-/// Objects that are ``PEMParseable`` can be construct from a PEM `String` through ``PEMParseable/init(pemEncoded:)``.
+/// Objects that are ``PEMParseable`` can be constructed from a PEM `String` through ``PEMParseable/init(pemEncoded:)``.
 public protocol PEMParseable: DERParseable {
     /// The PEM discriminator identifying this object type.
     ///
@@ -69,8 +69,8 @@ extension PEMParseable {
     /// This will check that the discriminator matches ``PEMParseable/defaultPEMDiscriminator``, decode the base64 encoded string and
     /// then decode the DER encoded bytes using ``DERParseable/init(derEncoded:)-i2rf``.
     ///
-    /// - parameters:
-    ///     - pemEncoded: The PEM-encoded string representing this object.
+    /// - Parameters:
+    ///   - pemString: The PEM-encoded string representing this object.
     @inlinable
     public init(pemEncoded pemString: String) throws {
         try self.init(pemDocument: try PEMDocument(pemString: pemString))
@@ -80,8 +80,8 @@ extension PEMParseable {
     /// This will check that the ``PEMParseable/pemDiscriminator`` matches and
     /// forward the DER encoded bytes to ``DERParseable/init(derEncoded:)-i2rf``.
     ///
-    /// - parameters:
-    ///     - pemDocument: DER-encoded PEM document
+    /// - Parameters:
+    ///   - pemDocument: DER-encoded PEM document
     @inlinable
     public init(pemDocument: PEMDocument) throws {
         guard pemDocument.discriminator == Self.defaultPEMDiscriminator else {
@@ -218,6 +218,19 @@ struct LazyPEMDocument {
 }
 
 extension Substring.UTF8View {
+    /// An optional `Index` value that is offset from `self.startIndex` by the new line character sequence.
+    /// - Returns: The `Index` denoting the position immediately after the new line character sequence.
+    /// `nil` is returned if `self` does not start with a new line.
+    fileprivate var offsetNewLine: Index? {
+        if self.starts(with: LineEnding.LF.utf8) {
+            return self.index(after: self.startIndex)
+        }
+        if self.starts(with: LineEnding.CRLF.utf8) {
+            return self.index(self.startIndex, offsetBy: 2)
+        }
+        return nil
+    }
+
     /// A PEM document looks like this:
     /// ```
     /// -----BEGIN <SOME DISCRIMINATOR>-----
@@ -235,8 +248,9 @@ extension Substring.UTF8View {
                 beginDiscriminatorSuffix
             ) = self.firstRangesOf(
                 prefix: "-----BEGIN ",
-                suffix: "-----\n"
-            )
+                suffix: "-----"
+            ),
+            let messageStart = self[beginDiscriminatorSuffix.upperBound...].offsetNewLine
         else {
             return nil
         }
@@ -270,7 +284,7 @@ extension Substring.UTF8View {
         }
 
         /// everything between the BEGIN and END markers is considered the base64 encoded string
-        let base64EncodedDERString = self[beginDiscriminatorSuffix.upperBound..<endDiscriminatorPrefix.lowerBound]
+        let base64EncodedDERString = self[messageStart..<endDiscriminatorPrefix.lowerBound]
 
         try base64EncodedDERString.checkLineLengthsOfBase64EncodedString()
 
@@ -298,14 +312,12 @@ extension Substring.UTF8View {
             let expectedNewLineIndex =
                 message.index(message.startIndex, offsetBy: 64, limitedBy: lastIndex) ?? lastIndex
 
-            guard
-                let actualNewLineIndex = message.firstIndex(of: UInt8(ascii: "\n")),
-                actualNewLineIndex == expectedNewLineIndex
+            // The current line cannot contain any "\n" and the end index must be a new line.
+            guard message[..<expectedNewLineIndex].firstIndex(of: UInt8(ascii: "\n")) == nil,
+                let nextLineStart = message[expectedNewLineIndex...].offsetNewLine
             else {
                 throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
             }
-
-            let nextLineStart = message.index(after: expectedNewLineIndex)
 
             message = message[nextLineStart...]
         }
@@ -382,6 +394,12 @@ extension Substring.UTF8View {
         }
         return nil
     }
+}
+
+/// Represents new line delimiters.
+enum LineEnding {
+    static let LF = "\n"
+    static let CRLF = "\r\n"
 }
 
 #endif
