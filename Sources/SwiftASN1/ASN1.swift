@@ -116,7 +116,12 @@ extension ASN1.ParserNode {
         self.identifier.tagClass == .universal
             && self.identifier.tagNumber == 0
             && self.isConstructed == false
-            && self.encodedBytes.elementsEqual([0x00, 0x00])
+            && self.encodedBytes.elementsEqual(
+                                               [
+                                                    0x00,
+                                                    0x00
+                                               ]
+            )
     }
 }
 
