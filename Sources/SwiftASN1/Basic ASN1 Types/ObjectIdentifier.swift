@@ -217,6 +217,18 @@ extension ASN1ObjectIdentifier: CustomStringConvertible {
     }
 }
 
+@available(*, unavailable)
+extension ASN1ObjectIdentifier.NamedCurves: Sendable {}
+
+@available(*, unavailable)
+extension ASN1ObjectIdentifier.AlgorithmIdentifier: Sendable {}
+
+@available(*, unavailable)
+extension ASN1ObjectIdentifier.NameAttributes: Sendable {}
+
+@available(*, unavailable)
+extension ASN1ObjectIdentifier.OCSP: Sendable {}
+
 extension ASN1ObjectIdentifier {
     /// Represents a namespace for OIDs that identify named Elliptic Curves.
     ///
