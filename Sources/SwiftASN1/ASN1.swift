@@ -12,12 +12,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+
+@available(*, unavailable)
+extension ASN1: Sendable { }
+
 public enum ASN1 {}
 
 // MARK: - EncodingRules
 extension ASN1 {
     @usableFromInline
-    enum EncodingRules {
+    enum EncodingRules: Sendable {
         case basic
 
         case distinguished
@@ -129,7 +133,7 @@ extension ASN1.ParserNode {
 
 extension ASN1 {
     @usableFromInline
-    struct ParseResult {
+    struct ParseResult: Sendable {
         @inlinable
         static var _maximumNodeDepth: Int { 50 }
 
@@ -308,6 +312,12 @@ extension ASN1 {
     }
 }
 
+@available(*, unavailable)
+extension ASN1.LazySetOfSequence: Sendable {}
+
+@available(*, unavailable)
+extension ASN1.LazySetOfSequence.Iterator: Sendable {}
+
 // MARK: - NodeCollection
 /// Represents a collection of ASN.1 nodes contained in a constructed ASN.1 node.
 ///
@@ -338,7 +348,7 @@ extension ASN1NodeCollection: Sendable {}
 
 extension ASN1NodeCollection: Sequence {
     /// An iterator of ASN.1 nodes that are children of a specific constructed node.
-    public struct Iterator: IteratorProtocol {
+    public struct Iterator: IteratorProtocol, Sendable {
         @usableFromInline
         var _nodes: ArraySlice<ASN1.ParserNode>
 
@@ -432,7 +442,7 @@ extension ASN1Node {
 
 extension ArraySlice where Element == UInt8 {
     @usableFromInline
-    enum ASN1Length {
+    enum ASN1Length: Sendable {
         case indefinite
         case definite(_: UInt)
     }

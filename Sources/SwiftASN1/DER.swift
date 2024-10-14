@@ -16,6 +16,9 @@
 /// for DER encoding and decoding.
 public enum DER {}
 
+@available(*, unavailable)
+extension DER: Sendable {}
+
 // MARK: - Parser Node
 extension DER {
     @usableFromInline

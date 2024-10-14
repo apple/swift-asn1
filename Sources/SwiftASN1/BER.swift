@@ -16,6 +16,9 @@
 /// for BER encoding and decoding.
 public enum BER {}
 
+@available(*, unavailable)
+extension BER: Sendable {}
+
 // MARK: - Parser Node
 extension BER {
     @usableFromInline
