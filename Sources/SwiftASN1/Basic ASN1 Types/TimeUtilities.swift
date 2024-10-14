@@ -12,6 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+
+@available(*, unavailable)
+extension TimeUtilities: Sendable {}
+
 @usableFromInline
 enum TimeUtilities {
     @inlinable
