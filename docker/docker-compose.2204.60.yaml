@@ -25,4 +25,3 @@ services:
     image: swift-asn1:22.04-6.0
     environment:
       - SWIFT_VERSION=6.0
-

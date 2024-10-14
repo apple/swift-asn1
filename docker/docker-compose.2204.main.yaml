@@ -20,7 +20,7 @@ services:
 
   shell:
     image: swift-asn1:22.04-main
-    
+
   update-benchmark-baseline:
     image: swift-asn1:22.04-main
     environment:
