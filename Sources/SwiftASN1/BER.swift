@@ -179,7 +179,7 @@ extension BER {
     /// Constructs an array of `T` elements parsed from the set.
     ///
     /// - parameters:
-    ///     - of: An optional parameter to express the type to decode.
+    ///     - type: An optional parameter to express the type to decode.
     ///     - identifier: The ``ASN1Identifier`` that the SET OF is expected to have.
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: An array of elements representing the elements in the sequence.
@@ -511,7 +511,7 @@ public protocol BERParseable: DERParseable {
     /// expected to initialize themselves if possible, or to throw if they cannot.
     ///
     /// - parameters:
-    ///     - berEncoded: The ASN.1 node representing this object.
+    ///     - node: The ASN.1 node representing this object.
     init(berEncoded node: ASN1Node) throws
 }
 
@@ -588,7 +588,7 @@ extension BERImplicitlyTaggable {
     /// to ``BERImplicitlyTaggable/init(berEncoded:withIdentifier:)``.
     ///
     /// - parameters:
-    ///     - berEncoded: The sequence of nodes that make up this object's parent. The first node in this collection
+    ///     - sequenceNodeIterator: The sequence of nodes that make up this object's parent. The first node in this collection
     ///         will be used to construct this object.
     ///     - identifier: The ASN.1 identifier that `berEncoded` is expected to have.
     @inlinable

@@ -12,9 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-
 @available(*, unavailable)
-extension ASN1: Sendable { }
+extension ASN1: Sendable {}
 
 public enum ASN1 {}
 
