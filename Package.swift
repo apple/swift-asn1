@@ -17,7 +17,8 @@ import PackageDescription
 import class Foundation.ProcessInfo
 
 let upcomingFeatureSwiftSettings: [SwiftSetting] = [
-    .enableUpcomingFeature("ExistentialAny")
+    .enableUpcomingFeature("ExistentialAny"),
+    .enableUpcomingFeature("StrictConcurrency"),
 ]
 
 let package = Package(
