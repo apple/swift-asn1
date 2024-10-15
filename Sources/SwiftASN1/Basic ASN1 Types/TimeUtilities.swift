@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-
 @available(*, unavailable)
 extension TimeUtilities: Sendable {}
 
