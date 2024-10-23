@@ -1,8 +1,8 @@
-name: Scheduled
+name: Main
 
 on:
-  schedule:
-    - cron: "0 8,20 * * *"
+  push:
+    branches: [main]
 
 jobs:
   unit-tests:
