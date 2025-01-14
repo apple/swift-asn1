@@ -57,7 +57,7 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         }
 
         guard case .primitive(let content) = node.content else {
-            preconditionFailure("ASN.1 parser generated primitive node with constructed content")
+            throw ASN1Error.invalidASN1Object(reason: "ASN1BitString encoded with constructed encoding")
         }
 
         // The initial octet explains how many of the bits in the _final_ octet are not part of the bitstring.

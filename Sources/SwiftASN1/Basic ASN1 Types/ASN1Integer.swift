@@ -53,7 +53,7 @@ extension ASN1IntegerRepresentable {
         }
 
         guard case .primitive(var dataBytes) = node.content else {
-            preconditionFailure("ASN.1 parser generated primitive node with constructed content")
+            throw ASN1Error.invalidASN1Object(reason: "INTEGER encoded with constructed encoding")
         }
 
         // Zero bytes of integer is not an acceptable encoding.
@@ -93,7 +93,7 @@ extension ASN1IntegerRepresentable {
         }
 
         guard case .primitive(var dataBytes) = node.content else {
-            preconditionFailure("ASN.1 parser generated primitive node with constructed content")
+            throw ASN1Error.invalidASN1Object(reason: "INTEGER encoded with constructed encoding")
         }
 
         // Zero bytes of integer is not an acceptable encoding.

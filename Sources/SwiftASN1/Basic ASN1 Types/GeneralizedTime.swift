@@ -206,21 +206,15 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
 
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
-        guard node.identifier == identifier else {
-            throw ASN1Error.unexpectedFieldType(node.identifier)
-        }
-
-        guard case .primitive(let content) = node.content else {
-            preconditionFailure("ASN.1 parser generated primitive node with constructed content")
-        }
-
+        let content = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.generalizedTimeFromBytes(content)
     }
 
     @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         // TODO: BER supports relaxed timestamp parsing, which is not yet supported
-        self = try .init(derEncoded: node, withIdentifier: identifier)
+        let content = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
+        self = try TimeUtilities.generalizedTimeFromBytes(content)
     }
 
     @inlinable

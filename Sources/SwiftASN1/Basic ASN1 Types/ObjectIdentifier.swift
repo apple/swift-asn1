@@ -42,7 +42,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
         }
 
         guard case .primitive(let content) = node.content else {
-            preconditionFailure("ASN.1 parser generated primitive node with constructed content")
+            throw ASN1Error.invalidASN1Object(reason: "OID encoded with constructed encoding")
         }
 
         try Self.validateObjectIdentifierInEncodedForm(content)

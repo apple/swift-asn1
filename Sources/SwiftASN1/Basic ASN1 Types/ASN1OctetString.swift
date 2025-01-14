@@ -30,7 +30,7 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         }
 
         guard case .primitive(let content) = node.content else {
-            preconditionFailure("ASN.1 parser generated primitive node with constructed content")
+            throw ASN1Error.invalidASN1Object(reason: "ASN1OctetString encoded with constructed encoding")
         }
 
         self.bytes = content

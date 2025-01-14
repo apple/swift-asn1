@@ -233,8 +233,9 @@ extension DER {
 
         // We expect a single child.
         guard case .constructed(let nodes) = node.content else {
-            // This error is an internal parser error: the tag above is always constructed.
-            preconditionFailure("Explicit tags are always constructed")
+            throw ASN1Error.invalidASN1Object(
+                reason: "Explicit tags should always be constructed, got \(node.identifier) which is not."
+            )
         }
 
         var nodeIterator = nodes.makeIterator()

@@ -967,6 +967,23 @@ class ASN1Tests: XCTestCase {
         }
     }
 
+    func testPrimitiveTaggedObject() throws {
+        // We should error if primitive encoding is used for an explicitly tagged object.
+        let weirdASN1: [UInt8] = [
+            0x30, 0x05,  // Sequence, containing...
+            0x82, 0x03,  // Context specific tag 2, 3 byte body, containing...
+            0x02, 0x01, 0x00,  // Integer 0
+        ]
+        let parsed = try DER.parse(weirdASN1)
+        try DER.sequence(parsed, identifier: .sequence) { nodes in
+            XCTAssertThrowsError(
+                try DER.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in })
+            ) { error in
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
+            }
+        }
+    }
+
     func testSPKIWithUnexpectedKeyTypeOID() throws {
         // This is an SPKI object for RSA instead of EC. This is a 1024-bit RSA key, so hopefully no-one will think to use it.
         let rsaSPKI =
@@ -1365,5 +1382,49 @@ class ASN1Tests: XCTestCase {
         let asn1OctetString = try ASN1OctetString(berEncoded: try BER.parse(berOctetString))
         XCTAssertEqual(asn1OctetString.bytes, [0xFE, 0xED, 0xFA, 0xCE])
         XCTAssertThrowsError(try DER.parse(berOctetString))
+    }
+
+    func testConstructedBoolean() throws {
+        let weirdASN1: [UInt8] = [0x21, 0x00]
+        let node = try DER.parse(weirdASN1)
+        XCTAssertThrowsError(try Bool(berEncoded: node))
+        XCTAssertThrowsError(try Bool(derEncoded: node))
+    }
+
+    func testConstructedInteger() throws {
+        let weirdASN1: [UInt8] = [0x22, 0x00]
+        let node = try DER.parse(weirdASN1)
+        XCTAssertThrowsError(try Int(berEncoded: node))
+        XCTAssertThrowsError(try Int(derEncoded: node))
+    }
+
+    func testConstructedBitString() throws {
+        let weirdASN1: [UInt8] = [0x23, 0x08, 0x03, 0x02, 0x00, 0xAB, 0x03, 0x02, 0x04, 0xC]
+        let node = try DER.parse(weirdASN1)
+        // Not yet supported
+        // XCTAssertEqual(try ASN1BitString(berEncoded: node), ASN1BitString(bytes: [0xAB, 0xC], paddingBits: 4))
+        XCTAssertThrowsError(try ASN1BitString(berEncoded: node))
+        XCTAssertThrowsError(try ASN1BitString(derEncoded: node))
+    }
+
+    func testConstructedOctetString() throws {
+        let weirdASN1: [UInt8] = [0x24, 0x06, 0x04, 0x01, 0xAB, 0x04, 0x01, 0xCD]
+        let node = try DER.parse(weirdASN1)
+        XCTAssertEqual(try ASN1OctetString(berEncoded: node), ASN1OctetString(contentBytes: [0xAB, 0xCD]))
+        XCTAssertThrowsError(try ASN1OctetString(derEncoded: node))
+    }
+
+    func testConstructedNull() throws {
+        let weirdASN1: [UInt8] = [0x25, 0x00]
+        let node = try DER.parse(weirdASN1)
+        XCTAssertThrowsError(try ASN1Null(berEncoded: node))
+        XCTAssertThrowsError(try ASN1Null(derEncoded: node))
+    }
+
+    func testConstructedOID() throws {
+        let weirdASN1: [UInt8] = [0x26, 0x03, 0x02, 0x01, 0x00]
+        let node = try DER.parse(weirdASN1)
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(berEncoded: node))
+        XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: node))
     }
 }
