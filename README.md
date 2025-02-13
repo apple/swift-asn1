@@ -1,5 +1,7 @@
 # SwiftASN1
 
+DRAFT: DO NOT MERGE THIS
+
 An implementation of ASN.1 types and DER serialization.
 
 ## Overview
