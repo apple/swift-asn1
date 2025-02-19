@@ -12,8 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Foundation)
+#if canImport(Foundation) || canImport(FoundationEssentials)
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// Defines a type that can be serialized in PEM-encoded form.
 ///
