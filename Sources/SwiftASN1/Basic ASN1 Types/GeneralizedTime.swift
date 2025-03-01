@@ -20,13 +20,11 @@
 ///
 /// In BER format, seconds may be omitted, and timezone offsets can be present.
 public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
-    @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .generalizedTime
     }
 
     /// The numerical year.
-    @inlinable
     public var year: Int {
         get {
             return self._year
@@ -38,7 +36,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     }
 
     /// The numerical month.
-    @inlinable
     public var month: Int {
         get {
             return self._month
@@ -50,7 +47,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     }
 
     /// The numerical day.
-    @inlinable
     public var day: Int {
         get {
             return self._day
@@ -62,7 +58,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     }
 
     /// The numerical hours.
-    @inlinable
     public var hours: Int {
         get {
             return self._hours
@@ -74,7 +69,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     }
 
     /// The numerical minutes.
-    @inlinable
     public var minutes: Int {
         get {
             return self._minutes
@@ -86,7 +80,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     }
 
     /// The numerical seconds.
-    @inlinable
     public var seconds: Int {
         get {
             return self._seconds
@@ -98,7 +91,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     }
 
     /// The fractional seconds.
-    @inlinable
     public var fractionalSeconds: Double {
         get {
             return self._fractionalSeconds
@@ -114,7 +106,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
 
     /// The ArraySlice of bytes from which the fractional seconds will be computed. (Preserved due to a possible overflow
     /// when computing a Double from this ArraySlice.)
-    @inlinable
     public var rawFractionalSeconds: ArraySlice<UInt8> {
         get {
             return self._rawFractionalSeconds
@@ -127,16 +118,16 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
         }
     }
 
-    @usableFromInline var _year: Int
-    @usableFromInline var _month: Int
-    @usableFromInline var _day: Int
-    @usableFromInline var _hours: Int
-    @usableFromInline var _minutes: Int
-    @usableFromInline var _seconds: Int
+    private(set) var _year: Int
+    private(set) var _month: Int
+    private(set) var _day: Int
+    private(set) var _hours: Int
+    private(set) var _minutes: Int
+    private(set) var _seconds: Int
     /// `_fractionalSeconds` is a cached value and `_rawFractionalSeconds` is the source of truth for the numerical
     /// fractonal seconds. (No information is lost in the conversion from `_fractionalSeconds` to `_rawFractionalSeconds`.)
-    @usableFromInline var _fractionalSeconds: Double
-    @usableFromInline var _rawFractionalSeconds: ArraySlice<UInt8>
+    private(set) var _fractionalSeconds: Double
+    private(set) var _rawFractionalSeconds: ArraySlice<UInt8>
 
     /// Construct a new ``GeneralizedTime`` from individual components.
     ///
@@ -148,7 +139,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     ///     - minutes: The numerical minutes
     ///     - seconds: The numerical seconds
     ///     - fractionalSeconds: The numerical fractional seconds.
-    @inlinable
     public init(
         year: Int,
         month: Int,
@@ -182,7 +172,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     ///     - seconds: The numerical seconds
     ///     - rawFractionalSeconds: The ArraySlice of bytes from which the fractional seconds will be computed.
     ///     (Preserved due to a possible overflow when computing a Double from this ArraySlice.)
-    @inlinable
     public init(
         year: Int,
         month: Int,
@@ -204,27 +193,23 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
         try self._validate()
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         let content = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.generalizedTimeFromBytes(content)
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         // TODO: BER supports relaxed timestamp parsing, which is not yet supported
         let content = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.generalizedTimeFromBytes(content)
     }
 
-    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(self)
         }
     }
 
-    @inlinable
     func _validate() throws {
         // Validate that the structure is well-formed.
         guard self._year >= 0 && self._year <= 9999 else {
@@ -275,7 +260,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
 }
 
 extension GeneralizedTime: Comparable {
-    @inlinable
     public static func < (lhs: GeneralizedTime, rhs: GeneralizedTime) -> Bool {
         if lhs.year < rhs.year { return true } else if lhs.year > rhs.year { return false }
         if lhs.month < rhs.month { return true } else if lhs.month > rhs.month { return false }

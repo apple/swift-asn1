@@ -24,8 +24,8 @@ struct ECDSASignature<IntegerType: ASN1IntegerRepresentable>: DERImplicitlyTagga
         .sequence
     }
 
-    var r: IntegerType
-    var s: IntegerType
+    let r: IntegerType
+    let s: IntegerType
 
     init(r: IntegerType, s: IntegerType) {
         self.r = r

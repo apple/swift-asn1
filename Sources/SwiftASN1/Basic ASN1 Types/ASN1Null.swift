@@ -14,16 +14,13 @@
 
 /// An ASN1 NULL represents nothing.
 public struct ASN1Null: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
-    @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .null
     }
 
     /// Construct a new ASN.1 null.
-    @inlinable
     public init() {}
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier, case .primitive(let content) = node.content else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -34,12 +31,10 @@ public struct ASN1Null: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, 
         }
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self = try .init(derEncoded: node, withIdentifier: identifier)
     }
 
-    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) {
         coder.appendPrimitiveNode(identifier: identifier, { _ in })
     }

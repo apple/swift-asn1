@@ -21,13 +21,11 @@
 /// means that it can only encode dates between 1950 and 2049. For dates outside that range, prefer
 /// ``GeneralizedTime``.
 public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
-    @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .utcTime
     }
 
     /// The numerical year.
-    @inlinable
     public var year: Int {
         get {
             return self._year
@@ -39,7 +37,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     }
 
     /// The numerical month.
-    @inlinable
     public var month: Int {
         get {
             return self._month
@@ -51,7 +48,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     }
 
     /// The numerical day.
-    @inlinable
     public var day: Int {
         get {
             return self._day
@@ -63,7 +59,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     }
 
     /// The numerical hours.
-    @inlinable
     public var hours: Int {
         get {
             return self._hours
@@ -75,7 +70,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     }
 
     /// The numerical minutes.
-    @inlinable
     public var minutes: Int {
         get {
             return self._minutes
@@ -87,7 +81,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     }
 
     /// The numerical seconds.
-    @inlinable
     public var seconds: Int {
         get {
             return self._seconds
@@ -98,12 +91,12 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
         }
     }
 
-    @usableFromInline var _year: Int
-    @usableFromInline var _month: Int
-    @usableFromInline var _day: Int
-    @usableFromInline var _hours: Int
-    @usableFromInline var _minutes: Int
-    @usableFromInline var _seconds: Int
+    private var _year: Int
+    private var _month: Int
+    private var _day: Int
+    private var _hours: Int
+    private var _minutes: Int
+    private var _seconds: Int
 
     /// Construct a new ``UTCTime`` from individual components.
     ///
@@ -114,7 +107,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     ///     - hours: The numerical hours
     ///     - minutes: The numerical minutes
     ///     - seconds: The numerical seconds
-    @inlinable
     public init(year: Int, month: Int, day: Int, hours: Int, minutes: Int, seconds: Int) throws {
         self._year = year
         self._month = month
@@ -126,26 +118,22 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
         try self._validate()
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         let content = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.utcTimeFromBytes(content)
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         let content = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.utcTimeFromBytes(content)
     }
 
-    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(self)
         }
     }
 
-    @inlinable
     func _validate() throws {
         // Validate that the structure is well-formed.
         // UTCTime can only hold years between 1950 and 2049.
@@ -181,7 +169,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
 }
 
 extension UTCTime: Comparable {
-    @inlinable
     public static func < (lhs: UTCTime, rhs: UTCTime) -> Bool {
         if lhs.year < rhs.year { return true } else if lhs.year > rhs.year { return false }
         if lhs.month < rhs.month { return true } else if lhs.month > rhs.month { return false }

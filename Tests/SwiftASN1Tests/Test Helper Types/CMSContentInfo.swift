@@ -19,9 +19,9 @@ struct CMSContentInfo: BERImplicitlyTaggable, DERImplicitlyTaggable, Hashable {
         .sequence
     }
 
-    public var contentType: ASN1ObjectIdentifier
+    let contentType: ASN1ObjectIdentifier
 
-    var content: ASN1Any
+    let content: ASN1Any
 
     init(contentType: ASN1ObjectIdentifier, content: ASN1Any) {
         self.contentType = contentType

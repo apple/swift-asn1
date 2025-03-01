@@ -27,15 +27,12 @@
 /// This object also has a number of pre-existing values defined in namespaces. Users are encouraged to create their own namespaces to
 /// make it easier to use OIDs in their own serialization code.
 public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable {
-    @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .objectIdentifier
     }
 
-    @usableFromInline
-    var bytes: ArraySlice<UInt8>
+    let bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -50,7 +47,6 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
         self.bytes = content
     }
 
-    @inlinable
     static func validateObjectIdentifierInEncodedForm(_ content: ArraySlice<UInt8>) throws {
         var content = content
 
@@ -64,7 +60,6 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
     }
 
     /// An array representing the OID components
-    @inlinable
     public var oidComponents: [UInt] {
         var content = bytes
         // We have to parse the content. From the spec:
@@ -122,19 +117,16 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
         return oidComponents
     }
 
-    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(contentsOf: self.bytes)
         }
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identiifer: ASN1Identifier) throws {
         self = try .init(derEncoded: node, withIdentifier: identiifer)
     }
 
-    @inlinable
     static func _writeOIDSubidentifier(_ identifier: UInt, into array: inout [UInt8]) {
         array.writeUsing7BitBytesASN1Discipline(unsignedInteger: identifier)
     }
@@ -147,7 +139,6 @@ extension ASN1ObjectIdentifier: Sendable {}
 extension ASN1ObjectIdentifier {
     /// Initializes ``ASN1ObjectIdentifier`` from its OID components
     /// - Parameter elements: The OID components
-    @inlinable
     public init(elements: some Collection<UInt>) throws {
         var bytes = [UInt8]()
         var iterator = elements.makeIterator()
@@ -169,7 +160,6 @@ extension ASN1ObjectIdentifier {
 }
 
 extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
-    @inlinable
     public init(stringLiteral dotRepresentation: String) {
         // To allow for invalid strings to be tested, parsing is performed in a separate initializer that  `throws`
         // (this initializer conforms to ExpressibleByStringLiteral so cannot throw)
@@ -178,7 +168,6 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
 
     /// Initializes an instance from a `Substring` containing the dot represented OID
     /// - Parameter dotRepresentation: The dot represented OID
-    @inlinable
     public init(dotRepresentation: Substring) throws {
         let octetArray = dotRepresentation.utf8.split(
             separator: UInt8(ascii: "."),
@@ -197,21 +186,18 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
 
     /// Initializes an instance from a `String` containing the dot represented OID
     /// - Parameter dotRepresentation: The dot represented OID
-    @inlinable
     public init(dotRepresentation: String) throws {
         try self.init(dotRepresentation: Substring(dotRepresentation))
     }
 }
 
 extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
-    @inlinable
     public init(arrayLiteral elements: UInt...) {
         try! self.init(elements: elements)
     }
 }
 
 extension ASN1ObjectIdentifier: CustomStringConvertible {
-    @inlinable
     public var description: String {
         self.oidComponents.map { String($0) }.joined(separator: ".")
     }
@@ -371,7 +357,6 @@ extension ASN1ObjectIdentifier {
 }
 
 extension ArraySlice where Element == UInt8 {
-    @inlinable
     mutating func readUIntUsing8BitBytesASN1Discipline() throws -> UInt {
         // In principle OID subidentifiers and long tags can be too large to fit into a UInt. We are choosing to not care about that
         // because for us it shouldn't matter.
@@ -395,7 +380,6 @@ extension ArraySlice where Element == UInt8 {
 }
 
 extension UInt {
-    @inlinable
     init<Bytes: Collection>(sevenBitBigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
         // We need to know how many bytes we _need_ to store this "int". As a base optimization we refuse to parse
         // anything larger than 9 bytes wide, even though conceptually we could fit a few more bits.
@@ -420,7 +404,6 @@ extension UInt {
 }
 
 extension Array where Element == UInt8 {
-    @inlinable
     mutating func writeUsing7BitBytesASN1Discipline(unsignedInteger identifier: UInt) {
         // An OID subidentifier or long-form tag is written as an integer over 7-bit bytes, where the last byte has the top bit unset.
         // The first thing we need is to know how many bits we need to write
