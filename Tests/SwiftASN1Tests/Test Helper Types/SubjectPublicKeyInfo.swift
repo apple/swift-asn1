@@ -18,9 +18,9 @@ struct SubjectPublicKeyInfo: DERImplicitlyTaggable, Hashable {
         .sequence
     }
 
-    var algorithmIdentifier: RFC5480AlgorithmIdentifier
+    let algorithmIdentifier: RFC5480AlgorithmIdentifier
 
-    var key: ASN1BitString
+    let key: ASN1BitString
 
     init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         // The SPKI block looks like this:
@@ -60,9 +60,9 @@ struct RFC5480AlgorithmIdentifier: DERImplicitlyTaggable, Hashable {
         .sequence
     }
 
-    var algorithm: ASN1ObjectIdentifier
+    let algorithm: ASN1ObjectIdentifier
 
-    var parameters: ASN1Any?
+    let parameters: ASN1Any?
 
     init(algorithm: ASN1ObjectIdentifier, parameters: ASN1Any?) {
         self.algorithm = algorithm
