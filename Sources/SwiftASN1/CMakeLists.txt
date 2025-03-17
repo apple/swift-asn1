@@ -30,7 +30,8 @@ add_library(SwiftASN1
   "Basic ASN1 Types/TimeUtilities.swift"
   "Basic ASN1 Types/UTCTime.swift"
   "DER.swift"
-  "Errors.swift")
+  "Errors.swift"
+)
 
 target_link_libraries(SwiftASN1 PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
