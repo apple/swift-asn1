@@ -76,7 +76,6 @@ extension PEMParseable {
     ///
     /// - Parameters:
     ///   - pemString: The PEM-encoded string representing this object.
-    @inlinable
     public init(pemEncoded pemString: String) throws {
         try self.init(pemDocument: try PEMDocument(pemString: pemString))
     }
@@ -87,7 +86,6 @@ extension PEMParseable {
     ///
     /// - Parameters:
     ///   - pemDocument: DER-encoded PEM document
-    @inlinable
     public init(pemDocument: PEMDocument) throws {
         guard pemDocument.discriminator == Self.defaultPEMDiscriminator else {
             throw ASN1Error.invalidPEMDocument(
@@ -104,7 +102,6 @@ extension PEMSerializable {
     /// Serializes `self` as a PEM document with given `discriminator`.
     /// - Parameter discriminator: PEM discriminator used in for the BEGIN and END encapsulation boundaries.
     /// - Returns: DER encoded PEM document
-    @inlinable
     public func serializeAsPEM(discriminator: String) throws -> PEMDocument {
         var serializer = DER.Serializer()
         try serializer.serialize(self)
@@ -113,7 +110,6 @@ extension PEMSerializable {
     }
 
     /// Serializes `self` as a PEM document with the ``defaultPEMDiscriminator``.
-    @inlinable
     public func serializeAsPEM() throws -> PEMDocument {
         try self.serializeAsPEM(discriminator: Self.defaultPEMDiscriminator)
     }
@@ -129,9 +125,9 @@ public struct PEMDocument: Hashable, Sendable {
     /// <base 64 encoded derBytes>
     /// -----END discriminator-----
     /// ```
-    public var discriminator: String
+    public let discriminator: String
 
-    public var derBytes: [UInt8]
+    public let derBytes: [UInt8]
 
     public init(pemString: String) throws {
         var pemString = pemString.utf8[...]
