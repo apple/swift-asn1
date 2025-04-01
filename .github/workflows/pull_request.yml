@@ -52,3 +52,10 @@ jobs:
             { "name": "SwiftASN1", "type": "source", "exceptions": [] }
           ]
         }
+
+  macos-tests:
+    name: macOS tests
+    uses: apple/swift-nio/.github/workflows/macos_tests.yml@main
+    with:
+      runner_pool: general
+      build_scheme: swift-asn1
