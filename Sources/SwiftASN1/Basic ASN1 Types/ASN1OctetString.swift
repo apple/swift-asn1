@@ -15,7 +15,6 @@
 /// An OCTET STRING is a representation of a string of octets.
 public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
 
-    @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .octetString
     }
@@ -23,7 +22,6 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     /// The octets that make up this OCTET STRING.
     public var bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -36,7 +34,6 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         self.bytes = content
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -87,12 +84,10 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     ///
     /// - parameters:
     ///     - contentBytes: The bytes that make up this OCTET STRING.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) {
         self.bytes = contentBytes
     }
 
-    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(contentsOf: self.bytes)
@@ -105,7 +100,6 @@ extension ASN1OctetString: Hashable {}
 extension ASN1OctetString: Sendable {}
 
 extension ASN1OctetString {
-    @inlinable
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }
