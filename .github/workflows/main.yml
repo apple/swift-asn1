@@ -46,8 +46,6 @@ jobs:
     with:
       runner_pool: nightly
       build_scheme: swift-asn1
-      xcode_16_0_build_arguments_override: "-Xswiftc -Xfrontend -Xswiftc -require-explicit-sendable"
-      xcode_16_1_build_arguments_override: "-Xswiftc -Xfrontend -Xswiftc -require-explicit-sendable"
       xcode_16_2_build_arguments_override: "-Xswiftc -Xfrontend -Xswiftc -require-explicit-sendable"
       xcode_16_3_build_arguments_override: "-Xswiftc -Xfrontend -Xswiftc -require-explicit-sendable"
       xcode_26_beta_1_build_arguments_override: "-Xswiftc -Xfrontend -Xswiftc -require-explicit-sendable"
