@@ -19,7 +19,9 @@ import class Foundation.ProcessInfo
 let strictConcurrencyDevelopment = false
 
 let strictConcurrencySettings: [SwiftSetting] = {
-    var initialSettings: [SwiftSetting] = []
+    var initialSettings: [SwiftSetting] = [
+        .enableUpcomingFeature("ExistentialAny")
+    ]
 
     if strictConcurrencyDevelopment {
         // -warnings-as-errors here is a workaround so that IDE-based development can
