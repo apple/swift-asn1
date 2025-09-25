@@ -1,9 +1,9 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftASN1 open source project
 //
-// Copyright (c) 2019-2023 Apple Inc. and the SwiftASN1 project authors
+// Copyright (c) 2019-2025 Apple Inc. and the SwiftASN1 project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -16,10 +16,21 @@
 import PackageDescription
 import class Foundation.ProcessInfo
 
-let upcomingFeatureSwiftSettings: [SwiftSetting] = [
-    .enableUpcomingFeature("ExistentialAny"),
-    .enableUpcomingFeature("StrictConcurrency"),
-]
+let strictConcurrencyDevelopment = false
+
+let strictConcurrencySettings: [SwiftSetting] = {
+    var initialSettings: [SwiftSetting] = [
+        .enableUpcomingFeature("ExistentialAny")
+    ]
+
+    if strictConcurrencyDevelopment {
+        // -warnings-as-errors here is a workaround so that IDE-based development can
+        // get tripped up on -require-explicit-sendable.
+        initialSettings.append(.unsafeFlags(["-require-explicit-sendable", "-warnings-as-errors"]))
+    }
+
+    return initialSettings
+}()
 
 let package = Package(
     name: "swift-asn1",
@@ -30,12 +41,12 @@ let package = Package(
         .target(
             name: "SwiftASN1",
             exclude: ["CMakeLists.txt"],
-            swiftSettings: upcomingFeatureSwiftSettings
+            swiftSettings: strictConcurrencySettings
         ),
         .testTarget(
             name: "SwiftASN1Tests",
             dependencies: ["SwiftASN1"],
-            swiftSettings: upcomingFeatureSwiftSettings
+            swiftSettings: strictConcurrencySettings
         ),
     ]
 )
