@@ -19,7 +19,6 @@ public enum ASN1 {}
 
 // MARK: - EncodingRules
 extension ASN1 {
-    @usableFromInline
     enum EncodingRules: Sendable {
         case basic
 
@@ -28,28 +27,20 @@ extension ASN1 {
 }
 
 extension ASN1.EncodingRules {
-    @inlinable
     var indefiniteLengthAllowed: Bool { self == .basic }
 
-    @inlinable
     var nonMinimalEncodedLengthsAllowed: Bool { self == .basic }
 
-    @inlinable
     var constructedBitStringAllowed: Bool { self == .basic }
 
-    @inlinable
     var relaxedTimestampsAllowed: Bool { self == .basic }
 
-    @inlinable
     var defaultEncodableSequenceAllowed: Bool { self == .basic }
 
-    @inlinable
     var defaultEncodableSETAllowed: Bool { self == .basic }
 
-    @inlinable
     var unsortedSETAllowed: Bool { self == .basic }
 
-    @inlinable
     var unsortedSETOFAllowed: Bool { self == .basic }
 }
 
@@ -62,29 +53,22 @@ extension ASN1 {
     /// we're uninterested in.
     ///
     /// This type is not exposed to users of the API: it is only used internally for implementation of the user-level API.
-    @usableFromInline
     struct ParserNode {
         /// The identifier.
-        @usableFromInline
-        var identifier: ASN1Identifier
+        let identifier: ASN1Identifier
 
         /// The depth of this node.
-        @usableFromInline
-        var depth: Int
+        let depth: Int
 
         /// Whether this node is constructed
-        @usableFromInline
-        var isConstructed: Bool
+        let isConstructed: Bool
 
         /// The encoded bytes for this complete ASN.1 object.
-        @usableFromInline
         var encodedBytes: ArraySlice<UInt8>
 
         /// The data bytes for this node, if it is primitive.
-        @usableFromInline
-        var dataBytes: ArraySlice<UInt8>?
+        let dataBytes: ArraySlice<UInt8>?
 
-        @inlinable
         init(
             identifier: ASN1Identifier,
             depth: Int,
@@ -106,7 +90,6 @@ extension ASN1.ParserNode: Hashable {}
 extension ASN1.ParserNode: Sendable {}
 
 extension ASN1.ParserNode: CustomStringConvertible {
-    @inlinable
     var description: String {
         return
             "ASN1.ParserNode(identifier: \(self.identifier), depth: \(self.depth), dataBytes: \(self.dataBytes?.count ?? 0))"
@@ -114,7 +97,6 @@ extension ASN1.ParserNode: CustomStringConvertible {
 }
 
 extension ASN1.ParserNode {
-    @inlinable
     var isEndMarker: Bool {
         self.identifier.tagClass == .universal
             && self.identifier.tagNumber == 0
@@ -126,20 +108,15 @@ extension ASN1.ParserNode {
 // MARK: - Parsing
 
 extension ASN1 {
-    @usableFromInline
     struct ParseResult: Sendable {
-        @inlinable
         static var _maximumNodeDepth: Int { 50 }
 
-        @usableFromInline
         var nodes: ArraySlice<ParserNode>
 
-        @inlinable
         init(_ nodes: ArraySlice<ParserNode>) {
             self.nodes = nodes
         }
 
-        @inlinable
         static func parse(_ data: ArraySlice<UInt8>, encoding rules: EncodingRules) throws -> ParseResult {
             var data = data
             var nodes = [ParserNode]()
@@ -151,7 +128,6 @@ extension ASN1 {
             return ParseResult(nodes[...])
         }
 
-        @inlinable
         static func _parseNode(
             from data: inout ArraySlice<UInt8>,
             encoding rules: EncodingRules,
@@ -273,33 +249,26 @@ extension ASN1 {
     public struct LazySetOfSequence<T>: Sequence {
         public typealias Element = Result<T, any Error>
 
-        @usableFromInline
         typealias WrappedSequence = LazyMapSequence<LazySequence<(ASN1NodeCollection)>.Elements, Result<T, any Error>>
 
         public struct Iterator: IteratorProtocol {
-            @usableFromInline
             var wrapped: WrappedSequence.Iterator
 
-            @inlinable
             mutating public func next() -> Element? {
                 wrapped.next()
             }
 
-            @inlinable
             init(_ wrapped: WrappedSequence.Iterator) {
                 self.wrapped = wrapped
             }
         }
 
-        @usableFromInline
-        var wrapped: WrappedSequence
+        let wrapped: WrappedSequence
 
-        @inlinable
         init(_ wrapped: WrappedSequence) {
             self.wrapped = wrapped
         }
 
-        @inlinable
         public func makeIterator() -> Iterator {
             .init(wrapped.makeIterator())
         }
@@ -320,11 +289,10 @@ extension ASN1.LazySetOfSequence.Iterator: Sendable {}
 ///
 /// This type cannot be constructed directly, and is instead provided by helper functions such as ``DER/sequence(of:identifier:rootNode:)``.
 public struct ASN1NodeCollection {
-    @usableFromInline var _nodes: ArraySlice<ASN1.ParserNode>
+    let _nodes: ArraySlice<ASN1.ParserNode>
 
-    @usableFromInline var _depth: Int
+    let _depth: Int
 
-    @inlinable
     init(nodes: ArraySlice<ASN1.ParserNode>, depth: Int) {
         self._nodes = nodes
         self._depth = depth
@@ -343,19 +311,15 @@ extension ASN1NodeCollection: Sendable {}
 extension ASN1NodeCollection: Sequence {
     /// An iterator of ASN.1 nodes that are children of a specific constructed node.
     public struct Iterator: IteratorProtocol, Sendable {
-        @usableFromInline
-        var _nodes: ArraySlice<ASN1.ParserNode>
+        private(set) var _nodes: ArraySlice<ASN1.ParserNode>
 
-        @usableFromInline
-        var _depth: Int
+        let _depth: Int
 
-        @inlinable
         init(nodes: ArraySlice<ASN1.ParserNode>, depth: Int) {
             self._nodes = nodes
             self._depth = depth
         }
 
-        @inlinable
         public mutating func next() -> ASN1Node? {
             guard let nextNode = self._nodes.popFirst() else {
                 return nil
@@ -381,7 +345,6 @@ extension ASN1NodeCollection: Sequence {
         }
     }
 
-    @inlinable
     public func makeIterator() -> Iterator {
         return Iterator(nodes: self._nodes, depth: self._depth)
     }
@@ -408,7 +371,6 @@ public struct ASN1Node: Hashable, Sendable {
     /// This is principally intended for diagnostic purposes.
     public var encodedBytes: ArraySlice<UInt8>
 
-    @inlinable
     internal init(
         identifier: ASN1Identifier,
         content: ASN1Node.Content,
@@ -435,13 +397,11 @@ extension ASN1Node {
 // MARK: - Primitive Extensions
 
 extension ArraySlice where Element == UInt8 {
-    @usableFromInline
     enum ASN1Length: Sendable {
         case indefinite
         case definite(_: UInt)
     }
 
-    @inlinable
     mutating func _readASN1Length(_ minimalEncoding: Bool) throws -> ASN1Length? {
         guard let firstByte = self.popFirst() else {
             return nil
@@ -498,8 +458,7 @@ extension ArraySlice where Element == UInt8 {
 }
 
 extension FixedWidthInteger {
-    @inlinable
-    internal init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
+    init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
         guard bytes.count <= (Self.bitWidth / 8) else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to treat \(bytes.count) bytes as a \(Self.self)")
         }
@@ -521,7 +480,6 @@ extension FixedWidthInteger {
 }
 
 extension Array where Element == UInt8 {
-    @inlinable
     mutating func _moveRange(offset: Int, range: Range<Index>) {
         // We only bothered to implement this for positive offsets for now, the algorithm
         // generalises.
@@ -543,7 +501,6 @@ extension Array where Element == UInt8 {
 }
 
 extension Int {
-    @inlinable
     var _bytesNeededToEncode: Int {
         // ASN.1 lengths are in two forms. If we can store the length in 7 bits, we should:
         // that requires only one byte. Otherwise, we need multiple bytes: work out how many,
@@ -561,7 +518,6 @@ extension Int {
 
 extension FixedWidthInteger {
     // Bytes needed to store a given integer.
-    @inlinable
     internal var neededBytes: Int {
         let neededBits = self.bitWidth - self.leadingZeroBitCount
         return (neededBits + 7) / 8
@@ -569,7 +525,6 @@ extension FixedWidthInteger {
 }
 
 extension ASN1NodeCollection {
-    @inlinable
     func isOrderedAccordingToSetOfSemantics() -> Bool {
         var iterator = self.makeIterator()
         guard let first = iterator.next() else {
@@ -588,7 +543,6 @@ extension ASN1NodeCollection {
     }
 }
 
-@inlinable
 func asn1SetElementLessThan(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) -> Bool {
     for (leftByte, rightByte) in zip(lhs, rhs) {
         if leftByte < rightByte {
@@ -610,7 +564,6 @@ func asn1SetElementLessThan(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) 
     return true
 }
 
-@inlinable
 func asn1SetElementLessThanOrEqual(_ lhs: ArraySlice<UInt8>, _ rhs: ArraySlice<UInt8>) -> Bool {
     // https://github.com/apple/swift/blob/43c5824be892967993f4d0111206764eceeffb67/stdlib/public/core/Comparable.swift#L202
     !asn1SetElementLessThan(rhs, lhs)
