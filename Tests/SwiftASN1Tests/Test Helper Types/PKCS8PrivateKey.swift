@@ -39,9 +39,9 @@ struct PKCS8PrivateKey: DERImplicitlyTaggable {
         return .sequence
     }
 
-    var algorithm: RFC5480AlgorithmIdentifier
+    let algorithm: RFC5480AlgorithmIdentifier
 
-    var privateKey: SEC1PrivateKey
+    let privateKey: SEC1PrivateKey
 
     init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self = try DER.sequence(rootNode, identifier: identifier) { nodes in

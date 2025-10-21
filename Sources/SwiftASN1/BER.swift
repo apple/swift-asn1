@@ -21,7 +21,6 @@ extension BER: Sendable {}
 
 // MARK: - Parser Node
 extension BER {
-    @usableFromInline
     typealias ParserNode = ASN1.ParserNode
     typealias ParseResult = ASN1.ParseResult
 }
@@ -29,12 +28,10 @@ extension BER {
 // MARK: - Parsing
 
 extension BER {
-    @inlinable
     public static func parse(_ data: [UInt8]) throws -> ASN1Node {
         return try parse(data[...])
     }
 
-    @inlinable
     public static func parse(_ data: ArraySlice<UInt8>) throws -> ASN1Node {
         var result = try ASN1.ParseResult.parse(data, encoding: .basic)
 
@@ -75,7 +72,6 @@ extension BER {
     ///     - node: The ``ASN1Node`` to parse
     ///     - identifier: The ``ASN1Identifier`` that the SEQUENCE is expected to have.
     ///     - builder: A closure that will be called with the collection of nodes within the sequence.
-    @inlinable
     public static func sequence<T>(
         _ node: ASN1Node,
         identifier: ASN1Identifier,
@@ -93,7 +89,6 @@ extension BER {
     ///     - identifier: The ``ASN1Identifier`` that the SEQUENCE OF is expected to have.
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: An array of elements representing the elements in the sequence.
-    @inlinable
     public static func sequence<T: BERParseable>(
         of: T.Type = T.self,
         identifier: ASN1Identifier,
@@ -115,7 +110,6 @@ extension BER {
     ///     - identifier: The ``ASN1Identifier`` that the SEQUENCE OF is expected to have.
     ///     - nodes: An ``ASN1NodeCollection/Iterator`` of nodes to parse.
     /// - returns: An array of elements representing the elements in the sequence.
-    @inlinable
     public static func sequence<T: BERParseable>(
         of: T.Type = T.self,
         identifier: ASN1Identifier,
@@ -139,7 +133,6 @@ extension BER {
     ///     - node: The ``ASN1Node`` to parse
     ///     - identifier: The ``ASN1Identifier`` that the SET is expected to have.
     ///     - builder: A closure that will be called with the collection of nodes within the set.
-    @inlinable
     public static func set<T>(
         _ node: ASN1Node,
         identifier: ASN1Identifier,
@@ -158,7 +151,6 @@ extension BER {
     ///     - identifier: The ``ASN1Identifier`` that the SET OF is expected to have.
     ///     - nodes: An ``ASN1NodeCollection/Iterator`` of nodes to parse.
     /// - returns: An array of elements representing the elements in the set.
-    @inlinable
     public static func set<T: BERParseable>(
         of: T.Type = T.self,
         identifier: ASN1Identifier,
@@ -183,7 +175,6 @@ extension BER {
     ///     - identifier: The ``ASN1Identifier`` that the SET OF is expected to have.
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: An array of elements representing the elements in the sequence.
-    @inlinable
     public static func set<T: BERParseable>(
         of type: T.Type = T.self,
         identifier: ASN1Identifier,
@@ -201,7 +192,6 @@ extension BER {
     ///     - identifier: The ``ASN1Identifier`` that the SET OF is expected to have.
     ///     - rootNode: The ``ASN1Node`` to parse
     /// - returns: A `Sequence` of elements representing the `Result` of parsing the elements in the sequence.
-    @inlinable
     public static func lazySet<T: BERParseable>(
         of: T.Type = T.self,
         identifier: ASN1Identifier,
@@ -233,7 +223,6 @@ extension BER {
     ///     - builder: A closure that will be called with the node for the element, if the element is present.
     ///
     /// - returns: The result of `builder` if the element was present, or `nil` if it was not.
-    @inlinable
     public static func optionalExplicitlyTagged<T>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         tagNumber: UInt,
@@ -253,7 +242,6 @@ extension BER {
     ///     - tag: The implicit tag. Defaults to the default tag for the element.
     ///
     /// - returns: The parsed element, if it was present, or `nil` if it was not.
-    @inlinable
     public static func optionalImplicitlyTagged<T: DERImplicitlyTaggable>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         tag: ASN1Identifier = T.defaultIdentifier
@@ -282,7 +270,6 @@ extension BER {
     ///     - builder: A closure that will be called with the node for the element, if the element is present.
     ///
     /// - returns: The result of `builder` if the element was present, or `nil` if it was not.
-    @inlinable
     public static func optionalImplicitlyTagged<Result>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         tagNumber: UInt,
@@ -306,7 +293,6 @@ extension BER {
     ///     - builder: A closure that will be called with the node for the element, if the element is present.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
-    @inlinable
     public static func decodeDefault<T: BERParseable & Equatable>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         identifier: ASN1Identifier,
@@ -347,7 +333,6 @@ extension BER {
     ///     - defaultValue: The default value to use if there was no encoded value.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
-    @inlinable
     public static func decodeDefault<T: BERParseable & Equatable>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         identifier: ASN1Identifier,
@@ -369,7 +354,6 @@ extension BER {
     ///     - defaultValue: The default value to use if there was no encoded value.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
-    @inlinable
     public static func decodeDefault<T: BERImplicitlyTaggable & Equatable>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         defaultValue: T
@@ -389,7 +373,6 @@ extension BER {
     ///     - builder: A closure that will be called with the node for the element, if the element is present.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
-    @inlinable
     public static func decodeDefaultExplicitlyTagged<T: BERParseable & Equatable>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         tagNumber: UInt,
@@ -418,7 +401,6 @@ extension BER {
     ///     - defaultValue: The default value to use if there was no encoded value.
     ///
     /// - returns: The parsed element, if it was present, or the default if it was not.
-    @inlinable
     public static func decodeDefaultExplicitlyTagged<T: BERParseable & Equatable>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         tagNumber: UInt,
@@ -447,7 +429,6 @@ extension BER {
     ///     - builder: A closure that will be called with the node for the element.
     ///
     /// - returns: The result of `builder`.
-    @inlinable
     public static func explicitlyTagged<T>(
         _ nodes: inout ASN1NodeCollection.Iterator,
         tagNumber: UInt,
@@ -466,7 +447,6 @@ extension BER {
     ///     - builder: A closure that will be called with the node for the element.
     ///
     /// - returns: The result of `builder`.
-    @inlinable
     public static func explicitlyTagged<T>(
         _ node: ASN1Node,
         tagNumber: UInt,
@@ -518,12 +498,10 @@ public protocol BERParseable: DERParseable {
 extension BERParseable {
 
     /// By default, uses the underlying DERParseable initializer.
-    @inlinable
     public init(berEncoded node: ASN1Node) throws {
         self = try .init(derEncoded: node)
     }
 
-    @inlinable
     public init(berEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator) throws {
         guard let node = sequenceNodeIterator.next() else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to decode \(Self.self), no ASN.1 nodes to decode")
@@ -536,7 +514,6 @@ extension BERParseable {
     ///
     /// - parameters:
     ///     - berEncoded: The BER-encoded bytes representing this object.
-    @inlinable
     public init(berEncoded: [UInt8]) throws {
         self = try .init(berEncoded: BER.parse(berEncoded))
     }
@@ -545,7 +522,6 @@ extension BERParseable {
     ///
     /// - parameters:
     ///     - berEncoded: The BER-encoded bytes representing this object.
-    @inlinable
     public init(berEncoded: ArraySlice<UInt8>) throws {
         self = try .init(berEncoded: BER.parse(berEncoded))
     }
@@ -591,7 +567,6 @@ extension BERImplicitlyTaggable {
     ///     - sequenceNodeIterator: The sequence of nodes that make up this object's parent. The first node in this collection
     ///         will be used to construct this object.
     ///     - identifier: The ASN.1 identifier that `berEncoded` is expected to have.
-    @inlinable
     public init(
         berEncoded sequenceNodeIterator: inout ASN1NodeCollection.Iterator,
         withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier
@@ -608,7 +583,6 @@ extension BERImplicitlyTaggable {
     /// - parameters:
     ///     - berEncoded: The BER-encoded bytes representing this object.
     ///     - identifier: The ASN.1 identifier that `berEncoded` is expected to have.
-    @inlinable
     public init(berEncoded: [UInt8], withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier) throws {
         self = try .init(berEncoded: BER.parse(berEncoded), withIdentifier: identifier)
     }
@@ -618,7 +592,6 @@ extension BERImplicitlyTaggable {
     /// - parameters:
     ///     - berEncoded: The DER-encoded bytes representing this object.
     ///     - identifier: The ASN.1 identifier that `berEncoded` is expected to have.
-    @inlinable
     public init(
         berEncoded: ArraySlice<UInt8>,
         withIdentifier identifier: ASN1Identifier = Self.defaultIdentifier
@@ -630,7 +603,6 @@ extension BERImplicitlyTaggable {
     ///
     /// - parameters:
     ///     - berEncoded: The BER-encoded bytes representing this object.
-    @inlinable
     public init(berEncoded: ASN1Node) throws {
         try self.init(berEncoded: berEncoded, withIdentifier: Self.defaultIdentifier)
     }
