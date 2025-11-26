@@ -103,6 +103,37 @@ final class ASN1StringTests: XCTestCase {
         string.withUnsafeBytes { XCTAssertTrue($0.elementsEqual([1, 2, 3, 4])) }
     }
 
+    func testBMPStringStringLiteral() throws {
+        typealias TestCase = (literal: String, utf16: [UInt8], asn1: [UInt8])
+
+        let testCases: [TestCase] = [
+            TestCase(
+                "Test",
+                [0, 84, 0, 101, 0, 115, 0, 116],
+                [30, 8, 0, 84, 0, 101, 0, 115, 0, 116]
+            ),
+            TestCase(
+                "Tests",
+                [0, 84, 0, 101, 0, 115, 0, 116, 0, 115],
+                [30, 10, 0, 84, 0, 101, 0, 115, 0, 116, 0, 115]
+            ),
+            TestCase(
+                "中文",
+                [78, 45, 101, 135],
+                [30, 4, 78, 45, 101, 135]
+            ),
+        ]
+
+        try testCases.forEach { testCase in
+            let string = ASN1BMPString(stringLiteral: testCase.literal)
+            XCTAssertEqual(Array(string.bytes), testCase.utf16)
+
+            var serializer = DER.Serializer()
+            try serializer.serialize(string)
+            XCTAssertEqual(serializer.serializedBytes, testCase.asn1)
+        }
+    }
+
     func testUTF8StringCanCreateAString() throws {
         let string = "hello, world!"
         let utf8String = ASN1UTF8String(string)

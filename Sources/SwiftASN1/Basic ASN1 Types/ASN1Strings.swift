@@ -284,7 +284,19 @@ public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
 
     @inlinable
     public init(stringLiteral value: StringLiteralType) {
-        self.bytes = ArraySlice(value.utf8)
+        guard
+            value.utf16.allSatisfy({ codeUnit in
+                !(0xD800...0xDFFF).contains(codeUnit)
+            })
+        else {
+            fatalError("BMPString cannot contain characters outside the Basic Multilingual Plane: '\(value)'")
+        }
+
+        self.bytes = ArraySlice(
+            value.utf16.flatMap { codeUnit in
+                [UInt8(truncatingIfNeeded: codeUnit >> 8), UInt8(truncatingIfNeeded: codeUnit)]
+            }
+        )
     }
 
     @inlinable
