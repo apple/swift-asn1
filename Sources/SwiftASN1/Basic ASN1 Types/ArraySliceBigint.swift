@@ -27,22 +27,18 @@ extension ArraySlice: BERImplicitlyTaggable where Element == UInt8 {}
 
 extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     // We only use unsigned "bigint"s
-    @inlinable
     public static var isSigned: Bool {
         return false
     }
 
-    @inlinable
     public init(derIntegerBytes: ArraySlice<UInt8>) throws {
         self = derIntegerBytes
     }
 
-    @inlinable
     public init(berIntegerBytes: ArraySlice<UInt8>) throws {
         self = berIntegerBytes
     }
 
-    @inlinable
     public func withBigEndianIntegerBytes<ReturnType>(
         _ body: (ArraySlice<UInt8>) throws -> ReturnType
     ) rethrows -> ReturnType {

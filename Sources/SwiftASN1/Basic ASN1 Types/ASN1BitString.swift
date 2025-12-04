@@ -24,7 +24,6 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     /// The default identifier for this type.
     ///
     /// Evaluates to ``ASN1Identifier/bitString``.
-    @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .bitString
     }
@@ -50,7 +49,6 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         }
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -94,14 +92,12 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     /// - parameters:
     ///     - bytes: The bytes to represent this bitstring
     ///     - paddingBits: The number of bits in the trailing byte that are not actually part of this bitstring.
-    @inlinable
     public init(bytes: ArraySlice<UInt8>, paddingBits: Int = 0) {
         self.bytes = bytes
         self.paddingBits = paddingBits
         try! self._validate()
     }
 
-    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(UInt8(truncatingIfNeeded: self.paddingBits))
@@ -109,7 +105,6 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         }
     }
 
-    @inlinable
     internal func _validate() throws {
         guard let finalByte = self.bytes.last else {
             if self.paddingBits != 0 {
@@ -139,7 +134,6 @@ extension ASN1BitString: Hashable {}
 extension ASN1BitString: Sendable {}
 
 extension ASN1BitString {
-    @inlinable
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }

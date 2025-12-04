@@ -28,11 +28,11 @@ struct SEC1PrivateKey: DERImplicitlyTaggable, PEMRepresentable {
         return .sequence
     }
 
-    var algorithm: RFC5480AlgorithmIdentifier?
+    let algorithm: RFC5480AlgorithmIdentifier?
 
-    var privateKey: ASN1OctetString
+    let privateKey: ASN1OctetString
 
-    var publicKey: ASN1BitString?
+    let publicKey: ASN1BitString?
 
     init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self = try DER.sequence(rootNode, identifier: identifier) { nodes in
