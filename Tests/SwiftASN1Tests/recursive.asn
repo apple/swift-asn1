@@ -1,0 +1,7 @@
+RecursiveSchema DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+RecursiveType ::= SEQUENCE {
+    child RecursiveType OPTIONAL
+}
+
+END

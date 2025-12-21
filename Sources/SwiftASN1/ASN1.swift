@@ -364,9 +364,12 @@ extension ASN1NodeCollection: Sequence {
             assert(nextNode.depth == self._depth + 1)
             guard nextNode.isConstructed else {
                 // There must be data bytes here, even if they're empty.
+                guard let dataBytes = nextNode.dataBytes else {
+                    fatalError("invariant: primitive nodes have dataBytes")
+                }
                 return ASN1Node(
                     identifier: nextNode.identifier,
-                    content: .primitive(nextNode.dataBytes!),
+                    content: .primitive(dataBytes),
                     encodedBytes: nextNode.encodedBytes
                 )
             }

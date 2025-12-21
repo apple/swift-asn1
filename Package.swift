@@ -46,6 +46,7 @@ let package = Package(
         .testTarget(
             name: "SwiftASN1Tests",
             dependencies: ["SwiftASN1"],
+            exclude: ["recursive.asn"],
             swiftSettings: strictConcurrencySettings
         ),
     ]
