@@ -130,6 +130,8 @@ extension ASN1 {
     struct ParseResult: Sendable {
         @inlinable
         static var _maximumNodeDepth: Int { 50 }
+        @inlinable
+        static var _maximumTotalNodes: Int { 100_000 }
 
         @usableFromInline
         var nodes: ArraySlice<ParserNode>
@@ -144,7 +146,8 @@ extension ASN1 {
             var data = data
             var nodes = [ParserNode]()
             nodes.reserveCapacity(16)
-            try _parseNode(from: &data, encoding: rules, depth: 1, into: &nodes)
+            var nodeCount = 0
+            try _parseNode(from: &data, encoding: rules, depth: 1, into: &nodes, nodeCount: &nodeCount)
             guard data.count == 0 else {
                 throw ASN1Error.invalidASN1Object(reason: "Trailing unparsed data is present")
             }
@@ -156,8 +159,13 @@ extension ASN1 {
             from data: inout ArraySlice<UInt8>,
             encoding rules: EncodingRules,
             depth: Int,
-            into nodes: inout [ParserNode]
+            into nodes: inout [ParserNode],
+            nodeCount: inout Int
         ) throws {
+            nodeCount += 1
+            guard nodeCount <= ParseResult._maximumTotalNodes else {
+                throw ASN1Error.invalidASN1Object(reason: "Excessive number of ASN.1 nodes")
+            }
             guard depth <= ParseResult._maximumNodeDepth else {
                 throw ASN1Error.invalidASN1Object(reason: "Excessive stack depth was reached")
             }
@@ -218,7 +226,7 @@ extension ASN1 {
                         )
                     )
                     while subData.count > 0 {
-                        try _parseNode(from: &subData, encoding: rules, depth: depth + 1, into: &nodes)
+                        try _parseNode(from: &subData, encoding: rules, depth: depth + 1, into: &nodes, nodeCount: &nodeCount)
                     }
                 } else {
                     nodes.append(
@@ -256,7 +264,7 @@ extension ASN1 {
                 )
                 let lastIndex = nodes.endIndex - 1
                 repeat {
-                    try _parseNode(from: &data, encoding: rules, depth: depth + 1, into: &nodes)
+                    try _parseNode(from: &data, encoding: rules, depth: depth + 1, into: &nodes, nodeCount: &nodeCount)
                 } while data.count > 0 && nodes.last!.isEndMarker == false
                 let endMarker = nodes.popLast()!
                 let encodedBytes = originalData[..<endMarker.encodedBytes.endIndex]
