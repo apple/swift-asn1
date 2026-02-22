@@ -189,7 +189,7 @@ extension ASN1Error {
     /// The same kind of error may be thrown from more than one place, for more than one reason. This type represents
     /// only a fairly high level kind of error: use the string representation of ``ASN1Error`` to get more details
     /// about the specific cause.
-    public struct ErrorCode: Hashable, Sendable, CustomStringConvertible {
+    public struct ErrorCode: Hashable, Sendable {
         fileprivate enum BackingCode {
             case unexpectedFieldType
             case invalidASN1Object
@@ -231,10 +231,13 @@ extension ASN1Error {
 
         /// Too few OID components were provided. There must be at least two or more.
         public static let tooFewOIDComponents = ErrorCode(.tooFewOIDComponents)
+    }
+}
 
-        public var description: String {
-            return String(describing: self.backingCode)
-        }
+@_unavailableInEmbedded
+extension ASN1Error.ErrorCode: CustomStringConvertible {
+    public var description: String {
+        return String(describing: self.backingCode)
     }
 }
 

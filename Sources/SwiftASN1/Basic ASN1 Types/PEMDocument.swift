@@ -36,7 +36,7 @@ public protocol PEMSerializable: DERSerializable {
     /// ```
     static var defaultPEMDiscriminator: String { get }
 
-    func serializeAsPEM(discriminator: String) throws -> PEMDocument
+    func serializeAsPEM(discriminator: String) throws(ASN1Error) -> PEMDocument
 }
 
 /// Defines a type that can be parsed from a PEM-encoded form.
@@ -55,7 +55,7 @@ public protocol PEMParseable: DERParseable {
     /// ```
     static var defaultPEMDiscriminator: String { get }
 
-    init(pemDocument: PEMDocument) throws
+    init(pemDocument: PEMDocument) throws(ASN1Error)
 }
 
 /// Defines a type that can be serialized in and parsed from PEM-encoded form.
@@ -77,7 +77,7 @@ extension PEMParseable {
     /// - Parameters:
     ///   - pemString: The PEM-encoded string representing this object.
     @inlinable
-    public init(pemEncoded pemString: String) throws {
+    public init(pemEncoded pemString: String) throws(ASN1Error) {
         try self.init(pemDocument: try PEMDocument(pemString: pemString))
     }
 
@@ -88,7 +88,7 @@ extension PEMParseable {
     /// - Parameters:
     ///   - pemDocument: DER-encoded PEM document
     @inlinable
-    public init(pemDocument: PEMDocument) throws {
+    public init(pemDocument: PEMDocument) throws(ASN1Error) {
         guard pemDocument.discriminator == Self.defaultPEMDiscriminator else {
             throw ASN1Error.invalidPEMDocument(
                 reason:
@@ -105,7 +105,7 @@ extension PEMSerializable {
     /// - Parameter discriminator: PEM discriminator used in for the BEGIN and END encapsulation boundaries.
     /// - Returns: DER encoded PEM document
     @inlinable
-    public func serializeAsPEM(discriminator: String) throws -> PEMDocument {
+    public func serializeAsPEM(discriminator: String) throws(ASN1Error) -> PEMDocument {
         var serializer = DER.Serializer()
         try serializer.serialize(self)
 
@@ -114,7 +114,7 @@ extension PEMSerializable {
 
     /// Serializes `self` as a PEM document with the ``defaultPEMDiscriminator``.
     @inlinable
-    public func serializeAsPEM() throws -> PEMDocument {
+    public func serializeAsPEM() throws(ASN1Error) -> PEMDocument {
         try self.serializeAsPEM(discriminator: Self.defaultPEMDiscriminator)
     }
 }
@@ -133,7 +133,7 @@ public struct PEMDocument: Hashable, Sendable {
 
     public var derBytes: [UInt8]
 
-    public init(pemString: String) throws {
+    public init(pemString: String) throws(ASN1Error) {
         var pemString = pemString.utf8[...]
 
         guard let document = try pemString.readNextPEMDocument()?.decode() else {
@@ -185,7 +185,7 @@ extension PEMDocument {
     /// Attempts to parse and decode multiple PEM documents inside a single String.
     /// - Parameter pemString: The PEM-encoded string containing zero or more ``PEMDocument``s
     /// - Returns: parsed and decoded PEM documents
-    public static func parseMultiple(pemString: String) throws -> [PEMDocument] {
+    public static func parseMultiple(pemString: String) throws(ASN1Error) -> [PEMDocument] {
         var pemString = pemString.utf8[...]
         var pemDocuments = [PEMDocument]()
         while let lazyPEMDocument = try pemString.readNextPEMDocument() {
@@ -202,7 +202,7 @@ struct LazyPEMDocument {
     /// The `base64EncodedDERString` is as found in the original string and will still contain new lines if present in the original.
     var base64EncodedDERString: Substring.UTF8View
 
-    func decode() throws -> PEMDocument {
+    func decode() throws(ASN1Error) -> PEMDocument {
         guard let type = String(discriminator) else {
             throw ASN1Error.invalidPEMDocument(reason: "discriminator is not valid UTF-8")
         }
@@ -244,7 +244,7 @@ extension Substring.UTF8View {
     /// ```
     /// This function attempts find the BEGIN and END marker.
     /// It then tries to extract the discriminator and the base64 encoded string between the START and END marker.
-    fileprivate mutating func readNextPEMDocument() throws -> LazyPEMDocument? {
+    fileprivate mutating func readNextPEMDocument() throws(ASN1Error) -> LazyPEMDocument? {
         /// First find the BEGIN marker: `-----BEGIN <SOME DISCRIMINATOR>-----`
         guard
             let (
@@ -310,7 +310,7 @@ extension Substring.UTF8View {
     /// printable characters and the final line containing 64 or fewer
     /// printable characters.
     ///
-    private func checkLineLengthsOfBase64EncodedString() throws {
+    private func checkLineLengthsOfBase64EncodedString() throws(ASN1Error) {
         var message = self
         let lastIndex = message.index(before: message.endIndex)
         while !message.isEmpty {

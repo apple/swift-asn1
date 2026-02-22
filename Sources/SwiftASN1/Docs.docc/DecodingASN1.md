@@ -74,7 +74,7 @@ This initial scaffolding will look like this:
 
 ```swift
 extension ECDSASignature: DERImplicitlyTaggable {
-    init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self = try DER.sequence(rootNode, identifier: identifier) { nodes in
             // TODO
         }
@@ -91,7 +91,7 @@ the helper method ``DERParseable/init(derEncoded:)-4h4ny``. This handy method wi
 The result is a method body that looks like this:
 
 ```swift
-init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
     self = try DER.sequence(rootNode, identifier: identifier) { nodes in
         let r = try ArraySlice<UInt8>(derEncoded: &nodes)
         let s = try ArraySlice<UInt8>(derEncoded: &nodes)
@@ -117,7 +117,7 @@ Importantly, here we don't have a `sequence` helper. Instead we use the more gen
 This doesn't have any semantic implications: it applies a general purpose ASN.1 constructed node with a given identifier.
 
 ```swift
-func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
     try coder.appendConstructedNode(identifier: identifier) { coder in
         try coder.serialize(self.r)
         try coder.serialize(self.s)
@@ -151,7 +151,7 @@ struct ECDSASignature: DERImplicitlyTaggable {
         self.s = s
     }
 
-    init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    init(derEncoded rootNode: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self = try DER.sequence(rootNode, identifier: identifier) { nodes in
             let r = try ArraySlice<UInt8>(derEncoded: &nodes)
             let s = try ArraySlice<UInt8>(derEncoded: &nodes)
@@ -160,7 +160,7 @@ struct ECDSASignature: DERImplicitlyTaggable {
         }
     }
 
-    func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         try coder.appendConstructedNode(identifier: identifier) { coder in
             try coder.serialize(self.r)
             try coder.serialize(self.s)
@@ -219,7 +219,7 @@ ContainsImplicitTag ::= SEQUENCE {
 We can decode it like so:
 
 ```swift
-init(derEncoded rootNode: ASN1Node) throws {
+init(derEncoded rootNode: ASN1Node) throws(ASN1Error) {
     self = try DER.sequence(rootNode, identifier: .sequence) { nodes in
         let value = try Int64(derEncoded: &nodes, withIdentifier: .init(tagWithNumber: 0, tagClass: .contextSpecific))
 
@@ -231,7 +231,7 @@ init(derEncoded rootNode: ASN1Node) throws {
 We can also encode it similarly:
 
 ```swift
-func serialize(into coder: inout DER.Serializer) throws {
+func serialize(into coder: inout DER.Serializer) throws(ASN1Error) {
     try coder.appendConstructedNode(identifier: .sequence) { coder in
         try self.value.serialize(into: &coder, withIdentifier: .init(tagWithNumber: 0, tagClass: .contextSpecific))
     }
@@ -273,7 +273,7 @@ ContainsExplicitTag ::= SEQUENCE {
 We can decode it like so:
 
 ```swift
-init(derEncoded rootNode: ASN1Node) throws {
+init(derEncoded rootNode: ASN1Node) throws(ASN1Error) {
     self = try DER.sequence(rootNode, identifier: .sequence) { nodes in
         let value = try ASN1.explicitlyTagged(&nodes, tagNumber: 0, tagClass: .contextSpecific) {
             try Int64(derEncoded: $0)
@@ -287,7 +287,7 @@ init(derEncoded rootNode: ASN1Node) throws {
 We can also encode it similarly:
 
 ```swift
-func serialize(into coder: inout DER.Serializer) throws {
+func serialize(into coder: inout DER.Serializer) throws(ASN1Error) {
     try coder.appendConstructedNode(identifier: .sequence) { coder in
         try coder.serialize(self.value, explicitlyTaggedWithTagNumber: 0, tagClass: .contextSpecific)
     }

@@ -24,7 +24,7 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     public var bytes: ArraySlice<UInt8>
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -37,7 +37,7 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -93,7 +93,7 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(contentsOf: self.bytes)
         }
@@ -106,7 +106,7 @@ extension ASN1OctetString: Sendable {}
 
 extension ASN1OctetString {
     @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }
 }

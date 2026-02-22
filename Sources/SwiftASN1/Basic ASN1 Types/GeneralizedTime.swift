@@ -157,7 +157,7 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
         minutes: Int,
         seconds: Int,
         fractionalSeconds: Double
-    ) throws {
+    ) throws(ASN1Error) {
         self._year = year
         self._month = month
         self._day = day
@@ -191,7 +191,7 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
         minutes: Int,
         seconds: Int,
         rawFractionalSeconds: ArraySlice<UInt8>
-    ) throws {
+    ) throws(ASN1Error) {
         self._year = year
         self._month = month
         self._day = day
@@ -205,27 +205,27 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     }
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let content = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.generalizedTimeFromBytes(content)
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         // TODO: BER supports relaxed timestamp parsing, which is not yet supported
         let content = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.generalizedTimeFromBytes(content)
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(self)
         }
     }
 
     @inlinable
-    func _validate() throws {
+    func _validate() throws(ASN1Error) {
         // Validate that the structure is well-formed.
         guard self._year >= 0 && self._year <= 9999 else {
             throw ASN1Error.invalidASN1Object(reason: "Invalid year for GeneralizedTime \(self._year)")

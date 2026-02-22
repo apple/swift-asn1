@@ -30,14 +30,14 @@ public protocol ASN1IntegerRepresentable: DERImplicitlyTaggable, BERImplicitlyTa
 
     /// Construct the integer value from the integer bytes. These will be big-endian, and encoded
     /// according to DER requirements.
-    init(derIntegerBytes: ArraySlice<UInt8>) throws
+    init(derIntegerBytes: ArraySlice<UInt8>) throws(ASN1Error)
 
     /// Construct the integer value form the integer bytes. These will be big-endian, and encoded
     /// accroding to BER requirements.
-    init(berIntegerBytes: ArraySlice<UInt8>) throws
+    init(berIntegerBytes: ArraySlice<UInt8>) throws(ASN1Error)
 
     /// Provide the big-endian bytes corresponding to this integer.
-    func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytes) throws -> ReturnType) rethrows -> ReturnType
+    func withBigEndianIntegerBytes<ReturnType, E: Error>(_ body: (IntegerBytes) throws(E) -> ReturnType) throws(E) -> ReturnType
 }
 
 extension ASN1IntegerRepresentable {
@@ -47,7 +47,7 @@ extension ASN1IntegerRepresentable {
     }
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -87,7 +87,7 @@ extension ASN1IntegerRepresentable {
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -115,7 +115,7 @@ extension ASN1IntegerRepresentable {
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             self.withBigEndianIntegerBytes { integerBytes in
                 // If the number of bytes is 0, we're encoding a zero. That actually _does_ require one byte.
@@ -140,7 +140,7 @@ extension ASN1IntegerRepresentable {
 // MARK: - Auto-conformance for FixedWidthInteger with fixed width magnitude.
 extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
     @inlinable
-    public init(derIntegerBytes bytes: ArraySlice<UInt8>) throws {
+    public init(derIntegerBytes bytes: ArraySlice<UInt8>) throws(ASN1Error) {
         // Defer to the FixedWidthInteger constructor.
         // There's a wrinkle here: if this is a signed integer, and the top bit of the data bytes was set,
         // then we need to 1-extend the bytes. This is because ASN.1 tries to delete redundant bytes that
@@ -155,14 +155,14 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
     }
 
     @inlinable
-    public init(berIntegerBytes bytes: ArraySlice<UInt8>) throws {
+    public init(berIntegerBytes bytes: ArraySlice<UInt8>) throws(ASN1Error) {
         self = try .init(derIntegerBytes: bytes)
     }
 
     @inlinable
-    public func withBigEndianIntegerBytes<ReturnType>(
-        _ body: (IntegerBytesCollection<Self>) throws -> ReturnType
-    ) rethrows -> ReturnType {
+    public func withBigEndianIntegerBytes<ReturnType, E: Error>(
+        _ body: (IntegerBytesCollection<Self>) throws(E) -> ReturnType
+    ) throws(E) -> ReturnType {
         return try body(IntegerBytesCollection(self))
     }
 }

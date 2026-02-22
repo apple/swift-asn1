@@ -51,7 +51,7 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     }
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -73,7 +73,7 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         try self._validate()
     }
 
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -102,7 +102,7 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(UInt8(truncatingIfNeeded: self.paddingBits))
             bytes.append(contentsOf: self.bytes)
@@ -110,7 +110,7 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     }
 
     @inlinable
-    internal func _validate() throws {
+    internal func _validate() throws(ASN1Error) {
         guard let finalByte = self.bytes.last else {
             if self.paddingBits != 0 {
                 // If there are no bytes, there must be no padding bits.
@@ -140,7 +140,7 @@ extension ASN1BitString: Sendable {}
 
 extension ASN1BitString {
     @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }
 }

@@ -140,7 +140,7 @@ extension ASN1 {
         }
 
         @inlinable
-        static func parse(_ data: ArraySlice<UInt8>, encoding rules: EncodingRules) throws -> ParseResult {
+        static func parse(_ data: ArraySlice<UInt8>, encoding rules: EncodingRules) throws(ASN1Error) -> ParseResult {
             var data = data
             var nodes = [ParserNode]()
             nodes.reserveCapacity(16)
@@ -157,7 +157,7 @@ extension ASN1 {
             encoding rules: EncodingRules,
             depth: Int,
             into nodes: inout [ParserNode]
-        ) throws {
+        ) throws(ASN1Error) {
             guard depth <= ParseResult._maximumNodeDepth else {
                 throw ASN1Error.invalidASN1Object(reason: "Excessive stack depth was reached")
             }
@@ -271,10 +271,10 @@ extension ASN1.ParseResult: Hashable {}
 // MARK: - LazySetOfSequence
 extension ASN1 {
     public struct LazySetOfSequence<T>: Sequence {
-        public typealias Element = Result<T, any Error>
+        public typealias Element = Result<T, ASN1Error>
 
         @usableFromInline
-        typealias WrappedSequence = LazyMapSequence<LazySequence<(ASN1NodeCollection)>.Elements, Result<T, any Error>>
+        typealias WrappedSequence = LazyMapSequence<LazySequence<(ASN1NodeCollection)>.Elements, Result<T, ASN1Error>>
 
         public struct Iterator: IteratorProtocol {
             @usableFromInline
@@ -442,7 +442,7 @@ extension ArraySlice where Element == UInt8 {
     }
 
     @inlinable
-    mutating func _readASN1Length(_ minimalEncoding: Bool) throws -> ASN1Length? {
+    mutating func _readASN1Length(_ minimalEncoding: Bool) throws(ASN1Error) -> ASN1Length? {
         guard let firstByte = self.popFirst() else {
             return nil
         }
@@ -499,7 +499,7 @@ extension ArraySlice where Element == UInt8 {
 
 extension FixedWidthInteger {
     @inlinable
-    internal init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
+    internal init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws(ASN1Error) where Bytes.Element == UInt8 {
         guard bytes.count <= (Self.bitWidth / 8) else {
             throw ASN1Error.invalidASN1Object(reason: "Unable to treat \(bytes.count) bytes as a \(Self.self)")
         }

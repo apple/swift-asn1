@@ -33,19 +33,19 @@ extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     }
 
     @inlinable
-    public init(derIntegerBytes: ArraySlice<UInt8>) throws {
+    public init(derIntegerBytes: ArraySlice<UInt8>) throws(ASN1Error) {
         self = derIntegerBytes
     }
 
     @inlinable
-    public init(berIntegerBytes: ArraySlice<UInt8>) throws {
+    public init(berIntegerBytes: ArraySlice<UInt8>) throws(ASN1Error) {
         self = berIntegerBytes
     }
 
     @inlinable
-    public func withBigEndianIntegerBytes<ReturnType>(
-        _ body: (ArraySlice<UInt8>) throws -> ReturnType
-    ) rethrows -> ReturnType {
+    public func withBigEndianIntegerBytes<ReturnType, E: Error>(
+        _ body: (ArraySlice<UInt8>) throws(E) -> ReturnType
+    ) throws(E) -> ReturnType {
         return try body(self)
     }
 }

@@ -18,7 +18,7 @@ extension TimeUtilities: Sendable {}
 @usableFromInline
 enum TimeUtilities {
     @inlinable
-    static func generalizedTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws -> GeneralizedTime {
+    static func generalizedTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws(ASN1Error) -> GeneralizedTime {
         var bytes = bytes
 
         // First, there must always be a calendar date. No separators, 4
@@ -69,7 +69,7 @@ enum TimeUtilities {
     }
 
     @inlinable
-    static func utcTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws -> UTCTime {
+    static func utcTimeFromBytes(_ bytes: ArraySlice<UInt8>) throws(ASN1Error) -> UTCTime {
         var bytes = bytes
 
         // First, there must always be a calendar date. No separators, 2
@@ -183,7 +183,7 @@ extension ArraySlice where Element == UInt8 {
     }
 
     @inlinable
-    mutating func _readRawFractionalSeconds() throws -> ArraySlice<UInt8> {
+    mutating func _readRawFractionalSeconds() throws(ASN1Error) -> ArraySlice<UInt8> {
         guard let nonDecimalASCIIIndex = self.firstIndex(where: { Int(fromDecimalASCII: $0) == nil }) else {
             throw ASN1Error.invalidASN1Object(
                 reason: "Invalid fractional seconds"
@@ -204,7 +204,7 @@ extension ArraySlice where Element == UInt8 {
     }
 
     @inlinable
-    mutating func append(fractionalSeconds: Double) throws {
+    mutating func append(fractionalSeconds: Double) throws(ASN1Error) {
         // Fractional seconds may not be negative and may not be 1 or more.
         guard fractionalSeconds >= 0 && fractionalSeconds < 1 else {
             throw ASN1Error.invalidASN1Object(
@@ -303,7 +303,7 @@ extension Int {
 
 extension Double {
     @inlinable
-    init(fromRawFractionalSeconds rawFractionalSeconds: ArraySlice<UInt8>) throws {
+    init(fromRawFractionalSeconds rawFractionalSeconds: ArraySlice<UInt8>) throws(ASN1Error) {
         if rawFractionalSeconds.count == 0 {
             self = 0
             return

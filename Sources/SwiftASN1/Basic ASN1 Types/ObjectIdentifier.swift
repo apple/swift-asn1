@@ -36,7 +36,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
     var bytes: ArraySlice<UInt8>
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -51,7 +51,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
     }
 
     @inlinable
-    static func validateObjectIdentifierInEncodedForm(_ content: ArraySlice<UInt8>) throws {
+    static func validateObjectIdentifierInEncodedForm(_ content: ArraySlice<UInt8>) throws(ASN1Error) {
         var content = content
 
         guard content.count >= 1 else {
@@ -123,14 +123,14 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(contentsOf: self.bytes)
         }
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identiifer: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identiifer: ASN1Identifier) throws(ASN1Error) {
         self = try .init(derEncoded: node, withIdentifier: identiifer)
     }
 
@@ -148,7 +148,7 @@ extension ASN1ObjectIdentifier {
     /// Initializes ``ASN1ObjectIdentifier`` from its OID components
     /// - Parameter elements: The OID components
     @inlinable
-    public init(elements: some Collection<UInt>) throws {
+    public init(elements: some Collection<UInt>) throws(ASN1Error) {
         var bytes = [UInt8]()
         var iterator = elements.makeIterator()
 
@@ -179,14 +179,14 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
     /// Initializes an instance from a `Substring` containing the dot represented OID
     /// - Parameter dotRepresentation: The dot represented OID
     @inlinable
-    public init(dotRepresentation: Substring) throws {
+    public init(dotRepresentation: Substring) throws(ASN1Error) {
         let octetArray = dotRepresentation.utf8.split(
             separator: UInt8(ascii: "."),
             omittingEmptySubsequences: false
         )
 
         try self.init(
-            elements: octetArray.lazy.map { octet in
+            elements: octetArray.lazy.map { octet throws(ASN1Error) in
                 guard let uintOctet = UInt(Substring(octet)) else {
                     throw ASN1Error.invalidStringRepresentation(reason: "Invalid octet in OID")
                 }
@@ -198,7 +198,7 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
     /// Initializes an instance from a `String` containing the dot represented OID
     /// - Parameter dotRepresentation: The dot represented OID
     @inlinable
-    public init(dotRepresentation: String) throws {
+    public init(dotRepresentation: String) throws(ASN1Error) {
         try self.init(dotRepresentation: Substring(dotRepresentation))
     }
 }
@@ -372,7 +372,7 @@ extension ASN1ObjectIdentifier {
 
 extension ArraySlice where Element == UInt8 {
     @inlinable
-    mutating func readUIntUsing8BitBytesASN1Discipline() throws -> UInt {
+    mutating func readUIntUsing8BitBytesASN1Discipline() throws(ASN1Error) -> UInt {
         // In principle OID subidentifiers and long tags can be too large to fit into a UInt. We are choosing to not care about that
         // because for us it shouldn't matter.
         guard let subidentifierEndIndex = self.firstIndex(where: { $0 & 0x80 == 0x00 }) else {
@@ -396,7 +396,7 @@ extension ArraySlice where Element == UInt8 {
 
 extension UInt {
     @inlinable
-    init<Bytes: Collection>(sevenBitBigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
+    init<Bytes: Collection>(sevenBitBigEndianBytes bytes: Bytes) throws(ASN1Error) where Bytes.Element == UInt8 {
         // We need to know how many bytes we _need_ to store this "int". As a base optimization we refuse to parse
         // anything larger than 9 bytes wide, even though conceptually we could fit a few more bits.
         guard ((bytes.count * 7) + 7) / 8 <= MemoryLayout<UInt>.size else {

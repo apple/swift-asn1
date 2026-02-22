@@ -28,7 +28,7 @@ public struct ASN1Any: DERParseable, BERParseable, DERSerializable, BERSerializa
     /// - parameters:
     ///     erasing: The type to be represented as an ASN1 ANY.
     @inlinable
-    public init<ASN1Type: DERSerializable>(erasing: ASN1Type) throws {
+    public init<ASN1Type: DERSerializable>(erasing: ASN1Type) throws(ASN1Error) {
         var serializer = DER.Serializer()
         try erasing.serialize(into: &serializer)
         self._serializedBytes = ArraySlice(serializer._serializedBytes)
@@ -40,7 +40,7 @@ public struct ASN1Any: DERParseable, BERParseable, DERSerializable, BERSerializa
     ///     erasing: The type to be represented as an ASN1 ANY.
     ///     identifier: The tag to use with this node.
     @inlinable
-    public init<ASN1Type: DERImplicitlyTaggable>(erasing: ASN1Type, withIdentifier identifier: ASN1Identifier) throws {
+    public init<ASN1Type: DERImplicitlyTaggable>(erasing: ASN1Type, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         var serializer = DER.Serializer()
         try erasing.serialize(into: &serializer, withIdentifier: identifier)
         self._serializedBytes = ArraySlice(serializer._serializedBytes)
@@ -62,7 +62,7 @@ public struct ASN1Any: DERParseable, BERParseable, DERSerializable, BERSerializa
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer) throws {
+    public func serialize(into coder: inout DER.Serializer) throws(ASN1Error) {
         // Dangerous to just reach in there like this, but it's the right way to serialize this.
         coder.serializeRawBytes(self._serializedBytes)
     }
@@ -84,7 +84,7 @@ extension DERParseable {
     /// - parameters:
     ///     asn1Any: The ASN.1 ANY object to reinterpret.
     @inlinable
-    public init(asn1Any: ASN1Any) throws {
+    public init(asn1Any: ASN1Any) throws(ASN1Error) {
         try self.init(derEncoded: asn1Any._serializedBytes)
     }
 }
@@ -99,7 +99,7 @@ extension DERImplicitlyTaggable {
     ///     asn1Any: The ASN.1 ANY object to reinterpret.
     ///     identifier: The tag to use with this node.
     @inlinable
-    public init(asn1Any: ASN1Any, withIdentifier identifier: ASN1Identifier) throws {
+    public init(asn1Any: ASN1Any, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         try self.init(derEncoded: asn1Any._serializedBytes, withIdentifier: identifier)
     }
 }
@@ -113,7 +113,7 @@ extension BERParseable {
     /// - parameters:
     ///     berASN1Any: The ASN.1 ANY object to reinterpret.
     @inlinable
-    public init(berASN1Any: ASN1Any) throws {
+    public init(berASN1Any: ASN1Any) throws(ASN1Error) {
         try self.init(berEncoded: berASN1Any._serializedBytes)
     }
 }
@@ -128,7 +128,7 @@ extension BERImplicitlyTaggable {
     ///     berASN1Any: The ASN.1 ANY object to reinterpret.
     ///     identifier: The tag to use with this node.
     @inlinable
-    public init(berASN1Any: ASN1Any, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berASN1Any: ASN1Any, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         try self.init(berEncoded: berASN1Any._serializedBytes, withIdentifier: identifier)
     }
 }

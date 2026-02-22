@@ -24,7 +24,7 @@ public struct ASN1Null: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, 
     public init() {}
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         guard node.identifier == identifier, case .primitive(let content) = node.content else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
         }
@@ -35,7 +35,7 @@ public struct ASN1Null: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, 
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self = try .init(derEncoded: node, withIdentifier: identifier)
     }
 

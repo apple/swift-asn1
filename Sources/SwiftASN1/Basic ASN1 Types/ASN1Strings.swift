@@ -13,9 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 /// A UTF8String represents a string made up of UTF-8 bytes.
-public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
-    ExpressibleByStringLiteral
-{
+public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .utf8String
@@ -25,12 +23,12 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hash
     public var bytes: ArraySlice<UInt8>
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
@@ -40,11 +38,6 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hash
         self.bytes = contentBytes
     }
 
-    @inlinable
-    public init(stringLiteral value: StringLiteralType) {
-        self.bytes = ArraySlice(value.utf8)
-    }
-
     /// Construct a UTF8STRING from a String.
     @inlinable
     public init(_ string: String) {
@@ -52,23 +45,29 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hash
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let octet = ASN1OctetString(contentBytes: self.bytes)
         try octet.serialize(into: &coder, withIdentifier: identifier)
     }
 
     @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
+    }
+}
+
+@_unavailableInEmbedded
+extension ASN1UTF8String: ExpressibleByStringLiteral {
+    @inlinable
+    public init(stringLiteral value: StringLiteralType) {
+        self.bytes = ArraySlice(value.utf8)
     }
 }
 
 /// TeletexString is an uncommon ASN.1 string type.
 ///
 /// This module represents a TeletexString as an opaque sequence of bytes.
-public struct ASN1TeletexString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
-    ExpressibleByStringLiteral
-{
+public struct ASN1TeletexString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .teletexString
@@ -78,12 +77,12 @@ public struct ASN1TeletexString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
     public var bytes: ArraySlice<UInt8>
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
@@ -94,19 +93,22 @@ public struct ASN1TeletexString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
     }
 
     @inlinable
-    public init(stringLiteral value: StringLiteralType) {
-        self.bytes = ArraySlice(value.utf8)
-    }
-
-    @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let octet = ASN1OctetString(contentBytes: self.bytes)
         try octet.serialize(into: &coder, withIdentifier: identifier)
     }
 
     @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
+    }
+}
+
+@_unavailableInEmbedded
+extension ASN1TeletexString: ExpressibleByStringLiteral {
+    @inlinable
+    public init(stringLiteral value: StringLiteralType) {
+        self.bytes = ArraySlice(value.utf8)
     }
 }
 
@@ -117,9 +119,7 @@ public struct ASN1TeletexString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
 ///
 /// PrintableString is deprecated for most use-cases and generally ``ASN1UTF8String`` should be
 /// preferred.
-public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
-    ExpressibleByStringLiteral
-{
+public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .printableString
@@ -133,7 +133,7 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     }
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
@@ -141,7 +141,7 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
@@ -150,22 +150,16 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
 
     /// Construct a PrintableString from raw bytes.
     @inlinable
-    public init(contentBytes: ArraySlice<UInt8>) throws {
+    public init(contentBytes: ArraySlice<UInt8>) throws(ASN1Error) {
         self.bytes = contentBytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1PrintableString")
         }
     }
 
-    @inlinable
-    public init(stringLiteral value: StringLiteralType) {
-        self.bytes = ArraySlice(value.utf8)
-        precondition(Self._isValid(self.bytes))
-    }
-
     /// Construct a PrintableString from a String.
     @inlinable
-    public init(_ string: String) throws {
+    public init(_ string: String) throws(ASN1Error) {
         self.bytes = ArraySlice(string.utf8)
 
         guard Self._isValid(self.bytes) else {
@@ -174,13 +168,13 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let octet = ASN1OctetString(contentBytes: self.bytes)
         try octet.serialize(into: &coder, withIdentifier: identifier)
     }
 
     @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }
 
@@ -205,12 +199,19 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     }
 }
 
+@_unavailableInEmbedded
+extension ASN1PrintableString: ExpressibleByStringLiteral {
+    @inlinable
+    public init(stringLiteral value: StringLiteralType) {
+        self.bytes = ArraySlice(value.utf8)
+        precondition(Self._isValid(self.bytes))
+    }
+}
+
 /// UniversalString is an uncommon ASN.1 string type.
 ///
 /// This module represents a UniversalString as an opaque sequence of bytes.
-public struct ASN1UniversalString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
-    ExpressibleByStringLiteral
-{
+public struct ASN1UniversalString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .universalString
@@ -220,12 +221,12 @@ public struct ASN1UniversalString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     public var bytes: ArraySlice<UInt8>
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
@@ -236,28 +237,29 @@ public struct ASN1UniversalString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     }
 
     @inlinable
-    public init(stringLiteral value: StringLiteralType) {
-        self.bytes = ArraySlice(value.utf8)
-    }
-
-    @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let octet = ASN1OctetString(contentBytes: self.bytes)
         try octet.serialize(into: &coder, withIdentifier: identifier)
     }
 
     @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
+    }
+}
+
+@_unavailableInEmbedded
+extension ASN1UniversalString: ExpressibleByStringLiteral {
+    @inlinable
+    public init(stringLiteral value: StringLiteralType) {
+        self.bytes = ArraySlice(value.utf8)
     }
 }
 
 /// BMPString is an uncommon ASN.1 string type.
 ///
 /// This module represents a BMPString as an opaque sequence of bytes.
-public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
-    ExpressibleByStringLiteral
-{
+public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .bmpString
@@ -267,12 +269,12 @@ public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
     public var bytes: ArraySlice<UInt8>
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
@@ -282,6 +284,20 @@ public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
         self.bytes = contentBytes
     }
 
+    @inlinable
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
+        let octet = ASN1OctetString(contentBytes: self.bytes)
+        try octet.serialize(into: &coder, withIdentifier: identifier)
+    }
+
+    @inlinable
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
+        return try self.bytes.withUnsafeBytes(body)
+    }
+}
+
+@_unavailableInEmbedded
+extension ASN1BMPString: ExpressibleByStringLiteral {
     @inlinable
     public init(stringLiteral value: StringLiteralType) {
         guard
@@ -298,17 +314,6 @@ public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
             }
         )
     }
-
-    @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
-        let octet = ASN1OctetString(contentBytes: self.bytes)
-        try octet.serialize(into: &coder, withIdentifier: identifier)
-    }
-
-    @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-        return try self.bytes.withUnsafeBytes(body)
-    }
 }
 
 /// IA5String represents a String made up of ASCII characters.
@@ -318,9 +323,7 @@ public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
 ///
 /// IA5String is deprecated for most use-cases and generally ``ASN1UTF8String`` should be
 /// preferred.
-public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
-    ExpressibleByStringLiteral
-{
+public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .ia5String
@@ -334,7 +337,7 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
     }
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
@@ -342,7 +345,7 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
@@ -351,22 +354,16 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
 
     /// Construct an IA5String from raw bytes.
     @inlinable
-    public init(contentBytes: ArraySlice<UInt8>) throws {
+    public init(contentBytes: ArraySlice<UInt8>) throws(ASN1Error) {
         self.bytes = contentBytes
         guard Self._isValid(self.bytes) else {
             throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1IA5String")
         }
     }
 
-    @inlinable
-    public init(stringLiteral value: StringLiteralType) {
-        self.bytes = ArraySlice(value.utf8)
-        precondition(Self._isValid(self.bytes))
-    }
-
     /// Construct an IA5String from a String.
     @inlinable
-    public init(_ string: String) throws {
+    public init(_ string: String) throws(ASN1Error) {
         self.bytes = ArraySlice(string.utf8)
 
         guard Self._isValid(self.bytes) else {
@@ -375,13 +372,13 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let octet = ASN1OctetString(contentBytes: self.bytes)
         try octet.serialize(into: &coder, withIdentifier: identifier)
     }
 
     @inlinable
-    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws(ASN1Error) -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }
 
@@ -389,6 +386,15 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
     static func _isValid(_ bytes: ArraySlice<UInt8>) -> Bool {
         // Valid IA5Strings are ASCII characters.
         bytes.allSatisfy { $0 < 128 }
+    }
+}
+
+@_unavailableInEmbedded
+extension ASN1IA5String: ExpressibleByStringLiteral {
+    @inlinable
+    public init(stringLiteral value: StringLiteralType) {
+        self.bytes = ArraySlice(value.utf8)
+        precondition(Self._isValid(self.bytes))
     }
 }
 

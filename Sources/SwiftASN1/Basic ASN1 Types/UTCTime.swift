@@ -115,7 +115,7 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     ///     - minutes: The numerical minutes
     ///     - seconds: The numerical seconds
     @inlinable
-    public init(year: Int, month: Int, day: Int, hours: Int, minutes: Int, seconds: Int) throws {
+    public init(year: Int, month: Int, day: Int, hours: Int, minutes: Int, seconds: Int) throws(ASN1Error) {
         self._year = year
         self._month = month
         self._day = day
@@ -127,26 +127,26 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     }
 
     @inlinable
-    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let content = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.utcTimeFromBytes(content)
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         let content = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         self = try TimeUtilities.utcTimeFromBytes(content)
     }
 
     @inlinable
-    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws(ASN1Error) {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             bytes.append(self)
         }
     }
 
     @inlinable
-    func _validate() throws {
+    func _validate() throws(ASN1Error) {
         // Validate that the structure is well-formed.
         // UTCTime can only hold years between 1950 and 2049.
         guard self._year >= 1950 && self._year < 2050 else {
