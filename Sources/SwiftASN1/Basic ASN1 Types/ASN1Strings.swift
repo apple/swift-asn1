@@ -211,7 +211,7 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
 ///
 /// This string will be validated when it is constructed, and will reject characters outside of this
 /// space.
-struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+public struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
     ExpressibleByStringLiteral {
     @inlinable
     public static var defaultIdentifier: ASN1Identifier {
@@ -483,6 +483,11 @@ extension String {
     /// Construct a `String` from an ``ASN1PrintableString``.
     public init(_ printableString: ASN1PrintableString) {
         self = String(decoding: printableString.bytes, as: UTF8.self)
+    }
+
+    /// Construct a `String` from an ``ASN1VisibleString``.
+    public init(_ visibleString: ASN1VisibleString) {
+        self = String(decoding: visibleString.bytes, as: UTF8.self)
     }
 
     /// Construct a `String` from an ``ASN1IA5String``.
