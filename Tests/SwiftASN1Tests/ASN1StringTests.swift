@@ -71,6 +71,22 @@ final class ASN1StringTests: XCTestCase {
         string.withUnsafeBytes { XCTAssertTrue($0.elementsEqual([0x54, 0x65, 0x73, 0x74])) }
     }
 
+    func testVisibleStringEncoding() throws {
+        var serializer = DER.Serializer()
+        let originalString = try ASN1VisibleString(contentBytes: [0x20, 0x30, 0x7a, 0x7e])
+        try serializer.serialize(originalString)
+        XCTAssertEqual(serializer.serializedBytes, [26, 4, 0x20, 0x30, 0x7a, 0x7e])
+    }
+
+    func testVisibleStringRoundTrips() throws {
+        try self.assertRoundTrips(ASN1VisibleString(contentBytes: [0x20, 0x30, 0x7a, 0x7e]))
+    }
+
+    func testVisibleStringContiguousBytes() throws {
+        let string = try ASN1VisibleString(contentBytes: [0x20, 0x30, 0x7a, 0x7e])
+        string.withUnsafeBytes { XCTAssertTrue($0.elementsEqual([0x20, 0x30, 0x7a, 0x7e])) }
+    }
+
     func testUniversalStringEncoding() throws {
         var serializer = DER.Serializer()
         let originalString = ASN1UniversalString(contentBytes: [1, 2, 3, 4])
@@ -148,6 +164,13 @@ final class ASN1StringTests: XCTestCase {
         XCTAssertEqual(newString, string)
     }
 
+    func testVisibleStringCanCreateAString() throws {
+        let string = "hello, world"
+        let utf8String = try ASN1VisibleString(string)
+        let newString = String(utf8String)
+        XCTAssertEqual(newString, string)
+    }
+
     func testIA5StringCanCreateAString() throws {
         let string = "hello, world"
         let ia5String = try ASN1IA5String(string)
@@ -187,6 +210,24 @@ final class ASN1StringTests: XCTestCase {
             XCTAssertNoThrow(try ASN1PrintableString(contentBytes: [byte]))
             XCTAssertNoThrow(try ASN1PrintableString(String(UnicodeScalar(byte))))
             XCTAssertNoThrow(try ASN1PrintableString(derEncoded: [0x13, 1, byte]))
+        }
+    }
+
+    func testVisibleStringRejectsCharacters() throws {
+        let allBytes = (UInt8(0)...UInt8.max)
+        let invalidBytes = [(UInt8(0)...UInt8(31)), (UInt8(127)...(UInt8.max))].joined()
+        let validBytes = allBytes.filter { !invalidBytes.contains($0) }
+
+        for byte in invalidBytes {
+            XCTAssertThrowsError(try ASN1VisibleString(contentBytes: [byte]))
+            XCTAssertThrowsError(try ASN1VisibleString(String(UnicodeScalar(byte))))
+            XCTAssertThrowsError(try ASN1VisibleString(derEncoded: [0x1a, 1, byte]))
+        }
+
+        for byte in validBytes {
+            XCTAssertNoThrow(try ASN1VisibleString(contentBytes: [byte]))
+            XCTAssertNoThrow(try ASN1VisibleString(String(UnicodeScalar(byte))))
+            XCTAssertNoThrow(try ASN1VisibleString(derEncoded: [0x1a, 1, byte]))
         }
     }
 

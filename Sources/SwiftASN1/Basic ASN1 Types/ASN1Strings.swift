@@ -205,6 +205,88 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     }
 }
 
+/// VisibleString represents a String made up of bytes that are printable
+/// 7-bit ASCII characters (codes 32-126), including letters, digits, spaces, punctuation
+/// and not including control characters.
+///
+/// This string will be validated when it is constructed, and will reject characters outside of this
+/// space.
+public struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, Sendable,
+    ExpressibleByStringLiteral
+{
+    @inlinable
+    public static var defaultIdentifier: ASN1Identifier {
+        .visibleString
+    }
+
+    /// The raw bytes that make up this string.
+    public var bytes: ArraySlice<UInt8> {
+        didSet {
+            precondition(Self._isValid(self.bytes))
+        }
+    }
+
+    @inlinable
+    public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1VisibleString")
+        }
+    }
+
+    @inlinable
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1VisibleString")
+        }
+    }
+
+    /// Construct a VisibleString from raw bytes.
+    @inlinable
+    public init(contentBytes: ArraySlice<UInt8>) throws {
+        self.bytes = contentBytes
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1VisibleString")
+        }
+    }
+
+    @inlinable
+    public init(stringLiteral value: StringLiteralType) {
+        self.bytes = ArraySlice(value.utf8)
+        precondition(Self._isValid(self.bytes))
+    }
+
+    /// Construct a VisibleString from a String.
+    @inlinable
+    public init(_ string: String) throws {
+        self.bytes = ArraySlice(string.utf8)
+
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1VisibleString")
+        }
+    }
+
+    @inlinable
+    public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
+        let octet = ASN1OctetString(contentBytes: self.bytes)
+        try octet.serialize(into: &coder, withIdentifier: identifier)
+    }
+
+    @inlinable
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+        return try self.bytes.withUnsafeBytes(body)
+    }
+
+    @inlinable
+    // swiftlint:disable:next identifier_name
+    static func _isValid(_ bytes: ArraySlice<UInt8>) -> Bool {
+        bytes.allSatisfy {
+            return 32 <= $0 && $0 <= 126
+        }
+    }
+}
+
 /// UniversalString is an uncommon ASN.1 string type.
 ///
 /// This module represents a UniversalString as an opaque sequence of bytes.
@@ -401,6 +483,11 @@ extension String {
     /// Construct a `String` from an ``ASN1PrintableString``.
     public init(_ printableString: ASN1PrintableString) {
         self = String(decoding: printableString.bytes, as: UTF8.self)
+    }
+
+    /// Construct a `String` from an ``ASN1VisibleString``.
+    public init(_ visibleString: ASN1VisibleString) {
+        self = String(decoding: visibleString.bytes, as: UTF8.self)
     }
 
     /// Construct a `String` from an ``ASN1IA5String``.
