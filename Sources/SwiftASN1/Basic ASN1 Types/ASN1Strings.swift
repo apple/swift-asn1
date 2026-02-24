@@ -287,7 +287,6 @@ public struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
     }
 }
 
-
 /// UniversalString is an uncommon ASN.1 string type.
 ///
 /// This module represents a UniversalString as an opaque sequence of bytes.
