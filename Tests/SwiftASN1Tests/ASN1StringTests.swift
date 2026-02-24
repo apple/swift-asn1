@@ -219,7 +219,6 @@ final class ASN1StringTests: XCTestCase {
         let validBytes = allBytes.filter { !invalidBytes.contains($0) }
 
         for byte in invalidBytes {
-            print(byte)
             XCTAssertThrowsError(try ASN1VisibleString(contentBytes: [byte]))
             XCTAssertThrowsError(try ASN1VisibleString(String(UnicodeScalar(byte))))
             XCTAssertThrowsError(try ASN1VisibleString(derEncoded: [0x1a, 1, byte]))
