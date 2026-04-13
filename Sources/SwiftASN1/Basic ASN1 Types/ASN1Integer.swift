@@ -41,12 +41,10 @@ public protocol ASN1IntegerRepresentable: DERImplicitlyTaggable, BERImplicitlyTa
 }
 
 extension ASN1IntegerRepresentable {
-    @inlinable
     public static var defaultIdentifier: ASN1Identifier {
         .integer
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -86,7 +84,6 @@ extension ASN1IntegerRepresentable {
         self = try Self(derIntegerBytes: dataBytes)
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -114,7 +111,6 @@ extension ASN1IntegerRepresentable {
         self = try Self(berIntegerBytes: dataBytes)
     }
 
-    @inlinable
     public func serialize(into coder: inout DER.Serializer, withIdentifier identifier: ASN1Identifier) throws {
         coder.appendPrimitiveNode(identifier: identifier) { bytes in
             self.withBigEndianIntegerBytes { integerBytes in
@@ -139,7 +135,6 @@ extension ASN1IntegerRepresentable {
 
 // MARK: - Auto-conformance for FixedWidthInteger with fixed width magnitude.
 extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
-    @inlinable
     public init(derIntegerBytes bytes: ArraySlice<UInt8>) throws {
         // Defer to the FixedWidthInteger constructor.
         // There's a wrinkle here: if this is a signed integer, and the top bit of the data bytes was set,
@@ -154,12 +149,10 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
         }
     }
 
-    @inlinable
     public init(berIntegerBytes bytes: ArraySlice<UInt8>) throws {
         self = try .init(derIntegerBytes: bytes)
     }
 
-    @inlinable
     public func withBigEndianIntegerBytes<ReturnType>(
         _ body: (IntegerBytesCollection<Self>) throws -> ReturnType
     ) rethrows -> ReturnType {
@@ -169,10 +162,9 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
 
 /// A big-endian `Collection` of bytes representing a fixed width integer.
 public struct IntegerBytesCollection<Integer: FixedWidthInteger> {
-    @usableFromInline var integer: Integer
+    let integer: Integer
 
     /// Construct an ``IntegerBytesCollection`` representing the bytes of this integer.
-    @inlinable
     public init(_ integer: Integer) {
         self.integer = integer
     }
@@ -184,37 +176,30 @@ extension IntegerBytesCollection: Sendable where Integer: Sendable {}
 
 extension IntegerBytesCollection: RandomAccessCollection {
     public struct Index {
-        @usableFromInline
-        var _byteNumber: Int
+        let _byteNumber: Int
 
-        @inlinable
         init(byteNumber: Int) {
             self._byteNumber = byteNumber
         }
 
-        @inlinable
         var _shift: Integer {
             // As byte number 0 is the end index, the byte number is one byte too large for the shift.
             return Integer((self._byteNumber - 1) * 8)
         }
     }
 
-    @inlinable
     public var startIndex: Index {
         return Index(byteNumber: Int(self.integer.neededBytes))
     }
 
-    @inlinable
     public var endIndex: Index {
         return Index(byteNumber: 0)
     }
 
-    @inlinable
     public var count: Int {
         return Int(self.integer.neededBytes)
     }
 
-    @inlinable
     public subscript(index: Index) -> UInt8 {
         // We perform the bitwise operations in magnitude space.
         let shifted = Integer.Magnitude(truncatingIfNeeded: self.integer) >> index._shift
@@ -229,34 +214,28 @@ extension IntegerBytesCollection.Index: Sendable {}
 
 extension IntegerBytesCollection.Index: Comparable {
     // Comparable here is backwards to the original ordering.
-    @inlinable
     public static func < (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber > rhs._byteNumber
     }
 
-    @inlinable
     public static func > (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber < rhs._byteNumber
     }
 
-    @inlinable
     public static func <= (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber >= rhs._byteNumber
     }
 
-    @inlinable
     public static func >= (lhs: Self, rhs: Self) -> Bool {
         return lhs._byteNumber <= rhs._byteNumber
     }
 }
 
 extension IntegerBytesCollection.Index: Strideable {
-    @inlinable
     public func advanced(by n: Int) -> IntegerBytesCollection<Integer>.Index {
         return IntegerBytesCollection.Index(byteNumber: self._byteNumber - n)
     }
 
-    @inlinable
     public func distance(to other: IntegerBytesCollection<Integer>.Index) -> Int {
         // Remember that early indices have high byte numbers and later indices have low ones.
         return self._byteNumber - other._byteNumber
@@ -284,7 +263,6 @@ extension Int: ASN1IntegerRepresentable {}
 extension UInt: ASN1IntegerRepresentable {}
 
 extension RandomAccessCollection where Element == UInt8 {
-    @inlinable
     func _trimLeadingExcessBytes() -> SubSequence {
         var slice = self[...]
         guard let first = slice.first else {
@@ -332,7 +310,6 @@ extension RandomAccessCollection where Element == UInt8 {
 }
 
 extension UInt8 {
-    @inlinable
     var _topBitSet: Bool {
         return (self & 0x80) != 0
     }
