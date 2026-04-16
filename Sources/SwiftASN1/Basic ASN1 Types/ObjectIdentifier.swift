@@ -130,8 +130,8 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
     }
 
     @inlinable
-    public init(berEncoded node: ASN1Node, withIdentifier identiifer: ASN1Identifier) throws {
-        self = try .init(derEncoded: node, withIdentifier: identiifer)
+    public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
+        self = try .init(derEncoded: node, withIdentifier: identifier)
     }
 
     @inlinable
