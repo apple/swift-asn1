@@ -201,6 +201,58 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
     public init(dotRepresentation: String) throws {
         try self.init(dotRepresentation: Substring(dotRepresentation))
     }
+
+    /// Initializes an instance from a `String` containing the dot represented OID,
+    /// returning `nil` if the string is not a well-formed OID.
+    ///
+    /// This initializer is suitable for parsing OID strings that come from
+    /// untrusted sources. In addition to the syntactic checks performed by the
+    /// throwing variants, it also validates the first two arcs against the
+    /// ASN.1 OID rules from ITU-T X.690 §8.19.4 (first arc in `0...2`; second
+    /// arc less than `40` when the first arc is `0` or `1`) and uses
+    /// overflow-reporting arithmetic when computing the encoded first
+    /// subidentifier. Inputs that violate these rules, or that would cause
+    /// `(firstComponent * 40) + secondComponent` to overflow `UInt`, return
+    /// `nil` rather than terminating the process.
+    ///
+    /// - Parameter dotRepresentation: The dot represented OID.
+    @inlinable
+    public init?(validating dotRepresentation: String) {
+        let octets = dotRepresentation.utf8.split(
+            separator: UInt8(ascii: "."),
+            omittingEmptySubsequences: false
+        )
+
+        var iterator = octets.makeIterator()
+        guard let firstOctet = iterator.next(), let secondOctet = iterator.next() else {
+            return nil
+        }
+        guard let firstComponent = UInt(Substring(firstOctet)),
+            let secondComponent = UInt(Substring(secondOctet))
+        else {
+            return nil
+        }
+
+        // X.690 §8.19.4: first arc must be 0, 1, or 2; when the first arc is
+        // 0 or 1 the second arc must be less than 40.
+        guard firstComponent <= 2 else { return nil }
+        if firstComponent < 2, secondComponent >= 40 { return nil }
+
+        // The validation above bounds `firstComponent * 40` to at most 80, so
+        // the multiplication cannot overflow. The addition can still overflow
+        // when `firstComponent == 2` and `secondComponent` is close to
+        // `UInt.max`, which we surface as `nil` rather than a runtime trap.
+        let (firstSubidentifier, overflow) = (firstComponent * 40).addingReportingOverflow(secondComponent)
+        guard !overflow else { return nil }
+
+        var bytes = [UInt8]()
+        ASN1ObjectIdentifier._writeOIDSubidentifier(firstSubidentifier, into: &bytes)
+        while let octet = iterator.next() {
+            guard let component = UInt(Substring(octet)) else { return nil }
+            ASN1ObjectIdentifier._writeOIDSubidentifier(component, into: &bytes)
+        }
+        self.bytes = bytes[...]
+    }
 }
 
 extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
