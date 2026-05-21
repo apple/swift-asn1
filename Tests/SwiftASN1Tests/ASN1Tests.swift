@@ -948,6 +948,14 @@ class ASN1Tests: XCTestCase {
         }
     }
 
+    func testSignedIntegerRoundtrip() throws {
+        let value: Int64 = 0x80
+        var serializer = DER.Serializer()
+        try serializer.serialize(value)
+        let parsed = try DER.parse(serializer.serializedBytes)
+        XCTAssertEqual(try Int64(derEncoded: parsed), value)
+    }
+
     func testSignedIntegerEncoding() throws {
         // Verify the exact DER byte sequences for signed integer boundary values.
         // Cases where neededBits % 8 == 0 require a leading 0x00 (marked with *).
