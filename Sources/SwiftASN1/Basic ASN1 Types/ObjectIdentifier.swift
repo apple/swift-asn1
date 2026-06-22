@@ -242,16 +242,16 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
         // the multiplication cannot overflow. The addition can still overflow
         // when `firstComponent == 2` and `secondComponent` is close to
         // `UInt.max`, which we surface as `nil` rather than a runtime trap.
-        let (firstSubidentifier, overflow) = (firstComponent * 40).addingReportingOverflow(secondComponent)
+        let (_, overflow) = (firstComponent * 40).addingReportingOverflow(secondComponent)
         guard !overflow else { return nil }
 
-        var bytes = [UInt8]()
-        ASN1ObjectIdentifier._writeOIDSubidentifier(firstSubidentifier, into: &bytes)
+        var components = [firstComponent, secondComponent]
         while let octet = iterator.next() {
             guard let component = UInt(Substring(octet)) else { return nil }
-            ASN1ObjectIdentifier._writeOIDSubidentifier(component, into: &bytes)
+            components.append(component)
         }
-        self.bytes = bytes[...]
+
+        try! self.init(elements: components)
     }
 }
 
