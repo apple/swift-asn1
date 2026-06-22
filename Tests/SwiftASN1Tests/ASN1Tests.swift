@@ -948,6 +948,50 @@ class ASN1Tests: XCTestCase {
         }
     }
 
+    func testSignedIntegerRoundtrip() throws {
+        let value: Int64 = 0x80
+        var serializer = DER.Serializer()
+        try serializer.serialize(value)
+        let parsed = try DER.parse(serializer.serializedBytes)
+        XCTAssertEqual(try Int64(derEncoded: parsed), value)
+    }
+
+    func testSignedIntegerEncoding() throws {
+        // Verify the exact DER byte sequences for signed integer boundary values.
+        // Cases where neededBits % 8 == 0 require a leading 0x00 (marked with *).
+        let cases: [(Int64, [UInt8])] = [
+            // Single-byte positive: top bit clear, no padding needed
+            (0x00, [0x02, 0x01, 0x00]),
+            (0x01, [0x02, 0x01, 0x01]),
+            (0x7F, [0x02, 0x01, 0x7F]),
+            // Single-byte boundary: top bit set, padding needed (*)
+            (0x80, [0x02, 0x02, 0x00, 0x80]),
+            (0xFF, [0x02, 0x02, 0x00, 0xFF]),
+            // Two-byte positive: top bit clear
+            (0x100, [0x02, 0x02, 0x01, 0x00]),
+            (0x7FFF, [0x02, 0x02, 0x7F, 0xFF]),
+            // Two-byte boundary: top bit set, padding needed (*)
+            (0x8000, [0x02, 0x03, 0x00, 0x80, 0x00]),
+            (0xFFFF, [0x02, 0x03, 0x00, 0xFF, 0xFF]),
+            // Negative: no padding, sign carried by top bit
+            (-1, [0x02, 0x01, 0xFF]),
+            (-127, [0x02, 0x01, 0x81]),
+            (-128, [0x02, 0x01, 0x80]),
+            (-129, [0x02, 0x02, 0xFF, 0x7F]),
+            (-32768, [0x02, 0x02, 0x80, 0x00]),
+            (-32769, [0x02, 0x03, 0xFF, 0x7F, 0xFF]),
+        ]
+
+        for (value, expectedBytes) in cases {
+            var serializer = DER.Serializer()
+            try serializer.serialize(value)
+            XCTAssertEqual(serializer.serializedBytes, expectedBytes, "Unexpected encoding for Int64(\(value))")
+
+            let parsed = try DER.parse(serializer.serializedBytes)
+            XCTAssertEqual(try Int64(derEncoded: parsed), value, "Roundtrip failed for Int64(\(value))")
+        }
+    }
+
     func testNotConsumingTaggedObject() throws {
         // We should error if there are two nodes inside an explicitly tagged object.
         let weirdASN1: [UInt8] = [

@@ -560,11 +560,18 @@ extension Int {
 }
 
 extension FixedWidthInteger {
-    // Bytes needed to store a given integer.
+    // Bytes needed to store a given integer in DER.
+    // For signed types, an extra 0x00 byte is required when the value is positive and
+    // neededBits is an exact multiple of 8 — meaning the top bit of the minimal
+    // representation is a data bit that DER would otherwise misread as the sign bit.
     @inlinable
     internal var neededBytes: Int {
         let neededBits = self.bitWidth - self.leadingZeroBitCount
-        return (neededBits + 7) / 8
+        let bytes = (neededBits + 7) / 8
+        if Self.isSigned && self > 0 && neededBits > 0 && (neededBits % 8) == 0 {
+            return bytes + 1
+        }
+        return bytes
     }
 }
 
