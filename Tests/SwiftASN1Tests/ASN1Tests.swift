@@ -1260,7 +1260,7 @@ class ASN1Tests: XCTestCase {
         }
 
         XCTAssertThrowsError(try ASN1ObjectIdentifier(dotRepresentation: "25")) { error in
-            XCTAssertEqual((error as? ASN1Error)?.code, .tooFewOIDComponents)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidStringRepresentation)
         }
     }
 

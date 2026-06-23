@@ -180,26 +180,17 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
     /// - Parameter dotRepresentation: The dot represented OID
     @inlinable
     public init(dotRepresentation: Substring) throws {
-        let octetArray = dotRepresentation.utf8.split(
-            separator: UInt8(ascii: "."),
-            omittingEmptySubsequences: false
-        )
-
-        try self.init(
-            elements: octetArray.lazy.map { octet in
-                guard let uintOctet = UInt(Substring(octet)) else {
-                    throw ASN1Error.invalidStringRepresentation(reason: "Invalid octet in OID")
-                }
-                return uintOctet
-            }
-        )
+        try self.init(dotRepresentation: String(dotRepresentation))
     }
 
     /// Initializes an instance from a `String` containing the dot represented OID
     /// - Parameter dotRepresentation: The dot represented OID
     @inlinable
     public init(dotRepresentation: String) throws {
-        try self.init(dotRepresentation: Substring(dotRepresentation))
+        guard let oid = Self(validating: dotRepresentation) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid OID string")
+        }
+        self = oid
     }
 
     /// Initializes an instance from a `String` containing the dot represented OID,
