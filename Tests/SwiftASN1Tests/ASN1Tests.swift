@@ -1287,8 +1287,7 @@ class ASN1Tests: XCTestCase {
         XCTAssertNil(ASN1ObjectIdentifier(validating: "1.40"))
 
         // Component values that would overflow the encoded first subidentifier.
-        // The throwing variant terminates the process on these inputs; the
-        // failable variant must surface them as `nil`.
+        // The failable variant must surface them as `nil`.
         XCTAssertNil(ASN1ObjectIdentifier(validating: "461168601842738791.0"))
         XCTAssertNil(ASN1ObjectIdentifier(validating: "2.18446744073709551615"))
     }

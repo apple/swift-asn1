@@ -197,11 +197,10 @@ extension ASN1ObjectIdentifier: ExpressibleByStringLiteral {
     /// returning `nil` if the string is not a well-formed OID.
     ///
     /// This initializer is suitable for parsing OID strings that come from
-    /// untrusted sources. In addition to the syntactic checks performed by the
-    /// throwing variants, it also validates the first two arcs against the
-    /// ASN.1 OID rules from ITU-T X.690 §8.19.4 (first arc in `0...2`; second
-    /// arc less than `40` when the first arc is `0` or `1`) and uses
-    /// overflow-reporting arithmetic when computing the encoded first
+    /// untrusted sources. It validates the string syntax and the first two arcs
+    /// against the ASN.1 OID rules from ITU-T X.690 §8.19.4 (first arc in
+    /// `0...2`; second arc less than `40` when the first arc is `0` or `1`)
+    /// and uses overflow-reporting arithmetic when computing the encoded first
     /// subidentifier. Inputs that violate these rules, or that would cause
     /// `(firstComponent * 40) + secondComponent` to overflow `UInt`, return
     /// `nil` rather than terminating the process.
