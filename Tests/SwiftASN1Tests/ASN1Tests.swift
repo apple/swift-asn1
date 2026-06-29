@@ -1428,6 +1428,32 @@ class ASN1Tests: XCTestCase {
         XCTAssertThrowsError(try DER.parse(berOctetString))
     }
 
+    func testTruncatedIndefiniteLengthThrows() throws {
+        // SEQUENCE (indefinite length) holding one OCTET STRING child ('A'), but the input is
+        // truncated before the mandatory end-of-contents octets (`00 00`). Parsing must fail
+        // rather than silently dropping the last child. See
+        // https://github.com/apple/swift-asn1/issues/125
+        let truncated: [UInt8] = [0x30, 0x80, 0x04, 0x01, 0x41]
+        XCTAssertThrowsError(try BER.parse(truncated)) { error in
+            XCTAssertEqual((error as! ASN1Error).code, ASN1Error.ErrorCode.truncatedASN1Field)
+        }
+    }
+
+    func testIndefiniteLengthWithEndMarkerRetainsChildren() throws {
+        // The same SEQUENCE, correctly terminated with end-of-contents octets, still parses
+        // and keeps its single OCTET STRING child.
+        let terminated: [UInt8] = [0x30, 0x80, 0x04, 0x01, 0x41, 0x00, 0x00]
+        let parsed = try BER.parse(terminated)
+        guard case .constructed(let children) = parsed.content else {
+            XCTFail("Expected a constructed node")
+            return
+        }
+        var iterator = children.makeIterator()
+        let child = try XCTUnwrap(iterator.next())
+        XCTAssertEqual(try ASN1OctetString(berEncoded: child).bytes, [0x41])
+        XCTAssertNil(iterator.next())
+    }
+
     func testConstructedBoolean() throws {
         let weirdASN1: [UInt8] = [0x21, 0x00]
         let node = try DER.parse(weirdASN1)
