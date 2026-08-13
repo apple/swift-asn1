@@ -258,6 +258,11 @@ extension ASN1 {
                 repeat {
                     try _parseNode(from: &data, encoding: rules, depth: depth + 1, into: &nodes)
                 } while data.count > 0 && nodes.last!.isEndMarker == false
+                // X.690 §8.1.3.6.1 requires end-of-contents octets. If input is exhausted first,
+                // the last child would otherwise be popped and treated as the marker.
+                guard nodes.last?.isEndMarker == true else {
+                    throw ASN1Error.truncatedASN1Field()
+                }
                 let endMarker = nodes.popLast()!
                 let encodedBytes = originalData[..<endMarker.encodedBytes.endIndex]
                 nodes[lastIndex].encodedBytes = encodedBytes

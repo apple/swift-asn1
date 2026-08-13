@@ -1428,6 +1428,18 @@ class ASN1Tests: XCTestCase {
         XCTAssertThrowsError(try DER.parse(berOctetString))
     }
 
+    func testRejectsTruncatedBERIndefiniteLengthWithoutEndMarker() throws {
+        // SEQUENCE (indefinite), one OCTET STRING child, no end-of-contents octets.
+        let truncated: [UInt8] = [0x30, 0x80, 0x04, 0x01, 0x41]
+        XCTAssertThrowsError(try BER.parse(truncated)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .truncatedASN1Field)
+        }
+
+        // The same encoding with the required EOC marker parses successfully.
+        let complete: [UInt8] = [0x30, 0x80, 0x04, 0x01, 0x41, 0x00, 0x00]
+        XCTAssertNoThrow(try BER.parse(complete))
+    }
+
     func testConstructedBoolean() throws {
         let weirdASN1: [UInt8] = [0x21, 0x00]
         let node = try DER.parse(weirdASN1)
