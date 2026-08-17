@@ -1260,8 +1260,36 @@ class ASN1Tests: XCTestCase {
         }
 
         XCTAssertThrowsError(try ASN1ObjectIdentifier(dotRepresentation: "25")) { error in
-            XCTAssertEqual((error as? ASN1Error)?.code, .tooFewOIDComponents)
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidStringRepresentation)
         }
+    }
+
+    func testOIDFailableStringInitializer() {
+        // Happy paths return a non-nil value equal to the array-literal form.
+        XCTAssertEqual(
+            ASN1ObjectIdentifier(validating: "1.2.865.11241.3"),
+            [1, 2, 865, 11241, 3] as ASN1ObjectIdentifier
+        )
+        XCTAssertEqual(
+            ASN1ObjectIdentifier(validating: "2.5.4.41"),
+            [2, 5, 4, 41] as ASN1ObjectIdentifier
+        )
+
+        // Malformed strings.
+        XCTAssertNil(ASN1ObjectIdentifier(validating: ""))
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "25"))
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "1..2.3"))
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "1.2.<bogus>"))
+
+        // Out-of-range arcs per X.690 §8.19.4.
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "3.0"))
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "0.40"))
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "1.40"))
+
+        // Component values that would overflow the encoded first subidentifier.
+        // The failable variant must surface them as `nil`.
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "461168601842738791.0"))
+        XCTAssertNil(ASN1ObjectIdentifier(validating: "2.18446744073709551615"))
     }
 
     func testSetOfSingleElement() throws {
