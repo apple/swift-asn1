@@ -148,7 +148,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     ///     - minutes: The numerical minutes
     ///     - seconds: The numerical seconds
     ///     - fractionalSeconds: The numerical fractional seconds.
-    @inlinable
     public init(
         year: Int,
         month: Int,
@@ -182,7 +181,6 @@ public struct GeneralizedTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Has
     ///     - seconds: The numerical seconds
     ///     - rawFractionalSeconds: The ArraySlice of bytes from which the fractional seconds will be computed.
     ///     (Preserved due to a possible overflow when computing a Double from this ArraySlice.)
-    @inlinable
     public init(
         year: Int,
         month: Int,
