@@ -102,8 +102,7 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
             }
         }
 
-        // Now we need to expand the subcomponents out. This means we need to undo the step above. We can do this by
-        // taking the quotient and remainder when dividing by 40.
+        // Now we need to expand the subcomponents out. This means we need to undo the step above.
         var oidComponents = [UInt]()
         oidComponents.reserveCapacity(subcomponents.count + 1)
 
@@ -115,7 +114,19 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
             )
         }
 
-        let (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
+        // The first component is limited to the values 0, 1, and 2, but only the 0 and 1 arcs are
+        // limited to 39 children. The 2 arc has no such limit, so any first subidentifier of 80 or
+        // more encodes a first component of 2 and cannot be recovered by dividing by 40. See
+        // X.690 § 8.19.4.
+        let firstSubcomponent: UInt
+        let secondSubcomponent: UInt
+        if firstEncodedSubcomponent < 80 {
+            (firstSubcomponent, secondSubcomponent) = firstEncodedSubcomponent.quotientAndRemainder(dividingBy: 40)
+        } else {
+            firstSubcomponent = 2
+            secondSubcomponent = firstEncodedSubcomponent - 80
+        }
+
         oidComponents.append(firstSubcomponent)
         oidComponents.append(secondSubcomponent)
         oidComponents.append(contentsOf: subcomponentSlice)
