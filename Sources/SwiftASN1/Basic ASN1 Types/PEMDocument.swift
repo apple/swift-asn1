@@ -199,15 +199,15 @@ extension PEMDocument {
 struct LazyPEMDocument {
     /// `discriminator` found after BEGIN and END markers
     var discriminator: Substring.UTF8View
-    /// The `base64EncodedDERBytes` are as found in the original string but with all line endings removed.
-    var base64EncodedDERBytes: Data
+    /// The `base64EncodedDERString` is as found in the original string but with all line endings removed.
+    var base64EncodedDERString: String
 
     func decode() throws -> PEMDocument {
         guard let type = String(self.discriminator) else {
             throw ASN1Error.invalidPEMDocument(reason: "discriminator is not valid UTF-8")
         }
 
-        guard let data = Data(base64Encoded: self.base64EncodedDERBytes) else {
+        guard let data = Data(base64Encoded: self.base64EncodedDERString) else {
             throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
         }
         if data.isEmpty {
@@ -289,12 +289,15 @@ extension Substring.UTF8View {
         let base64EncodedDERString = self[messageStart..<endDiscriminatorPrefix.lowerBound]
 
         /// verify line lengths and remove line endings
-        let base64EncodedDERBytes = try base64EncodedDERString.base64EncodedBytesRemovingLineEndings()
+        let strippedBase64EncodedDERString = try base64EncodedDERString.base64EncodedStringRemovingLineEndings()
 
         /// move `self` to the end of the END marker
         self = self[endDiscriminatorSuffix.upperBound...]
 
-        return LazyPEMDocument(discriminator: beginDiscriminator, base64EncodedDERBytes: base64EncodedDERBytes)
+        return LazyPEMDocument(
+            discriminator: beginDiscriminator,
+            base64EncodedDERString: strippedBase64EncodedDERString
+        )
     }
 
     /// Verify line length limits according to RFC and remove line endings.
@@ -308,12 +311,12 @@ extension Substring.UTF8View {
     /// printable characters and the final line containing 64 or fewer
     /// printable characters.
     ///
-    /// - Returns: The base64 encoded bytes without any line endings.
-    private func base64EncodedBytesRemovingLineEndings() throws -> Data {
+    /// - Returns: The base64 encoded string without any line endings.
+    private func base64EncodedStringRemovingLineEndings() throws -> String {
         var message = self
 
-        var base64EncodedBytes = Data()
-        base64EncodedBytes.reserveCapacity(message.count)
+        var base64EncodedString = String()
+        base64EncodedString.reserveCapacity(message.count)
 
         while !message.isEmpty {
             // Every line, including the last one, must be terminated by a new line.
@@ -331,17 +334,18 @@ extension Substring.UTF8View {
 
             // Every line except the last one must be exactly `lineLength` characters long. The last line must not be
             // longer than that but must still contain at least one character.
+            let lineLength = line.count
             let minimumLineLength = message.isEmpty ? 1 : PEMDocument.lineLength
             let maximumLineLength = PEMDocument.lineLength
 
-            guard line.count >= minimumLineLength, line.count <= maximumLineLength else {
+            guard lineLength >= minimumLineLength, lineLength <= maximumLineLength else {
                 throw ASN1Error.invalidPEMDocument(reason: "PEMDocument has incorrect line lengths")
             }
 
-            base64EncodedBytes.append(contentsOf: line)
+            base64EncodedString.append(contentsOf: Substring(line))
         }
 
-        return base64EncodedBytes
+        return base64EncodedString
     }
 }
 
