@@ -846,7 +846,7 @@ class ASN1Tests: XCTestCase {
             -----BEGIN EC PRIVATE KEY-----
             MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
             AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
-            O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
+            O9zxi7HTvuXyQr7QKSBtdC GmHym+WoPsbA==
             -----END EC PRIVATE KEY-----
             """
         XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
@@ -856,6 +856,35 @@ class ASN1Tests: XCTestCase {
         XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
         }
+    }
+
+    func testNonASCIICharacterIsForbidden() throws {
+        // A character which isn't even part of the ASCII range is not a valid base64 character.
+        let simplePEM = """
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIBHli4jaj+JwWQlU0yhZUu+TdMPVhZ3wR2PS416Sz/K/oAoGCCqGSM49
+            AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
+            O9zxi7HTvuXyQr7QKSBtdC\u{E0}GmHym+WoPsbA==
+            -----END EC PRIVATE KEY-----
+            """
+        XCTAssertThrowsError(try PEMDocument(pemString: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
+
+        XCTAssertThrowsError(try SEC1PrivateKey(pemEncoded: simplePEM)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument)
+        }
+    }
+
+    func testFullLengthFinalLineIsAllowed() throws {
+        // 96 bytes of DER will be base64 encoded as exactly 128 characters (two full 64 character lines).
+        let derBytes = Array(repeating: UInt8(0x01), count: 96)
+        let pemString = PEMDocument(type: "EC PRIVATE KEY", derBytes: derBytes).pemString
+        XCTAssertEqual(pemString.split(separator: "\n").count, 4)
+
+        let document = try PEMDocument(pemString: pemString)
+        XCTAssertEqual(document.discriminator, "EC PRIVATE KEY")
+        XCTAssertEqual(document.derBytes, derBytes)
     }
 
     func testAllowSingleComponentOIDs() throws {
