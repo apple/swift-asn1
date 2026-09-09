@@ -27,11 +27,17 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hash
     @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1UTF8String")
+        }
     }
 
     @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
+        guard Self._isValid(self.bytes) else {
+            throw ASN1Error.invalidStringRepresentation(reason: "Invalid bytes for ASN1UTF8String")
+        }
     }
 
     /// Construct a UTF8STRING from raw bytes.
@@ -60,6 +66,23 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hash
     @inlinable
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
+    }
+
+    @inlinable
+    static func _isValid(_ bytes: ArraySlice<UInt8>) -> Bool {
+        var iterator = bytes.makeIterator()
+        var decoder = UTF8()
+
+        while true {
+            switch decoder.decode(&iterator) {
+            case .scalarValue:
+                continue
+            case .emptyInput:
+                return true
+            case .error:
+                return false
+            }
+        }
     }
 }
 
