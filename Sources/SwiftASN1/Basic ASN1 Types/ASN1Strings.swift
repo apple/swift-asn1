@@ -24,29 +24,24 @@ public struct ASN1UTF8String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hash
     /// The raw bytes that make up this string.
     public var bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a UTF8STRING from raw bytes.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) {
         self.bytes = contentBytes
     }
 
-    @inlinable
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
     }
 
     /// Construct a UTF8STRING from a String.
-    @inlinable
     public init(_ string: String) {
         self.bytes = ArraySlice(string.utf8)
     }
@@ -77,23 +72,19 @@ public struct ASN1TeletexString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
     /// The raw bytes that make up this string.
     public var bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a TeletexString from raw bytes.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) {
         self.bytes = contentBytes
     }
 
-    @inlinable
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
     }
@@ -132,7 +123,6 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
         }
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
@@ -140,7 +130,6 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
         }
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
@@ -149,7 +138,6 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     }
 
     /// Construct a PrintableString from raw bytes.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) throws {
         self.bytes = contentBytes
         guard Self._isValid(self.bytes) else {
@@ -157,14 +145,12 @@ public struct ASN1PrintableString: DERImplicitlyTaggable, BERImplicitlyTaggable,
         }
     }
 
-    @inlinable
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
         precondition(Self._isValid(self.bytes))
     }
 
     /// Construct a PrintableString from a String.
-    @inlinable
     public init(_ string: String) throws {
         self.bytes = ArraySlice(string.utf8)
 
@@ -226,7 +212,6 @@ public struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
         }
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
@@ -234,7 +219,6 @@ public struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
         }
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
@@ -243,7 +227,6 @@ public struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
     }
 
     /// Construct a VisibleString from raw bytes.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) throws {
         self.bytes = contentBytes
         guard Self._isValid(self.bytes) else {
@@ -251,14 +234,12 @@ public struct ASN1VisibleString: DERImplicitlyTaggable, BERImplicitlyTaggable, H
         }
     }
 
-    @inlinable
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
         precondition(Self._isValid(self.bytes))
     }
 
     /// Construct a VisibleString from a String.
-    @inlinable
     public init(_ string: String) throws {
         self.bytes = ArraySlice(string.utf8)
 
@@ -301,23 +282,19 @@ public struct ASN1UniversalString: DERImplicitlyTaggable, BERImplicitlyTaggable,
     /// The raw bytes that make up this string.
     public var bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a UniversalString from raw bytes.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) {
         self.bytes = contentBytes
     }
 
-    @inlinable
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
     }
@@ -348,23 +325,19 @@ public struct ASN1BMPString: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
     /// The raw bytes that make up this string.
     public var bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
     }
 
     /// Construct a BMPString from raw bytes.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) {
         self.bytes = contentBytes
     }
 
-    @inlinable
     public init(stringLiteral value: StringLiteralType) {
         guard
             value.utf16.allSatisfy({ codeUnit in
@@ -415,7 +388,6 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
         }
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(derEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
@@ -423,7 +395,6 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
         }
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         self.bytes = try ASN1OctetString(berEncoded: node, withIdentifier: identifier).bytes
         guard Self._isValid(self.bytes) else {
@@ -432,7 +403,6 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
     }
 
     /// Construct an IA5String from raw bytes.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) throws {
         self.bytes = contentBytes
         guard Self._isValid(self.bytes) else {
@@ -440,14 +410,12 @@ public struct ASN1IA5String: DERImplicitlyTaggable, BERImplicitlyTaggable, Hasha
         }
     }
 
-    @inlinable
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
         precondition(Self._isValid(self.bytes))
     }
 
     /// Construct an IA5String from a String.
-    @inlinable
     public init(_ string: String) throws {
         self.bytes = ArraySlice(string.utf8)
 
