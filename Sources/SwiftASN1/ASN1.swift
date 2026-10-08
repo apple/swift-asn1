@@ -113,16 +113,6 @@ extension ASN1.ParserNode: CustomStringConvertible {
     }
 }
 
-extension ASN1.ParserNode {
-    @inlinable
-    var isEndMarker: Bool {
-        self.identifier.tagClass == .universal
-            && self.identifier.tagNumber == 0
-            && self.isConstructed == false
-            && self.encodedBytes.elementsEqual([0x00, 0x00])
-    }
-}
-
 // MARK: - Parsing
 
 extension ASN1 {
@@ -192,6 +182,12 @@ extension ASN1 {
                 throw ASN1Error.truncatedASN1Field()
             }
 
+            // [UNIVERSAL 0] is reserved for end-of-contents octets, which are consumed by the
+            // indefinite-length case below and never parsed as a node.
+            guard !(identifier.tagClass == .universal && identifier.tagNumber == 0) else {
+                throw ASN1Error.invalidASN1Object(reason: "Unexpected end-of-contents octets or [UNIVERSAL 0] tag")
+            }
+
             switch wideLength {
             case let .definite(wideLength):
                 guard let length = Int(exactly: wideLength) else {
@@ -255,17 +251,15 @@ extension ASN1 {
                     )
                 )
                 let lastIndex = nodes.endIndex - 1
-                repeat {
+                // X.690 §8.1.3.6.1: contents run until end-of-contents octets at this level.
+                while !data._startsWithEndOfContentsOctets {
+                    guard data.count > 0 else {
+                        throw ASN1Error.truncatedASN1Field()
+                    }
                     try _parseNode(from: &data, encoding: rules, depth: depth + 1, into: &nodes)
-                } while data.count > 0 && nodes.last!.isEndMarker == false
-                // X.690 §8.1.3.6.1 requires end-of-contents octets. If input is exhausted first,
-                // the last child would otherwise be popped and treated as the marker.
-                guard nodes.last?.isEndMarker == true else {
-                    throw ASN1Error.truncatedASN1Field()
                 }
-                let endMarker = nodes.popLast()!
-                let encodedBytes = originalData[..<endMarker.encodedBytes.endIndex]
-                nodes[lastIndex].encodedBytes = encodedBytes
+                data = data.dropFirst(2)
+                nodes[lastIndex].encodedBytes = originalData[..<data.startIndex]
             }
         }
     }
@@ -444,6 +438,11 @@ extension ArraySlice where Element == UInt8 {
     enum ASN1Length: Sendable {
         case indefinite
         case definite(_: UInt)
+    }
+
+    @inlinable
+    var _startsWithEndOfContentsOctets: Bool {
+        self.count >= 2 && self[self.startIndex] == 0x00 && self[self.startIndex + 1] == 0x00
     }
 
     @inlinable
