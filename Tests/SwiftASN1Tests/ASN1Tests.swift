@@ -1467,6 +1467,99 @@ class ASN1Tests: XCTestCase {
         // The same encoding with the required EOC marker parses successfully.
         let complete: [UInt8] = [0x30, 0x80, 0x04, 0x01, 0x41, 0x00, 0x00]
         XCTAssertNoThrow(try BER.parse(complete))
+
+        // Input ending partway through the EOC marker is also truncated.
+        let partialEndMarker: [UInt8] = [0x30, 0x80, 0x04, 0x01, 0x41, 0x00]
+        XCTAssertThrowsError(try BER.parse(partialEndMarker)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .truncatedASN1Field)
+        }
+    }
+
+    func testRejectsEndOfContentsOctetsInsideDefiniteLengthContents() throws {
+        let invalid: [[UInt8]] = [
+            // 00 00 nested in a definite-length SEQUENCE, no EOC for the outer indefinite SEQUENCE.
+            [0x30, 0x80, 0x04, 0x01, 0x41, 0x30, 0x02, 0x00, 0x00],
+            // As above, with the outer EOC present.
+            [0x30, 0x80, 0x04, 0x01, 0x41, 0x30, 0x02, 0x00, 0x00, 0x00, 0x00],
+            // Nested 00 00 must not end the indefinite SEQUENCE early.
+            [0x30, 0x0b, 0x30, 0x80, 0x30, 0x02, 0x00, 0x00, 0x02, 0x01, 0x05, 0x00, 0x00],
+            // Two nested 00 00 must not end two levels of indefinite SEQUENCE.
+            [0x30, 0x80, 0x30, 0x80, 0x30, 0x04, 0x00, 0x00, 0x00, 0x00],
+            // Constructed OCTET STRING variant.
+            [0x24, 0x80, 0x04, 0x01, 0x41, 0x24, 0x02, 0x00, 0x00],
+            // 00 00 directly inside definite-length contents.
+            [0x30, 0x02, 0x00, 0x00],
+        ]
+        for bytes in invalid {
+            XCTAssertThrowsError(try BER.parse(bytes), "\(bytes)") { error in
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object, "\(bytes)")
+            }
+        }
+        XCTAssertThrowsError(try DER.parse([0x30, 0x02, 0x00, 0x00]))
+    }
+
+    func testRejectsUniversalTagZero() throws {
+        let invalid: [[UInt8]] = [
+            // Top-level 00 00.
+            [0x00, 0x00],
+            // [UNIVERSAL 0] with contents.
+            [0x30, 0x03, 0x00, 0x01, 0xff],
+            // Constructed [UNIVERSAL 0].
+            [0x30, 0x02, 0x20, 0x00],
+        ]
+        for bytes in invalid {
+            XCTAssertThrowsError(try BER.parse(bytes), "\(bytes)") { error in
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object, "\(bytes)")
+            }
+            XCTAssertThrowsError(try DER.parse(bytes), "\(bytes)") { error in
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object, "\(bytes)")
+            }
+        }
+
+        // A non-minimally encoded zero length is not an EOC marker.
+        let nonMinimalEndMarker: [UInt8] = [0x30, 0x80, 0x04, 0x01, 0x41, 0x00, 0x81, 0x00, 0x00, 0x00]
+        XCTAssertThrowsError(try BER.parse(nonMinimalEndMarker)) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
+        }
+    }
+
+    func testParseNestedBERIndefiniteLengthEncodings() throws {
+        // SEQUENCE (indefinite) { SEQUENCE (indefinite) { INTEGER 5 }, SEQUENCE (indefinite) {}, INTEGER 6 }
+        let encoded: [UInt8] = [
+            0x30, 0x80,
+            0x30, 0x80, 0x02, 0x01, 0x05, 0x00, 0x00,
+            0x30, 0x80, 0x00, 0x00,
+            0x02, 0x01, 0x06,
+            0x00, 0x00,
+        ]
+        let parsed = try BER.parse(encoded)
+        XCTAssertEqual(parsed.encodedBytes, encoded[...])
+
+        guard case .constructed(let children) = parsed.content else {
+            XCTFail("Unexpected node")
+            return
+        }
+        let childNodes = Array(children)
+        guard childNodes.count == 3 else {
+            XCTFail("Invalid number of children")
+            return
+        }
+
+        XCTAssertEqual(childNodes[0].encodedBytes, [0x30, 0x80, 0x02, 0x01, 0x05, 0x00, 0x00])
+        guard case .constructed(let innerChildren) = childNodes[0].content else {
+            XCTFail("Unexpected node")
+            return
+        }
+        XCTAssertEqual(try innerChildren.map { try Int(berEncoded: $0) }, [5])
+
+        XCTAssertEqual(childNodes[1].encodedBytes, [0x30, 0x80, 0x00, 0x00])
+        guard case .constructed(let emptyChildren) = childNodes[1].content else {
+            XCTFail("Unexpected node")
+            return
+        }
+        XCTAssertEqual(Array(emptyChildren).count, 0)
+
+        XCTAssertEqual(try Int(berEncoded: childNodes[2]), 6)
     }
 
     func testConstructedBoolean() throws {
