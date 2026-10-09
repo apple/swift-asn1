@@ -368,13 +368,12 @@ class ASN1Tests: XCTestCase {
         let decodedSequence = Array(Data(base64Encoded: base64Sequence)!)
         let parsed = try DER.parse(decodedSequence)
 
-        do {
+        XCTAssertThrowsError(
             try DER.sequence(parsed, identifier: .sequence) { nodes in
-                // This is fine.
                 XCTAssertNoThrow(try ASN1OctetString(derEncoded: &nodes))
             }
-        } catch let error as ASN1Error {
-            XCTAssertEqual(error.code, .invalidASN1Object)
+        ) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
         }
     }
 
@@ -1604,5 +1603,80 @@ class ASN1Tests: XCTestCase {
         let node = try DER.parse(weirdASN1)
         XCTAssertThrowsError(try ASN1ObjectIdentifier(berEncoded: node))
         XCTAssertThrowsError(try ASN1ObjectIdentifier(derEncoded: node))
+    }
+}
+
+extension ASN1Tests {
+    func testDERRejectsLongFormLengthForSingleOctet() throws {
+        // OCTET STRING length 1 must use short form in DER.
+        XCTAssertThrowsError(try DER.parse([0x04, 0x81, 0x01, 0x41])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .unsupportedFieldLength)
+        }
+    }
+
+    func testBERRejectsPrimitiveIndefiniteLength() throws {
+        // Indefinite length is only valid for constructed encodings.
+        XCTAssertThrowsError(try BER.parse([0x04, 0x80, 0x00, 0x00])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .unsupportedFieldLength)
+        }
+    }
+
+    func testNULLRejectsNonemptyContents() throws {
+        // NULL must have zero content octets.
+        XCTAssertThrowsError(try ASN1Null(derEncoded: [0x05, 0x01, 0x00])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
+        }
+    }
+
+    func testDERBooleanRejectsNoncanonicalTrue() throws {
+        // DER true must be FF, rather than the BER-valid value 01.
+        XCTAssertThrowsError(try Bool(derEncoded: [0x01, 0x01, 0x01])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
+        }
+    }
+
+    func testBooleanDecodesZeroAsFalse() throws {
+        XCTAssertFalse(try Bool(derEncoded: [0x01, 0x01, 0x00]))
+    }
+
+    func testDERBooleanSerializesTrueAsFF() throws {
+        var serializer = DER.Serializer()
+        try serializer.serialize(true)
+        XCTAssertEqual(serializer.serializedBytes, [0x01, 0x01, 0xff])
+    }
+
+    func testUnsignedIntegerRejectsNegativeEncoding() throws {
+        // FF encodes -1, which cannot be represented by UInt.
+        XCTAssertThrowsError(try UInt(derEncoded: [0x02, 0x01, 0xff])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1IntegerEncoding)
+        }
+    }
+
+    func testBitStringRejectsEightUnusedBits() throws {
+        // The unused-bit count must be in 0...7.
+        XCTAssertThrowsError(try ASN1BitString(derEncoded: [0x03, 0x02, 0x08, 0x00])) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
+        }
+    }
+
+    func testDERRejectsExplicitlyEncodedDefault() throws {
+        // A field equal to its DEFAULT value must be absent in DER.
+        let node = try DER.parse([0x30, 0x03, 0x02, 0x01, 0x01])
+        XCTAssertThrowsError(
+            try DER.sequence(node, identifier: .sequence) { nodes in
+                try DER.decodeDefault(&nodes, identifier: .integer, defaultValue: 1) { try Int(derEncoded: $0) }
+            }
+        ) { error in
+            XCTAssertEqual((error as? ASN1Error)?.code, .invalidASN1Object)
+        }
+    }
+
+    func testBERDecodesEmptyConstructedOctetString() throws {
+        XCTAssertEqual(try ASN1OctetString(berEncoded: [0x24, 0x00]).bytes, [])
+    }
+
+    func testIntegerByteCollectionEndIndexIsGreaterThanStartIndex() throws {
+        let bytes = IntegerBytesCollection(UInt16(256))
+        XCTAssertGreaterThan(bytes.endIndex, bytes.startIndex)
     }
 }
