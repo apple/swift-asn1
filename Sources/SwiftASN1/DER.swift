@@ -623,7 +623,6 @@ extension DER {
         }
 
         /// Construct a new serializer.
-        @inlinable
         public init() {
             // We allocate a 1kB array because that should cover us most of the time.
             self._serializedBytes = []

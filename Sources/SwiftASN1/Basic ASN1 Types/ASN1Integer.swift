@@ -172,7 +172,6 @@ public struct IntegerBytesCollection<Integer: FixedWidthInteger> {
     @usableFromInline var integer: Integer
 
     /// Construct an ``IntegerBytesCollection`` representing the bytes of this integer.
-    @inlinable
     public init(_ integer: Integer) {
         self.integer = integer
     }
@@ -187,7 +186,7 @@ extension IntegerBytesCollection: RandomAccessCollection {
         @usableFromInline
         var _byteNumber: Int
 
-        @inlinable
+        @usableFromInline
         init(byteNumber: Int) {
             self._byteNumber = byteNumber
         }
