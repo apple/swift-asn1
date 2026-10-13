@@ -212,14 +212,46 @@ extension ArraySlice where Element == UInt8 {
             )
         }
 
-        if fractionalSeconds != 0 {
-            let fractionalSecondsAsString = String(fractionalSeconds)
-
-            assert(fractionalSecondsAsString.starts(with: "0."), "Invalid fractional seconds")
-            assert(fractionalSecondsAsString.last != "0", "Trailing zeros in fractional seconds")
-
-            self.append(contentsOf: fractionalSecondsAsString.utf8.dropFirst(2))
+        guard fractionalSeconds != 0 else {
+            return
         }
+
+        // `String(Double)` produces the shortest digit string that round-trips to the same value, which is
+        // exactly what we want. However, for values below 0.0001 it switches to scientific notation
+        // (e.g. "1.5e-05"), so we have to expand that back into plain decimal digits.
+        let description = String(fractionalSeconds)
+        let digits: String
+
+        if let exponentMarker = description.firstIndex(of: "e") {
+            // Scientific notation: "<d>[.<ddd>]e-<nn>". As the value is below 1, the exponent is always negative.
+            let mantissa = description[..<exponentMarker]
+            let exponentDigits = description[description.index(after: exponentMarker)...]
+            guard let exponent = Int(exponentDigits), exponent < 0 else {
+                throw ASN1Error.invalidASN1Object(
+                    reason: "Invalid fractional seconds: \(fractionalSeconds)"
+                )
+            }
+
+            // The mantissa has exactly one non-zero digit before the decimal point, so an exponent of -n
+            // means n - 1 leading zeroes after the decimal point.
+            digits = String(repeating: "0", count: -exponent - 1) + mantissa.filter { $0 != "." }
+        } else {
+            guard description.hasPrefix("0.") else {
+                throw ASN1Error.invalidASN1Object(
+                    reason: "Invalid fractional seconds: \(fractionalSeconds)"
+                )
+            }
+
+            digits = String(description.dropFirst(2))
+        }
+
+        guard digits.last != "0", digits.utf8.allSatisfy({ Int(fromDecimalASCII: $0) != nil }) else {
+            throw ASN1Error.invalidASN1Object(
+                reason: "Invalid fractional seconds: \(fractionalSeconds)"
+            )
+        }
+
+        self.append(contentsOf: digits.utf8)
     }
 }
 
