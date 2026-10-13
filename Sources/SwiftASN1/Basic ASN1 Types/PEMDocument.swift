@@ -207,6 +207,8 @@ struct LazyPEMDocument {
             throw ASN1Error.invalidPEMDocument(reason: "discriminator is not valid UTF-8")
         }
 
+        try self.base64EncodedDERString.utf8.validateCanonicalBase64()
+
         guard let data = Data(base64Encoded: self.base64EncodedDERString) else {
             throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
         }
@@ -216,6 +218,71 @@ struct LazyPEMDocument {
 
         let derBytes = Array(data)
         return PEMDocument(type: type, derBytes: derBytes)
+    }
+}
+
+extension String.UTF8View {
+    /// Checks that `self` is canonical base64 as described in RFC 4648 section 3.5: padding appears only at the end,
+    /// there are at most two padding characters, and the bits that do not form part of a decoded byte are all zero.
+    ///
+    /// `Data(base64Encoded:)` accepts excess padding and non-zero trailing bits, which allows several distinct
+    /// strings to decode to the same bytes. PEM carries signed material, so we insist on the one canonical form.
+    fileprivate func validateCanonicalBase64() throws {
+        guard self.count % 4 == 0 else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument base64 body length is not a multiple of four")
+        }
+
+        // Walk back over up to two padding characters. Afterwards `endOfData` is the index just past the last
+        // data character.
+        var paddingCount = 0
+        var endOfData = self.endIndex
+        while paddingCount < 2, endOfData != self.startIndex {
+            let previous = self.index(before: endOfData)
+            guard self[previous] == UInt8(ascii: "=") else {
+                break
+            }
+            paddingCount += 1
+            endOfData = previous
+        }
+
+        guard !self[..<endOfData].contains(UInt8(ascii: "=")) else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument base64 body has excess or misplaced padding")
+        }
+
+        guard paddingCount > 0 else {
+            return
+        }
+
+        guard let lastSextet = self[self.index(before: endOfData)].base64Sextet else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument not correctly base64 encoded")
+        }
+
+        // With one padding character the final data character contributes four bits, so its low two bits must be
+        // zero. With two padding characters it contributes two bits, so its low four bits must be zero.
+        let unusedBitsMask: UInt8 = paddingCount == 1 ? 0b11 : 0b1111
+        guard lastSextet & unusedBitsMask == 0 else {
+            throw ASN1Error.invalidPEMDocument(reason: "PEMDocument base64 body has non-zero trailing bits")
+        }
+    }
+}
+
+extension UInt8 {
+    /// The six-bit value this byte represents in the standard base64 alphabet, or `nil` if it is not in the alphabet.
+    fileprivate var base64Sextet: UInt8? {
+        switch self {
+        case UInt8(ascii: "A")...UInt8(ascii: "Z"):
+            return self - UInt8(ascii: "A")
+        case UInt8(ascii: "a")...UInt8(ascii: "z"):
+            return self - UInt8(ascii: "a") + 26
+        case UInt8(ascii: "0")...UInt8(ascii: "9"):
+            return self - UInt8(ascii: "0") + 52
+        case UInt8(ascii: "+"):
+            return 62
+        case UInt8(ascii: "/"):
+            return 63
+        default:
+            return nil
+        }
     }
 }
 
