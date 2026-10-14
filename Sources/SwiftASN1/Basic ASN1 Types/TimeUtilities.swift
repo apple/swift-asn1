@@ -313,6 +313,11 @@ extension Double {
             throw ASN1Error.invalidASN1Object(reason: "Trailing zeros in raw fractional seconds")
         }
 
+        // `Double(String)` accepts exponents and stops at a NUL byte, so check the digits ourselves.
+        guard rawFractionalSeconds.allSatisfy({ $0 >= UInt8(ascii: "0") && $0 <= UInt8(ascii: "9") }) else {
+            throw ASN1Error.invalidASN1Object(reason: "Non-digit bytes in raw fractional seconds")
+        }
+
         let rawFractionalSecondsAsString = String(decoding: rawFractionalSeconds, as: UTF8.self)
         let fractionalSecondsAsString = "0.\(rawFractionalSecondsAsString)"
 

@@ -774,6 +774,41 @@ final class GeneralizedTimeTests: XCTestCase {
         mustFail(try .init(year: 2000, month: 1, day: 1, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 1.1))
     }
 
+    func testRawFractionalSecondsMustBeDigits() throws {
+        func mustFail(_ rawFractionalSeconds: [UInt8]) {
+            XCTAssertThrowsError(
+                try GeneralizedTime(
+                    year: 2000,
+                    month: 1,
+                    day: 1,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0,
+                    rawFractionalSeconds: rawFractionalSeconds[...]
+                )
+            )
+        }
+
+        // `Double(String)` would accept these, but they are not valid GeneralizedTime fractions.
+        mustFail(Array("4\u{0}junk".utf8))
+        mustFail(Array("1e-5".utf8))
+        mustFail(Array("5E-1".utf8))
+        mustFail(Array(" 5".utf8))
+        mustFail(Array("+5".utf8))
+        mustFail(Array("1.5".utf8))
+
+        let time = try GeneralizedTime(
+            year: 2000,
+            month: 1,
+            day: 1,
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            rawFractionalSeconds: Array("25".utf8)[...]
+        )
+        XCTAssertEqual(time.fractionalSeconds, 0.25)
+    }
+
     func testTruncatedRepresentationsRejected() throws {
         func mustNotDeserialize(_ stringRepresentation: Substring) {
             var serialized = [UInt8]()
