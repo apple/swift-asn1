@@ -52,6 +52,10 @@ jobs:
 
   cmake-lists:
     name: Check cmake lists
+    strategy:
+      fail-fast: false
+      matrix:
+        swift_version: ["6.2", "6.3", "6.4"]
     uses: apple/swift-nio/.github/workflows/cmake_tests.yml@main
     with:
       update_cmake_lists_config: >-
@@ -60,6 +64,7 @@ jobs:
             { "name": "SwiftASN1", "type": "source", "exceptions": [] }
           ]
         }
+      image: "swift:${{ matrix.swift_version }}"
 
   macos-tests:
     name: macOS tests
