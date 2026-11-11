@@ -896,4 +896,52 @@ final class GeneralizedTimeTests: XCTestCase {
             }
         }
     }
+
+    func testSmallFractionalSecondsRoundTrip() throws {
+        // Swift prints Doubles below 0.0001 in scientific notation (e.g. "1e-05"). The serializer used to copy
+        // that notation into the encoding, producing invalid GeneralizedTime values such as "...05.-05Z".
+        let vectors: [(Double, String)] = [
+            (0.0001, "0001"),
+            (0.00001, "00001"),
+            (0.000015, "000015"),
+            (0.0000001234, "0000001234"),
+            (1e-7, "0000001"),
+        ]
+
+        for (fractionalSeconds, expectedDigits) in vectors {
+            let time = try GeneralizedTime(
+                year: 2025,
+                month: 1,
+                day: 2,
+                hours: 3,
+                minutes: 4,
+                seconds: 5,
+                fractionalSeconds: fractionalSeconds
+            )
+            XCTAssertEqual(Array(time.rawFractionalSeconds), Array(expectedDigits.utf8), "\(fractionalSeconds)")
+            XCTAssertEqual(time.fractionalSeconds, fractionalSeconds)
+            try self.assertRoundTrips(time)
+
+            var serializer = DER.Serializer()
+            try serializer.serialize(time)
+            XCTAssertEqual(
+                Array(serializer.serializedBytes.dropFirst(2)),
+                Array("20250102030405.\(expectedDigits)Z".utf8),
+                "\(fractionalSeconds)"
+            )
+
+            // The setter takes the same path as the initializer.
+            var mutated = try GeneralizedTime(
+                year: 2025,
+                month: 1,
+                day: 2,
+                hours: 3,
+                minutes: 4,
+                seconds: 5,
+                fractionalSeconds: 0
+            )
+            mutated.fractionalSeconds = fractionalSeconds
+            XCTAssertEqual(mutated, time)
+        }
+    }
 }
