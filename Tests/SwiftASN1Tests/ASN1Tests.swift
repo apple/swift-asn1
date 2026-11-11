@@ -1279,6 +1279,66 @@ class ASN1Tests: XCTestCase {
         XCTAssertEqual(oidFromString.oidComponents, [1, 2, 865, 11241, 3])
     }
 
+    func testOIDSecondComponentAboveThirtyNine() throws {
+        // X.690 § 8.19.4 encodes the first two components as (X * 40) + Y. Only the 0 and 1 arcs
+        // are limited to 39 children, so a first subidentifier of 80 or greater always represents
+        // a first component of 2 with an unbounded second component.
+        //
+        // 2.100.3 encodes its first subidentifier as (2 * 40) + 100 == 180.
+        let encoded: [UInt8] = [0x06, 0x03, 0x81, 0x34, 0x03]
+        let parsed = try ASN1ObjectIdentifier(derEncoded: encoded)
+        XCTAssertEqual(parsed.oidComponents, [2, 100, 3])
+        XCTAssertEqual(String(describing: parsed), "2.100.3")
+
+        // Registered arcs that exercise the same path.
+        let wmo: ASN1ObjectIdentifier = [2, 49, 0, 0, 826, 0]
+        XCTAssertEqual(wmo.oidComponents, [2, 49, 0, 0, 826, 0])
+
+        let example: ASN1ObjectIdentifier = [2, 999, 1]
+        XCTAssertEqual(example.oidComponents, [2, 999, 1])
+    }
+
+    func testOIDFirstSubidentifierBoundaries() throws {
+        // The last first-subidentifier value belonging to each of the 0 and 1 arcs, and the first
+        // two belonging to the 2 arc, which is where dividing by 40 stops being correct.
+        let cases: [(UInt, [UInt])] = [
+            (39, [0, 39]),
+            (40, [1, 0]),
+            (79, [1, 39]),
+            (80, [2, 0]),
+            (81, [2, 1]),
+        ]
+
+        for (firstSubidentifier, expected) in cases {
+            let oid = try ASN1ObjectIdentifier(elements: expected)
+            XCTAssertEqual(oid.oidComponents, expected)
+
+            // Confirm the encoded form really is the subidentifier we think it is.
+            var serializer = DER.Serializer()
+            try serializer.serialize(oid)
+            XCTAssertEqual(
+                try ASN1ObjectIdentifier(derEncoded: serializer.serializedBytes).oidComponents,
+                expected
+            )
+            XCTAssertEqual(expected[0] * 40 + expected[1], firstSubidentifier)
+        }
+    }
+
+    func testOIDRoundTripsSecondComponentAboveThirtyNine() throws {
+        // Every OID must survive a serialize/parse round trip unchanged.
+        for secondComponent in UInt(0)...UInt(200) {
+            let components: [UInt] = [2, secondComponent, 1]
+            let oid = try ASN1ObjectIdentifier(elements: components)
+
+            var serializer = DER.Serializer()
+            try serializer.serialize(oid)
+            let roundTripped = try ASN1ObjectIdentifier(derEncoded: serializer.serializedBytes)
+
+            XCTAssertEqual(roundTripped.oidComponents, components)
+            XCTAssertEqual(roundTripped, oid)
+        }
+    }
+
     func testOIDStringInitializerInvalid() {
         XCTAssertThrowsError(try ASN1ObjectIdentifier(dotRepresentation: "1..2.865.11241.3")) { error in
             XCTAssertEqual((error as? ASN1Error)?.code, .invalidStringRepresentation)
