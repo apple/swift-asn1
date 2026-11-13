@@ -50,7 +50,6 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         }
     }
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -94,7 +93,6 @@ public struct ASN1BitString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     /// - parameters:
     ///     - bytes: The bytes to represent this bitstring
     ///     - paddingBits: The number of bits in the trailing byte that are not actually part of this bitstring.
-    @inlinable
     public init(bytes: ArraySlice<UInt8>, paddingBits: Int = 0) {
         self.bytes = bytes
         self.paddingBits = paddingBits

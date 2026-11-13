@@ -35,7 +35,6 @@ public struct ASN1ObjectIdentifier: DERImplicitlyTaggable, BERImplicitlyTaggable
     @usableFromInline
     var bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -147,7 +146,6 @@ extension ASN1ObjectIdentifier: Sendable {}
 extension ASN1ObjectIdentifier {
     /// Initializes ``ASN1ObjectIdentifier`` from its OID components
     /// - Parameter elements: The OID components
-    @inlinable
     public init(elements: some Collection<UInt>) throws {
         var bytes = [UInt8]()
         var iterator = elements.makeIterator()

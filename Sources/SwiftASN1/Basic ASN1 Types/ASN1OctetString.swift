@@ -23,7 +23,6 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     /// The octets that make up this OCTET STRING.
     public var bytes: ArraySlice<UInt8>
 
-    @inlinable
     public init(derEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -36,7 +35,6 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
         self.bytes = content
     }
 
-    @inlinable
     public init(berEncoded node: ASN1Node, withIdentifier identifier: ASN1Identifier) throws {
         guard node.identifier == identifier else {
             throw ASN1Error.unexpectedFieldType(node.identifier)
@@ -87,7 +85,6 @@ public struct ASN1OctetString: DERImplicitlyTaggable, BERImplicitlyTaggable {
     ///
     /// - parameters:
     ///     - contentBytes: The bytes that make up this OCTET STRING.
-    @inlinable
     public init(contentBytes: ArraySlice<UInt8>) {
         self.bytes = contentBytes
     }

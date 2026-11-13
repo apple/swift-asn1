@@ -114,7 +114,6 @@ public struct UTCTime: DERImplicitlyTaggable, BERImplicitlyTaggable, Hashable, S
     ///     - hours: The numerical hours
     ///     - minutes: The numerical minutes
     ///     - seconds: The numerical seconds
-    @inlinable
     public init(year: Int, month: Int, day: Int, hours: Int, minutes: Int, seconds: Int) throws {
         self._year = year
         self._month = month

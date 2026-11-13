@@ -69,7 +69,7 @@ public struct ASN1Identifier {
         }
     }
 
-    @inlinable
+    @usableFromInline
     init(shortIdentifier: UInt8) {
         precondition(shortIdentifier & 0x1F != 0x1F)
         self.tagClass = TagClass(topByteInWireFormat: shortIdentifier)
@@ -81,7 +81,6 @@ public struct ASN1Identifier {
     /// - parameters:
     ///     - number: The tag number.
     ///     - tagClass: The class of the ASN.1 tag.
-    @inlinable
     public init(tagWithNumber number: UInt, tagClass: TagClass) {
         self.tagNumber = number
         self.tagClass = tagClass
