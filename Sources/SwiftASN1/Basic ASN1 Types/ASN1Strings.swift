@@ -319,7 +319,16 @@ public struct ASN1UniversalString: DERImplicitlyTaggable, BERImplicitlyTaggable,
 
     @inlinable
     public init(stringLiteral value: StringLiteralType) {
-        self.bytes = ArraySlice(value.utf8)
+        self.bytes = ArraySlice(
+            value.unicodeScalars.flatMap { scalar in
+                [
+                    UInt8(truncatingIfNeeded: scalar.value >> 24),
+                    UInt8(truncatingIfNeeded: scalar.value >> 16),
+                    UInt8(truncatingIfNeeded: scalar.value >> 8),
+                    UInt8(truncatingIfNeeded: scalar.value),
+                ]
+            }
+        )
     }
 
     @inlinable
