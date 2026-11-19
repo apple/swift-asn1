@@ -39,6 +39,30 @@ final class ASN1StringTests: XCTestCase {
         string.withUnsafeBytes { XCTAssertTrue($0.elementsEqual([1, 2, 3, 4])) }
     }
 
+    func testUTF8StringRejectsInvalidUTF8() throws {
+        // A lead byte that must be followed by one continuation byte, and 0x28 is not one.
+        XCTAssertThrowsError(try ASN1UTF8String(derEncoded: [0x0c, 0x02, 0xc3, 0x28]))
+        // An overlong encoding of U+002F.
+        XCTAssertThrowsError(try ASN1UTF8String(derEncoded: [0x0c, 0x02, 0xc0, 0xaf]))
+        // U+D800, the high half of a surrogate pair, encoded as three bytes.
+        XCTAssertThrowsError(try ASN1UTF8String(derEncoded: [0x0c, 0x03, 0xed, 0xa0, 0x80]))
+        // A scalar above U+10FFFF.
+        XCTAssertThrowsError(try ASN1UTF8String(derEncoded: [0x0c, 0x04, 0xf5, 0x80, 0x80, 0x80]))
+        // A sequence cut short by the end of the contents.
+        XCTAssertThrowsError(try ASN1UTF8String(derEncoded: [0x0c, 0x02, 0xe2, 0x82]))
+        // A continuation byte with nothing leading it.
+        XCTAssertThrowsError(try ASN1UTF8String(derEncoded: [0x0c, 0x01, 0x80]))
+    }
+
+    func testUTF8StringAcceptsValidUTF8() throws {
+        // Empty, ASCII, two-, three- and four-byte scalars.
+        XCTAssertEqual(try ASN1UTF8String(derEncoded: [0x0c, 0x00]).bytes, [])
+        XCTAssertEqual(try ASN1UTF8String(derEncoded: [0x0c, 0x01, 0x41]).bytes, [0x41])
+        XCTAssertNoThrow(try ASN1UTF8String(derEncoded: [0x0c, 0x02, 0xc2, 0xa9]))
+        XCTAssertNoThrow(try ASN1UTF8String(derEncoded: [0x0c, 0x03, 0xe6, 0x97, 0xa5]))
+        XCTAssertNoThrow(try ASN1UTF8String(derEncoded: [0x0c, 0x04, 0xf0, 0x9f, 0x94, 0x92]))
+    }
+
     func testTeletexStringEncoding() throws {
         var serializer = DER.Serializer()
         let originalString = ASN1TeletexString(contentBytes: [1, 2, 3, 4])
