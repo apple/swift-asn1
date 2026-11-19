@@ -858,6 +858,36 @@ class ASN1Tests: XCTestCase {
         }
     }
 
+    func testNonCanonicalBase64IsForbidden() throws {
+        func pem(_ body: String) -> String {
+            """
+            -----BEGIN TEST-----
+            \(body)
+            -----END TEST-----
+            """
+        }
+
+        // The canonical encodings of "ABC", "AB" and "A" are accepted.
+        XCTAssertEqual(try PEMDocument(pemString: pem("QUJD")).derBytes, [0x41, 0x42, 0x43])
+        XCTAssertEqual(try PEMDocument(pemString: pem("QUI=")).derBytes, [0x41, 0x42])
+        XCTAssertEqual(try PEMDocument(pemString: pem("QQ==")).derBytes, [0x41])
+
+        // Other encodings that would decode to the same bytes are rejected.
+        let nonCanonicalBodies = [
+            "QUJ=",  // Non-zero trailing bits with one padding character.
+            "QR==",  // Non-zero trailing bits with two padding characters.
+            "QUJD====",  // Excess padding.
+            "QUJD=",  // Length is not a multiple of four.
+            "QQ==QUJD",  // Padding in the middle.
+            "====",  // Only padding.
+        ]
+        for body in nonCanonicalBodies {
+            XCTAssertThrowsError(try PEMDocument(pemString: pem(body)), body) { error in
+                XCTAssertEqual((error as? ASN1Error)?.code, .invalidPEMDocument, body)
+            }
+        }
+    }
+
     func testNonASCIICharacterIsForbidden() throws {
         // A character which isn't even part of the ASCII range is not a valid base64 character.
         let simplePEM = """
